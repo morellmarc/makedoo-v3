@@ -330,25 +330,25 @@ input:focus{border-color:var(--blue)}
 <div class="overlay" id="ov-setup" style="display:none">
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-setup')">×</button>
-    <div class="overlay-title">⚙ Paramètres</div>
+    <div class="overlay-title" id="settings-title">⚙ Settings</div>
     <div class="setting-row">
-      <div class="setting-label">Clé API Google</div>
+      <div class="setting-label" id="label-apikey">Google API Key</div>
       <input type="password" id="api-key-input" placeholder="AIzaSy…">
     </div>
     <div class="setting-row">
-      <div class="setting-label">Langue de l'interface</div>
+      <div class="setting-label" id="label-uilang">Interface language</div>
       <button onclick="setUILang('fr')" id="ulang-fr" class="lang-btn">🇫🇷 Français</button>
       <button onclick="setUILang('en')" id="ulang-en" class="lang-btn">🇬🇧 English</button>
       <button onclick="setUILang('mk')" id="ulang-mk" class="lang-btn">🇲🇰 Македонски</button>
       <button onclick="setUILang('es')" id="ulang-es" class="lang-btn">🇪🇸 Español</button>
       <button onclick="setUILang('de')" id="ulang-de" class="lang-btn">🇩🇪 Deutsch</button>
     </div>
-    <button class="setting-btn" onclick="saveApiKey()">Enregistrer la clé</button>
+    <button class="setting-btn" id="btn-savekey" onclick="saveApiKey()">Save key</button>
     <div id="api-status" style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center"></div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-      <div class="setting-label">Voix MK disponibles</div>
+      <div class="setting-label" id="label-voices">Available MK voices</div>
       <div id="voice-list" style="font-size:13px;color:var(--muted);margin-bottom:8px"></div>
-      <button class="setting-btn" style="background:linear-gradient(135deg,#1565C0,#0D47A1)" onclick="scanVoices()">🔍 Scanner les voix MK</button>
+      <button class="setting-btn" id="btn-scanvoices" style="background:linear-gradient(135deg,#1565C0,#0D47A1)" onclick="scanVoices()">🔍 Scan MK voices</button>
     </div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
       <div class="setting-label">GPS</div>
@@ -368,10 +368,10 @@ input:focus{border-color:var(--blue)}
 <div class="overlay" id="ov-contact" style="display:none">
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-contact')">×</button>
-    <div class="overlay-title">Interlocuteur</div>
+    <div class="overlay-title" id="contact-title">Contact</div>
     <div id="contact-list"></div>
     <div style="display:flex;gap:8px;margin-top:12px">
-      <input type="text" id="new-contact-input" placeholder="Nouveau nom…">
+      <input type="text" id="new-contact-input" placeholder="New name…" id="new-contact-ph">
       <button class="setting-btn" style="width:auto;padding:10px 16px;margin:0" onclick="addNewContact()">+</button>
     </div>
   </div>
@@ -380,13 +380,13 @@ input:focus{border-color:var(--blue)}
 <div class="overlay" id="ov-save-lesson" style="display:none">
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-save-lesson')">×</button>
-    <div class="overlay-title">💾 Sauvegarder la leçon</div>
+    <div class="overlay-title" id="save-lesson-title">💾 Save lesson</div>
     <div class="setting-row">
-      <div class="setting-label">Nom de la leçon</div>
+      <div class="setting-label" id="label-lessonname">Lesson name</div>
       <input type="text" id="lesson-name-input" placeholder="My lesson…">
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px">📅 <span id="lesson-date"></span></div>
-    <button class="setting-btn" onclick="confirmSaveLesson()">💾 Sauvegarder</button>
+    <button class="setting-btn" id="btn-savelesson" onclick="confirmSaveLesson()">💾 Save</button>
   </div>
 </div>
 
@@ -399,18 +399,18 @@ const API_BASE = 'https://makedoo-server-production.up.railway.app';
 // ── State ──────────────────────────────────────────────────────
 const S={
   mode:'exchange',
-  langFrom:'fr',langTo:'mk',uiLang:'fr',
+  langFrom:'en',langTo:'mk',uiLang:'en',
   interlocutor:'Unknown',location:'…',
   direction:'AB',currentSpeaker:'A',
   screen:0,listening:false,
   lastTranslation:null,lastTranslationLang:null,lastOriginal:null,
   currentExchanges:[],
-  journal:JSON.parse(localStorage.getItem('mk_journal')||'[]'),
-  lessons:JSON.parse(localStorage.getItem('mk_lessons')||'[]'),
-  contacts:JSON.parse(localStorage.getItem('mk_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
+  journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
+  lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
+  contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
   lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,
-  selectedVoiceURI:localStorage.getItem('makedoo_voice_uri')||null,
-  selectedVoiceLang:localStorage.getItem('makedoo_voice_lang')||null,
+  selectedVoiceURI:localStorage.getItem('makedoo_v3_voice_uri')||null,
+  selectedVoiceLang:localStorage.getItem('makedoo_v3_voice_lang')||null,
 };
 
 // ── i18n ───────────────────────────────────────────────────────
@@ -435,11 +435,11 @@ const LANGS=[
 ];
 
 // ── Init ───────────────────────────────────────────────────────
-const storedKey=localStorage.getItem('makedoo_apikey');
+const storedKey=localStorage.getItem('makedoo_v3_apikey');
 if(storedKey){document.getElementById('api-key-input').value=storedKey;document.getElementById('api-status').textContent='✓';document.getElementById('api-status').style.color='var(--accent)'}
-const storedUILang=localStorage.getItem('makedoo_uilang');
+const storedUILang=localStorage.getItem('makedoo_v3_uilang');
 if(storedUILang)S.uiLang=storedUILang;
-else S.uiLang='en';
+else S.uiLang='en'; // Anglais par défaut
 
 navigator.geolocation&&navigator.geolocation.getCurrentPosition(async pos=>{
   try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&format=json');const d=await r.json();S.location=(d.display_name||'').split(',').slice(0,2).join(', ')}catch{S.location='Position obtenue'}
@@ -679,7 +679,7 @@ function doReplaceSelected(){
 function doSave(){
   if(S.currentExchanges.length>0){
     S.journal.unshift({id:Date.now(),date:new Date().toISOString().split('T')[0],location:S.location,interlocutor:S.interlocutor,langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
-    localStorage.setItem('mk_journal',JSON.stringify(S.journal));
+    localStorage.setItem('mk_v3_journal',JSON.stringify(S.journal));
   }
   S.currentExchanges=[];setScreen(0);showToast('💾 '+t('save'));
 }
@@ -691,7 +691,7 @@ function doSaveLesson(){
 function confirmSaveLesson(){
   const name=document.getElementById('lesson-name-input').value.trim()||('Leçon '+new Date().toLocaleDateString());
   S.lessons.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
-  localStorage.setItem('mk_lessons',JSON.stringify(S.lessons));
+  localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons));
   hideOv('ov-save-lesson');
   S.currentExchanges=[];setScreen(0);showToast('💾 '+name);
 }
@@ -929,15 +929,15 @@ function renameLesson(){
   if(!newName||newName===selectedEntry.name)return;
   selectedEntry.name=newName;
   const idx=S.lessons.findIndex(l=>l.id===selectedEntry.id);
-  if(idx>=0){S.lessons[idx].name=newName;localStorage.setItem('mk_lessons',JSON.stringify(S.lessons))}
+  if(idx>=0){S.lessons[idx].name=newName;localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons))}
   showToast('✓ '+newName);renderConvScreen();
 }
 
 function deleteEntry(){
   if(!selectedEntry)return;
   if(!confirm(t('deleteConfirm')))return;
-  if(convViewMode){S.lessons=S.lessons.filter(e=>e.id!==selectedEntry.id);localStorage.setItem('mk_lessons',JSON.stringify(S.lessons))}
-  else{S.journal=S.journal.filter(e=>e.id!==selectedEntry.id);localStorage.setItem('mk_journal',JSON.stringify(S.journal))}
+  if(convViewMode){S.lessons=S.lessons.filter(e=>e.id!==selectedEntry.id);localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons))}
+  else{S.journal=S.journal.filter(e=>e.id!==selectedEntry.id);localStorage.setItem('mk_v3_journal',JSON.stringify(S.journal))}
   selectedEntry=null;renderConvScreen();showToast('🗑 Supprimé');
 }
 
@@ -960,7 +960,7 @@ async function listenEntry(){
 
 async function exportEntry(){
   if(!selectedEntry)return;
-  const key=localStorage.getItem('makedoo_apikey');
+  const key=localStorage.getItem('makedoo_v3_apikey');
   if(!key){showToast('Clé API requise');return}
   const btn=document.getElementById('cs-export')||document.querySelector('[onclick="exportEntry()"]');
   if(btn)btn.textContent='⏳…';
@@ -997,21 +997,30 @@ function selectLang(code){if(S.langPickerTarget==='from')S.langFrom=code;else S.
 // ── Contact picker ─────────────────────────────────────────────
 async function showContactPicker(){
   if('contacts' in navigator&&'ContactsManager' in window){
-    try{const contacts=await navigator.contacts.select(['name'],{multiple:false});if(contacts.length>0){const name=contacts[0].name&&contacts[0].name[0]||t('unknown');if(!S.contacts.find(c=>c.name===name)){S.contacts.push({id:Date.now(),name,lang:S.langTo});localStorage.setItem('mk_contacts',JSON.stringify(S.contacts))}selectContact(name);return}}catch(e){}
+    try{const contacts=await navigator.contacts.select(['name'],{multiple:false});if(contacts.length>0){const name=contacts[0].name&&contacts[0].name[0]||t('unknown');if(!S.contacts.find(c=>c.name===name)){S.contacts.push({id:Date.now(),name,lang:S.langTo});localStorage.setItem('mk_v3_contacts',JSON.stringify(S.contacts))}selectContact(name);return}}catch(e){}
   }
   document.getElementById('contact-list').innerHTML=[{id:0,name:t('unknown')},...S.contacts].map(c=>'<div class="list-item'+(c.name===S.interlocutor?' selected':'')+'" onclick="selectContact(\''+c.name+'\')">'+c.name+'</div>').join('');
   showOv('ov-contact');
 }
 function selectContact(name){S.interlocutor=name;updateDisplay();hideOv('ov-contact')}
-function addNewContact(){const i=document.getElementById('new-contact-input');const name=i.value.trim();if(!name)return;if(!S.contacts.find(c=>c.name===name)){S.contacts.push({id:Date.now(),name,lang:S.langTo});localStorage.setItem('mk_contacts',JSON.stringify(S.contacts))}selectContact(name);i.value=''}
+function addNewContact(){const i=document.getElementById('new-contact-input');const name=i.value.trim();if(!name)return;if(!S.contacts.find(c=>c.name===name)){S.contacts.push({id:Date.now(),name,lang:S.langTo});localStorage.setItem('mk_v3_contacts',JSON.stringify(S.contacts))}selectContact(name);i.value=''}
 
 // ── Settings ───────────────────────────────────────────────────
-function saveApiKey(){const key=document.getElementById('api-key-input').value.trim();if(!key)return;localStorage.setItem('makedoo_apikey',key);document.getElementById('api-status').textContent=t('keyOk');document.getElementById('api-status').style.color='var(--accent)';setTimeout(()=>hideOv('ov-setup'),700)}
+function saveApiKey(){const key=document.getElementById('api-key-input').value.trim();if(!key)return;localStorage.setItem('makedoo_v3_apikey',key);document.getElementById('api-status').textContent=t('keyOk');document.getElementById('api-status').style.color='var(--accent)';setTimeout(()=>hideOv('ov-setup'),700)}
 
 function setUILang(lang){
-  S.uiLang=lang;localStorage.setItem('makedoo_uilang',lang);
+  S.uiLang=lang;localStorage.setItem('makedoo_v3_uilang',lang);
   ['fr','en','mk','es','de'].forEach(l=>{const b=document.getElementById('ulang-'+l);if(b)b.classList.toggle('sel',l===lang)});
-  updateUILabels();renderScreen();updateDisplay();
+  updateUILabels();
+  renderScreen();
+  updateDisplay();
+  // Textes HTML statiques
+  const scanBtn=document.querySelector('[onclick="scanVoices()"]');
+  if(scanBtn)scanBtn.textContent=t('scanVoices');
+  const saveKeyBtn=document.querySelector('[onclick="saveApiKey()"]');
+  if(saveKeyBtn)saveKeyBtn.textContent=t('saveKey');
+  const vl=document.getElementById('voice-list');
+  if(vl&&vl.children.length===0)vl.textContent=t('scanPrompt');
 }
 
 function scanVoices(){
@@ -1032,7 +1041,7 @@ function testVoice(uri,lang,name){
   if(voice)utt.voice=voice;utt.lang=lang;utt.rate=0.85;
   window.speechSynthesis.speak(utt);
   S.selectedVoiceURI=uri;S.selectedVoiceLang=lang;
-  localStorage.setItem('makedoo_voice_uri',uri);localStorage.setItem('makedoo_voice_lang',lang);
+  localStorage.setItem('makedoo_v3_voice_uri',uri);localStorage.setItem('makedoo_v3_voice_lang',lang);
   showToast('✓ '+name);scanVoices();
 }
 
@@ -1041,7 +1050,8 @@ function updateDisplay(){
   const lf=LANGS.find(l=>l.code===S.langFrom);const lt=LANGS.find(l=>l.code===S.langTo);
   document.getElementById('lang-top').textContent=lt?lt.display:S.langTo.toUpperCase();
   document.getElementById('lang-bottom').textContent=lf?lf.display:S.langFrom.toUpperCase();
-  document.getElementById('name-display').textContent=S.interlocutor;
+  const nameBtn=document.getElementById('name-display');
+  if(nameBtn)nameBtn.textContent='👤 '+(S.interlocutor==='Unknown'||S.interlocutor==='Inconnu'?t('unknown'):S.interlocutor);
 }
 
 function updateUILabels(){
@@ -1059,9 +1069,27 @@ function updateUILabels(){
   // Conv screen exit button
   const exitBtn=document.querySelector('#conv-screen .cs-btn');
   if(exitBtn)exitBtn.textContent=t('exitBtn');
-  // Voice list prompt if empty
+  // Voice list prompt if empty/default
   const vl=document.getElementById('voice-list');
-  if(vl&&(vl.textContent.trim()===''||vl.textContent.includes('scanner')||vl.textContent.includes('scan')))vl.textContent=t('scanPrompt');
+  if(vl&&vl.children.length===0)vl.textContent=t('scanPrompt');
+  // Settings overlay
+  const st=document.getElementById('settings-title');if(st)st.textContent=t('settings');
+  const la=document.getElementById('label-apikey');if(la)la.textContent=t('apiKeyLabel');
+  const lu=document.getElementById('label-uilang');if(lu)lu.textContent=t('uiLangLabel');
+  const bs=document.getElementById('btn-savekey');if(bs)bs.textContent=t('saveKey');
+  const lv=document.getElementById('label-voices');if(lv)lv.textContent=t('voicesLabel');
+  const bsv=document.getElementById('btn-scanvoices');if(bsv)bsv.textContent=t('scanVoices');
+  // Save lesson overlay
+  const slt=document.getElementById('save-lesson-title');if(slt)slt.textContent='💾 '+t('save');
+  const ll=document.getElementById('label-lessonname');if(ll)ll.textContent=t('lessonName')||'Lesson name';
+  const bsl=document.getElementById('btn-savelesson');if(bsl)bsl.textContent='💾 '+t('save');
+  // Contact overlay
+  const ct=document.getElementById('contact-title');if(ct)ct.textContent=t('interlocutor')||t('contactTitle');
+  // New contact placeholder
+  const ncp=document.getElementById('new-contact-ph');if(ncp)ncp.placeholder=t('newContact');
+  // Splash tagline
+  const tl=document.getElementById('splash-tagline');if(tl)tl.textContent=t('tagline');
+  const sk=document.getElementById('splash-skip');if(sk)sk.textContent=t('skip');
   // UI lang buttons highlight
   ['fr','en','mk','es','de'].forEach(l=>{const b=document.getElementById('ulang-'+l);if(b)b.classList.toggle('sel',l===S.uiLang)});
 }
