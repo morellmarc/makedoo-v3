@@ -282,7 +282,7 @@ input:focus{border-color:var(--blue)}
     <div class="conversation-zone">
       <div style="display:flex;align-items:center;gap:8px;justify-content:center">
         <div class="status-tag waiting" id="status-pill"></div>
-        <button class="fin-btn" id="fin-btn" onclick="confirmEnd()">⏹ Fin</button>
+        <button class="fin-btn" id="fin-btn" onclick="confirmEnd()">⏹ <span id="fin-btn-label">Exit</span></button>
       </div>
       <div class="action-row" id="conv-action-row"></div>
     </div>
@@ -415,7 +415,7 @@ const S={
 
 // ── i18n ───────────────────────────────────────────────────────
 const I18N={
-  fr:{conv:'Conversations',lessons:'Leçons',waiting:'En attente de conversation',waitingLesson:'En attente de leçon',startConv:'Démarrer la conversation',startLesson:'Démarrer la leçon',inProgress:'Conversation en cours',lessonProgress:'Leçon en cours',ended:'Conversation terminée',lessonEnded:'Leçon terminée',clickStop:'Clic pour arrêter',repeat:'Répéter',resume:'Poursuivre',save:'Sauvegarder',exit:'Fin',replace:'Remplacer',oralTrans:'Traduction orale',clickTalk:'Clic pour parler',youFirst:'Vous parlez en premier',theyFirst:' parle en premier',keyOk:'✓ Clé enregistrée',learnSoon:'Mode Apprentissage bientôt !',myLang:'Ma langue',transLang:'Langue de traduction',exchanges:'échange(s)',noConv:'Aucune conversation',noLesson:'Aucune leçon',selectConv:'Sélectionner une conversation',selectLesson:'Sélectionner une leçon',review:'Réviser',rename:'Renommer',export:'Exporter MP3',delete:'Supprimer',listen:'Écouter',stop:'Arrêter',unknown:'Inconnu',choosePhrase:'Choisir une phrase',target:'Cible',source:'Source',settings:'⚙ Paramètres',apiKeyLabel:'Clé API Google',uiLangLabel:"Langue de l'interface",saveKey:'Enregistrer la clé',voicesLabel:'Voix MK disponibles',scanVoices:'🔍 Scanner les voix MK',scanPrompt:'Appuyez pour scanner…',noVoices:'Aucune voix MK trouvée',newContact:'Nouveau nom…',exitNoSave:'Sortir sans sauvegarder ?',deleteConfirm:'Supprimer ?',sttError:'Parole non reconnue',sttFail:'Erreur STT',micError:'Microphone non accessible',tagline:'Speak · Translate · Learn',skip:'Skip ›',exitBtn:'✕ Exit',lesonTitle:'💾 Save lesson',lessonName:'Lesson name',lessonPlaceholder:'My lesson…',contactTitle:'Contact',convTitle:'Conversations',lessonTitle2:'Lessons'},
+  fr:{conv:'Conversations',lessons:'Leçons',waiting:'En attente de conversation',waitingLesson:'En attente de leçon',startConv:'Démarrer la conversation',startLesson:'Démarrer la leçon',inProgress:'Conversation en cours',lessonProgress:'Leçon en cours',ended:'Conversation terminée',lessonEnded:'Leçon terminée',clickStop:'Clic pour arrêter',repeat:'Répéter',resume:'Poursuivre',save:'Sauvegarder',exit:'Sortir',replace:'Remplacer',oralTrans:'Traduction orale',clickTalk:'Clic pour parler',youFirst:'Vous parlez en premier',theyFirst:' parle en premier',keyOk:'✓ Clé enregistrée',learnSoon:'Mode Apprentissage bientôt !',myLang:'Ma langue',transLang:'Langue de traduction',exchanges:'échange(s)',noConv:'Aucune conversation',noLesson:'Aucune leçon',selectConv:'Sélectionner une conversation',selectLesson:'Sélectionner une leçon',review:'Réviser',rename:'Renommer',export:'Exporter MP3',delete:'Supprimer',listen:'Écouter',stop:'Arrêter',unknown:'Inconnu',choosePhrase:'Choisir une phrase',target:'Cible',source:'Source',settings:'⚙ Paramètres',apiKeyLabel:'Clé API Google',uiLangLabel:"Langue de l'interface",saveKey:'Enregistrer la clé',voicesLabel:'Voix MK disponibles',scanVoices:'🔍 Scanner les voix MK',scanPrompt:'Appuyez pour scanner…',noVoices:'Aucune voix MK trouvée',newContact:'Nouveau nom…',exitNoSave:'Sortir sans sauvegarder ?',deleteConfirm:'Supprimer ?',sttError:'Parole non reconnue',sttFail:'Erreur STT',micError:'Microphone non accessible',tagline:'Speak · Translate · Learn',skip:'Skip ›',exitBtn:'✕ Exit',lesonTitle:'💾 Save lesson',lessonName:'Lesson name',lessonPlaceholder:'My lesson…',contactTitle:'Contact',convTitle:'Conversations',lessonTitle2:'Lessons'},
   en:{conv:'Conversations',lessons:'Lessons',waiting:'Waiting for conversation',waitingLesson:'Waiting for lesson',startConv:'Start conversation',startLesson:'Start lesson',inProgress:'Conversation in progress',lessonProgress:'Lesson in progress',ended:'Conversation ended',lessonEnded:'Lesson ended',clickStop:'Click to stop',repeat:'Repeat',resume:'Continue',save:'Save',exit:'Exit',replace:'Replace',oralTrans:'Oral translation',clickTalk:'Click to speak',youFirst:'You speak first',theyFirst:' speaks first',keyOk:'✓ Key saved',learnSoon:'Learning mode soon!',myLang:'My language',transLang:'Translation language',exchanges:'exchange(s)',noConv:'No conversations',noLesson:'No lessons',selectConv:'Select a conversation',selectLesson:'Select a lesson',review:'Review',rename:'Rename',export:'Export MP3',delete:'Delete',listen:'Listen',stop:'Stop',unknown:'Unknown',startLesson2:'Start lesson',target:'Target',source:'Source',settings:'⚙ Settings',apiKeyLabel:'Google API Key',uiLangLabel:'Interface language',saveKey:'Save key',voicesLabel:'Available MK voices',scanVoices:'🔍 Scan MK voices',scanPrompt:'Tap to scan…',noVoices:'No MK voice found',newContact:'New name…',exitNoSave:'Exit without saving?',deleteConfirm:'Delete?',sttError:'Speech not recognized',sttFail:'STT Error',micError:'Microphone not accessible',tagline:'Speak · Translate · Learn',skip:'Skip ›',exitBtn:'✕ Exit',lessonTitle:'💾 Save lesson',lessonName:'Lesson name',lessonPlaceholder:'My lesson…',contactTitle:'Contact',convTitle:'Conversations',lessonTitle2:'Lessons'},
   mk:{conv:'Разговори',lessons:'Лекции',waiting:'Чекање разговор',waitingLesson:'Чекање лекција',startConv:'Започни разговор',startLesson:'Започни лекција',inProgress:'Разговор во тек',lessonProgress:'Лекција во тек',ended:'Разговорот завршен',lessonEnded:'Лекцијата завршена',clickStop:'Клик за стопирање',repeat:'Повтори',resume:'Продолжи',save:'Зачувај',exit:'Излез',replace:'Замени',oralTrans:'Устен превод',clickTalk:'Клик за зборување',youFirst:'Вие зборувате прво',theyFirst:' зборува прво',keyOk:'✓ Зачувано',learnSoon:'Режим учење наскоро!',myLang:'Мојот јазик',transLang:'Јазик на превод',exchanges:'размена(и)',noConv:'Нема разговори',noLesson:'Нема лекции',selectConv:'Изберете разговор',selectLesson:'Изберете лекција',review:'Прегледај',rename:'Преименувај',export:'Извоз MP3',delete:'Избриши',listen:'Слушај',stop:'Стопирај',unknown:'Непознат',startLesson2:'Започни лекција',target:'Цел',source:'Извор',settings:'⚙ Поставки',apiKeyLabel:'Google API Клуч',uiLangLabel:'Јазик на интерфејс',saveKey:'Зачувај',voicesLabel:'МК гласови',scanVoices:'🔍 Скенирај гласови',scanPrompt:'Притиснете за скенирање…',noVoices:'Нема МК глас',newContact:'Ново ime…',exitNoSave:'Излез без зачувување?',deleteConfirm:'Избриши?',sttError:'Говорот не е препознаен',sttFail:'Грешка STT',micError:'Микрофонот не е достапен',tagline:'Зборувај · Преведи · Учи',skip:'Прескокни ›',exitBtn:'✕ Излез',lessonTitle:'💾 Зачувај лекција',lessonName:'Ime на лекцијата',lessonPlaceholder:'Моја лекција…',contactTitle:'Соговорник',convTitle:'Разговори',lessonTitle2:'Лекции'},
   es:{conv:'Conversaciones',lessons:'Lecciones',waiting:'Esperando',waitingLesson:'Esperando lección',startConv:'Iniciar conversación',startLesson:'Iniciar lección',inProgress:'En curso',lessonProgress:'Lección en curso',ended:'Terminada',lessonEnded:'Lección terminada',clickStop:'Clic para detener',repeat:'Repetir',resume:'Continuar',save:'Guardar',exit:'Salir',replace:'Reemplazar',oralTrans:'Traducción oral',clickTalk:'Clic para hablar',youFirst:'Usted habla primero',theyFirst:' habla primero',keyOk:'✓ Guardado',learnSoon:'¡Modo aprendizaje pronto!',myLang:'Mi idioma',transLang:'Idioma traducción',exchanges:'intercambio(s)',noConv:'Sin conversaciones',noLesson:'Sin lecciones',selectConv:'Seleccionar conversación',selectLesson:'Seleccionar lección',review:'Revisar',rename:'Renombrar',export:'Exportar MP3',delete:'Eliminar',listen:'Escuchar',stop:'Parar',unknown:'Desconocido',startLesson2:'Iniciar lección',target:'Destino',source:'Origen',settings:'⚙ Ajustes',apiKeyLabel:'Clave API Google',uiLangLabel:'Idioma interfaz',saveKey:'Guardar clave',voicesLabel:'Voces MK disponibles',scanVoices:'🔍 Buscar voces MK',scanPrompt:'Toca para buscar…',noVoices:'Sin voz MK',newContact:'Nuevo nombre…',exitNoSave:'¿Salir sin guardar?',deleteConfirm:'¿Eliminar?',sttError:'Voz no reconocida',sttFail:'Error STT',micError:'Micrófono no accesible',tagline:'Habla · Traduce · Aprende',skip:'Omitir ›',exitBtn:'✕ Salir',lessonTitle:'💾 Guardar lección',lessonName:'Nombre de lección',lessonPlaceholder:'Mi lección…',contactTitle:'Interlocutor',convTitle:'Conversaciones',lessonTitle2:'Lecciones'},
@@ -437,9 +437,14 @@ const LANGS=[
 // ── Init ───────────────────────────────────────────────────────
 const storedKey=localStorage.getItem('makedoo_v3_apikey');
 if(storedKey){document.getElementById('api-key-input').value=storedKey;document.getElementById('api-status').textContent='✓';document.getElementById('api-status').style.color='var(--accent)'}
+// Restaurer les langues de la dernière session
+const storedLangFrom=localStorage.getItem('makedoo_v3_langFrom');
+const storedLangTo=localStorage.getItem('makedoo_v3_langTo');
 const storedUILang=localStorage.getItem('makedoo_v3_uilang');
+if(storedLangFrom)S.langFrom=storedLangFrom;
+if(storedLangTo)S.langTo=storedLangTo;
 if(storedUILang)S.uiLang=storedUILang;
-else S.uiLang='en'; // Anglais par défaut
+// Sinon par défaut EN/MK/EN
 
 navigator.geolocation&&navigator.geolocation.getCurrentPosition(async pos=>{
   try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&format=json');const d=await r.json();S.location=(d.display_name||'').split(',').slice(0,2).join(', ')}catch{S.location='Position obtenue'}
@@ -995,6 +1000,7 @@ function openLangPicker(target){
 function selectLang(code){
   if(S.langPickerTarget==='from'){
     S.langFrom=code;
+    localStorage.setItem('makedoo_v3_langFrom',code);
     // La langue de l'interface suit la langue de l'utilisateur
     const supported=['fr','en','mk','es','de'];
     if(supported.includes(code)){
@@ -1005,6 +1011,7 @@ function selectLang(code){
     renderScreen();
   } else {
     S.langTo=code;
+    localStorage.setItem('makedoo_v3_langTo',code);
   }
   updateDisplay();
   hideOv('ov-lang');
@@ -1082,6 +1089,9 @@ function updateUILabels(){
   const lsBot=document.getElementById('lang-sub-bot');
   if(lsTop)lsTop.textContent=t('target');
   if(lsBot)lsBot.textContent=t('source');
+  // Fin/Exit button
+  const finLabel=document.getElementById('fin-btn-label');
+  if(finLabel)finLabel.textContent=t('exit');
   // Conv screen exit button
   const exitBtn=document.querySelector('#conv-screen .cs-btn');
   if(exitBtn)exitBtn.textContent=t('exitBtn');
