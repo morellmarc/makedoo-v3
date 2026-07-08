@@ -992,7 +992,23 @@ function openLangPicker(target){
   document.getElementById('lang-list').innerHTML=LANGS.map(l=>'<div class="list-item'+(( target==='from'&&l.code===S.langFrom)||(target==='to'&&l.code===S.langTo)?' selected':'')+'" onclick="selectLang(\''+l.code+'\')">'+l.flag+' '+l.label+'</div>').join('');
   showOv('ov-lang');
 }
-function selectLang(code){if(S.langPickerTarget==='from')S.langFrom=code;else S.langTo=code;updateDisplay();hideOv('ov-lang')}
+function selectLang(code){
+  if(S.langPickerTarget==='from'){
+    S.langFrom=code;
+    // La langue de l'interface suit la langue de l'utilisateur
+    const supported=['fr','en','mk','es','de'];
+    if(supported.includes(code)){
+      S.uiLang=code;
+      localStorage.setItem('makedoo_v3_uilang',code);
+    }
+    updateUILabels();
+    renderScreen();
+  } else {
+    S.langTo=code;
+  }
+  updateDisplay();
+  hideOv('ov-lang');
+}
 
 // ── Contact picker ─────────────────────────────────────────────
 async function showContactPicker(){
