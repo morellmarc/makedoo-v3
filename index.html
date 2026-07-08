@@ -1108,8 +1108,10 @@ function hideSplash(){
     if(arcBot)arcBot.classList.add('fast');
   },2200);
 
-  // Hide splash
+  // Hide splash — garanti même si erreur JS
   setTimeout(hideSplash, 3500);
+  // Sécurité absolue
+  window.onerror=function(){hideSplash();return false};
 })();
 
 </script>
