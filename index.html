@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#FAFBFF">
+<meta name="mobile-web-app-capable" content="yes">
+<title>makedoo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+:root{
+  --bg:#FAFBFF;--surface:#FFFFFF;--border:#EAECF5;--text:#1A2340;--muted:#8A96B4;
+  --green:#00C48C;--green-dark:#00A878;--green-light:#D4F5E9;--green-text:#00875A;
+  --blue:#4A6CF7;--blue-dark:#6A3DE8;--blue-light:#EEF2FF;--blue-text:#2D4FBF;
+  --orange:#FF8C42;--orange-light:#FFF0E6;--orange-text:#C05000;
+  --red:#FF4757;--red-light:#FFE0E3;--red-text:#C0002A;
+  --neutral-light:#F0F2F8;--neutral-text:#6B7A99;
+  --line:#EAECF5;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;max-width:480px;margin:0 auto}
+
+/* ── LOGO ── */
+.logo-band{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0 10px;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--surface)}
+.logo-text{font-size:22px;font-weight:900;letter-spacing:-0.5px;color:var(--text)}
+
+/* ── TOP BAR ── */
+.top-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--line)}
+.conv-btn{background:var(--blue-light);border:none;border-radius:12px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--blue);cursor:pointer;letter-spacing:0.2px}
+.conv-btn.learn-mode{background:#E3F2FD;color:#1565C0}
+.name-btn{background:var(--orange-light);border:none;border-radius:12px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--orange-text);cursor:pointer}
+
+/* ── MAIN LAYOUT ── */
+.main-layout{flex:1;display:flex;gap:0;overflow:hidden;position:relative}
+
+/* ── LEFT COLUMN — lang cards + arrow ── */
+.left-col{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:14px 8px;width:60px;flex-shrink:0}
+.lang-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:14px;padding:8px 6px;cursor:pointer;min-width:44px;text-align:center}
+.lang-card.to-lang{background:var(--orange-light);color:var(--orange-text)}
+.lang-card.from-lang{background:var(--blue-light);color:var(--blue-text)}
+.lang-card.learn-mode{background:#E3F2FD;color:#1565C0}
+.lang-card-code{font-size:16px;font-weight:900;letter-spacing:0.5px}
+.lang-card-sub{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;opacity:0.7}
+.mic-dot{font-size:12px;opacity:0;transition:opacity 0.3s;text-align:center;margin-top:2px}
+.mic-dot.visible{opacity:1}
+.arrow-btn{width:40px;height:56px;border-radius:12px;background:var(--blue-light);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--blue);transition:transform 0.4s ease;font-weight:900}
+.arrow-btn.reversed{transform:rotate(180deg)}
+.arrow-btn.disabled{opacity:0.2;cursor:default;pointer-events:none}
+
+/* ── CENTER ZONE ── */
+.center-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 8px;position:relative}
+
+/* Intervention zone */
+.intervention-zone{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:52px;justify-content:center;width:100%}
+.intervention-label{font-size:11px;font-weight:700;opacity:0;transition:opacity 0.3s;border-radius:10px;padding:5px 14px;letter-spacing:0.3px;text-align:center}
+.intervention-label.visible{opacity:1}
+.action-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+
+/* Circle */
+.circle-area{display:flex;flex-direction:column;align-items:center;gap:10px}
+.circle-outer{position:relative;width:190px;height:190px;display:flex;align-items:center;justify-content:center}
+.circle-bg{position:absolute;inset:-6px;border-radius:50%;background:conic-gradient(from 0deg,rgba(245,166,35,0.15),rgba(229,57,53,0.1),rgba(245,166,35,0.15));filter:blur(10px)}
+.circle-card{width:190px;height:190px;border-radius:50%;background:var(--surface);box-shadow:0 8px 32px rgba(74,108,247,0.1),0 2px 8px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:center;position:relative;border:1.5px solid var(--border)}
+.circle-svg{position:absolute;top:0;left:0;pointer-events:none;width:190px;height:190px}
+.tap-zone{position:absolute;top:0;left:0;width:190px;height:190px;border-radius:50%;background:transparent;cursor:pointer;z-index:10}
+.center-status{font-size:11px;color:var(--muted);text-align:center;font-weight:600;line-height:1.5;padding:0 8px}
+
+@keyframes cw{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes ccw{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+@keyframes waveExp{0%{opacity:0.5;r:40}100%{opacity:0;r:90}}
+.arc-top{animation:ccw 6s linear infinite;transform-origin:95px 95px}
+.arc-bottom{animation:cw 6s linear infinite;transform-origin:95px 95px}
+.arc-top.fast,.arc-bottom.fast{animation-duration:1s}
+
+/* Conversation zone */
+.conversation-zone{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:68px;justify-content:center;width:100%}
+.status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center}
+.status-tag.active{color:var(--green-text);background:var(--green-light)}
+.status-tag.learn{color:var(--blue-text);background:var(--blue-light)}
+.status-tag.waiting{color:var(--muted);background:var(--neutral-light)}
+
+/* ── RIGHT COLUMN ── */
+.right-col{width:48px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:14px 8px}
+.setup-card{width:36px;height:36px;border-radius:12px;background:var(--neutral-light);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--muted)}
+
+/* ── ACTION BUTTONS ── */
+.action-btn{border:none;border-radius:12px;font-size:13px;font-weight:700;padding:10px 18px;cursor:pointer;letter-spacing:0.2px;transition:opacity 0.15s;font-family:inherit}
+.action-btn:active{opacity:0.8}
+.action-btn.green{background:var(--green-light);color:var(--green-text)}
+.action-btn.green.solid{background:linear-gradient(135deg,var(--green),var(--green-dark));color:white;box-shadow:0 4px 14px rgba(0,196,140,0.35)}
+.action-btn.blue{background:var(--blue-light);color:var(--blue-text)}
+.action-btn.blue.solid{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.35)}
+.action-btn.orange{background:var(--orange-light);color:var(--orange-text)}
+.action-btn.red{background:var(--red-light);color:var(--red-text)}
+.action-btn.neutral{background:var(--neutral-light);color:var(--neutral-text)}
+/* compat */
+.action-btn.primary{background:linear-gradient(135deg,var(--green),var(--green-dark));color:white;box-shadow:0 4px 14px rgba(0,196,140,0.3)}
+.action-btn.danger{background:var(--red-light);color:var(--red-text)}
+.action-btn.learn{background:var(--blue-light);color:var(--blue-text)}
+.action-btn.learn.primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
+
+/* ── FIN BUTTON ── */
+.fin-btn{display:none;background:var(--red-light);border:none;border-radius:12px;color:var(--red-text);font-size:12px;font-weight:700;padding:7px 16px;cursor:pointer;font-family:inherit}
+
+/* ── TEXT PANEL ── */
+.text-panel{width:100%;border:1.5px solid #C7D5FF;border-radius:14px;overflow:hidden;background:var(--surface);display:none;flex-direction:column;max-height:200px;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
+.text-panel.visible{display:flex}
+.text-panel-top{flex:1;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);line-height:1.5;overflow-y:auto;min-height:70px}
+.text-panel-bot{flex:1;padding:8px 12px;font-size:13px;color:var(--blue-text);font-weight:600;line-height:1.5;overflow-y:auto;min-height:70px;background:#F8F9FF}
+.tp-lang{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+
+/* ── TEXT INPUT ── */
+.text-input-zone{display:none;width:100%;padding:0 4px}
+.text-input-zone.visible{display:block}
+
+/* ── MODE BAR ── */
+.mode-bar{display:flex;justify-content:center;align-items:center;gap:10px;padding:10px 20px 14px;border-top:1px solid var(--line);flex-shrink:0;background:var(--surface)}
+.mode-btn{font-size:12px;font-weight:700;letter-spacing:0.3px;cursor:pointer;padding:10px 22px;border:none;border-radius:14px;transition:all 0.2s;font-family:inherit}
+.mode-btn.active-exchange{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
+.mode-btn.active-learn{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
+.mode-btn:not(.active-exchange):not(.active-learn){background:var(--neutral-light);color:var(--muted)}
+.nav-spacer{height:44px;flex-shrink:0;background:var(--surface)}
+
+/* ── CONV SCREEN ── */
+#conv-screen{display:none;flex:1;flex-direction:column;overflow:hidden;pointer-events:all;min-height:0}
+.cs-btn{background:var(--neutral-light);border:none;border-radius:12px;color:var(--text);font-size:12px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:inherit}
+.cs-btn:active{opacity:0.7}
+.cs-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 16px;margin-bottom:8px;cursor:pointer;pointer-events:all;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.cs-item.selected{border-color:var(--blue);background:var(--blue-light)}
+
+/* ── OVERLAYS ── */
+.overlay{position:fixed;inset:0;background:#00000055;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)}
+.overlay-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:24px;width:100%;max-width:380px;position:relative;max-height:80vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.12)}
+.overlay-title{font-size:16px;font-weight:800;margin-bottom:16px}
+.overlay-close{position:absolute;top:16px;right:20px;font-size:20px;color:var(--muted);cursor:pointer;width:32px;height:32px;background:var(--neutral-light);border-radius:8px;display:flex;align-items:center;justify-content:center;border:none;font-family:inherit}
+.list-item{padding:12px 14px;border-radius:12px;cursor:pointer;font-size:14px}
+.list-item:active,.list-item.selected{background:var(--blue-light)}
+.list-item.selected{color:var(--blue);font-weight:700}
+.setting-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:700}
+.setting-row{margin-bottom:16px}
+input[type=text],input[type=password]{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);padding:11px 14px;font-size:14px;outline:none;font-family:inherit}
+input:focus{border-color:var(--blue)}
+.setting-btn{background:linear-gradient(135deg,var(--blue),var(--blue-dark));border:none;border-radius:12px;color:white;font-weight:700;font-size:14px;padding:12px 20px;cursor:pointer;width:100%;margin-top:6px;box-shadow:0 4px 14px rgba(74,108,247,0.3);font-family:inherit}
+.lang-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:14px;cursor:pointer;text-align:left;color:var(--text);width:100%;margin-bottom:6px;font-family:inherit}
+.lang-btn.sel{border-color:var(--blue);color:var(--blue);font-weight:700;background:var(--blue-light)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);border-radius:14px;padding:10px 20px;font-size:13px;color:white;z-index:200;opacity:0;transition:opacity 0.3s;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.2);pointer-events:none}
+.toast.show{opacity:1}
+
+/* ── SPLASH ── */
+#splash{
+  position:fixed;inset:0;z-index:9999;
+  background:#FAFBFF;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+}
+#splash-logo{display:flex;align-items:center;gap:14px}
+#splash-wordmark{font-size:42px;font-weight:900;letter-spacing:-1px;color:#1A2340}
+#splash-tagline{font-size:12px;color:#8A96B4;letter-spacing:3px;text-transform:uppercase;opacity:0}
+#splash-skip{position:absolute;bottom:40px;right:24px;font-size:12px;color:#C0C8D8;cursor:pointer;opacity:0}
+@keyframes splashCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+@keyframes splashCW {from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.splash-arc-top{animation:splashCCW 3s linear infinite;transform-origin:40px 40px}
+.splash-arc-bot{animation:splashCW  3s linear infinite;transform-origin:40px 40px}
+.splash-arc-top.fast{animation-duration:0.4s}
+.splash-arc-bot.fast{animation-duration:0.4s}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div id="splash-logo">
+    <svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;overflow:visible">
+      <g id="splash-arc-top" class="splash-arc-top">
+        <path d="M40 6 A34 34 0 1 1 8 55" fill="none" stroke="#F5A623" stroke-width="6" stroke-linecap="round"/>
+        <polygon points="8,55 1,42 14,45" fill="#F5A623"/>
+      </g>
+      <g id="splash-arc-bot" class="splash-arc-bot">
+        <path d="M40 74 A34 34 0 1 1 72 25" fill="none" stroke="#E53935" stroke-width="6" stroke-linecap="round"/>
+        <polygon points="72,25 79,38 66,35" fill="#E53935"/>
+      </g>
+    </svg>
+    <div id="splash-wordmark">makedoo</div>
+  </div>
+  <div id="splash-tagline">Parlez · Traduisez · Apprenez</div>
+  <div id="splash-skip" onclick="hideSplash()">Passer ›</div>
+</div>
+
+<!-- LOGO -->
+<div class="logo-band" id="logo-band">
+  <svg width="24" height="24" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none">
+    <path d="M20 4 A16 16 0 1 1 5 24" fill="none" stroke="#F5A623" stroke-width="3.5" stroke-linecap="round"/>
+    <polygon points="5,24 1,17 9,18" fill="#F5A623"/>
+    <path d="M20 36 A16 16 0 1 1 35 16" fill="none" stroke="#E53935" stroke-width="3.5" stroke-linecap="round"/>
+    <polygon points="35,16 39,23 31,22" fill="#E53935"/>
+  </svg>
+  <div class="logo-text">makedoo</div>
+</div>
+
+<!-- TOP BAR -->
+<div class="top-bar" id="top-bar">
+  <button class="conv-btn" id="btn-top-center" onclick="showTopCenter()">📋 Conversations</button>
+  <button class="name-btn" id="name-display" onclick="showContactPicker()">👤 Inconnu</button>
+</div>
+
+<!-- MAIN -->
+<div class="main-layout">
+
+  <!-- LEFT COL -->
+  <div class="left-col">
+    <div>
+      <div class="lang-card to-lang" id="lang-top-card" ontouchstart="startLP('changeLangTo')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('changeLangTo')" onmouseup="cancelLP()" onmouseleave="cancelLP()">
+        <div class="lang-card-code" id="lang-top">MK</div>
+        <div class="lang-card-sub" id="lang-sub-top">Cible</div>
+      </div>
+      <div class="mic-dot" id="mic-top">🎤</div>
+    </div>
+    <div>
+      <button class="arrow-btn" id="left-arrow" onclick="handleArrowClick()">↑</button>
+    </div>
+    <div>
+      <div class="mic-dot" id="mic-bottom">🎤</div>
+      <div class="lang-card from-lang" id="lang-bottom-card" ontouchstart="startLP('changeLangFrom')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('changeLangFrom')" onmouseup="cancelLP()" onmouseleave="cancelLP()">
+        <div class="lang-card-code" id="lang-bottom">FR</div>
+        <div class="lang-card-sub" id="lang-sub-bot">Source</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center-zone">
+
+    <!-- ZONE HAUTE -->
+    <div class="intervention-zone">
+      <div class="intervention-label" id="intervention-label"></div>
+      <div class="action-row" id="action-row"></div>
+      <div class="text-input-zone" id="text-input-zone">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="text-lesson-input" placeholder="Tapez votre phrase…" style="flex:1">
+          <button onclick="submitTextLesson()" style="background:linear-gradient(135deg,#00C48C,#00A878);border:none;border-radius:10px;color:white;font-weight:700;font-size:15px;padding:10px 14px;cursor:pointer">→</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CERCLE -->
+    <div class="circle-area" id="circle-container">
+      <div class="circle-outer">
+        <div class="circle-bg"></div>
+        <div class="circle-card">
+          <svg class="circle-svg" viewBox="0 0 190 190" xmlns="http://www.w3.org/2000/svg">
+            <g id="arc-top" class="arc-top">
+              <path d="M95 10 A85 85 0 1 1 14 138" fill="none" stroke="#F5A623" stroke-width="10" stroke-linecap="round"/>
+              <polygon points="14,138 3,118 22,122" fill="#F5A623"/>
+            </g>
+            <g id="arc-bottom" class="arc-bottom">
+              <path d="M95 180 A85 85 0 1 1 176 52" fill="none" stroke="#E53935" stroke-width="10" stroke-linecap="round"/>
+              <polygon points="176,52 187,72 168,68" fill="#E53935"/>
+            </g>
+            <text id="mic-center" x="95" y="110" text-anchor="middle" font-size="48" style="opacity:0;transition:opacity 0.3s">🎤</text>
+            <text id="hg-center" x="95" y="110" text-anchor="middle" font-size="48" style="opacity:0;transition:opacity 0.3s">⏳</text>
+            <circle id="wave1" cx="95" cy="95" r="40" fill="none" stroke="#F5A623" stroke-width="1.5" opacity="0"/>
+            <circle id="wave2" cx="95" cy="95" r="63" fill="none" stroke="#F5A623" stroke-width="1.5" opacity="0"/>
+            <circle id="wave3" cx="95" cy="95" r="85" fill="none" stroke="#F5A623" stroke-width="1.5" opacity="0"/>
+          </svg>
+          <div class="tap-zone" onclick="handleTap()"></div>
+        </div>
+      </div>
+      <div class="center-status" id="center-status"></div>
+    </div>
+
+    <!-- PANNEAU TEXTE -->
+    <div class="text-panel" id="text-panel">
+      <div class="text-panel-top" id="tp-top-wrap">
+        <div class="tp-lang" id="tp-lang-top">FR</div>
+        <div id="tp-text-orig"></div>
+      </div>
+      <div class="text-panel-bot" id="tp-bot-wrap">
+        <div class="tp-lang" id="tp-lang-bot">MK</div>
+        <div id="tp-text-trans"></div>
+      </div>
+    </div>
+
+    <!-- ZONE BASSE -->
+    <div class="conversation-zone">
+      <div style="display:flex;align-items:center;gap:8px;justify-content:center">
+        <div class="status-tag waiting" id="status-pill"></div>
+        <button class="fin-btn" id="fin-btn" onclick="confirmEnd()">⏹ Fin</button>
+      </div>
+      <div class="action-row" id="conv-action-row"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COL -->
+  <div class="right-col">
+    <button class="setup-card" ontouchstart="startLP('openSetup')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('openSetup')" onmouseup="cancelLP()" onmouseleave="cancelLP()">⚙</button>
+  </div>
+
+</div>
+
+<!-- CONV SCREEN -->
+<div id="conv-screen">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--surface);flex-shrink:0">
+    <div id="cs-title" style="font-size:16px;font-weight:800"></div>
+    <button class="cs-btn" onclick="hideConvScreen()" style="background:var(--red-light);color:var(--red-text)">✕ Sortir</button>
+  </div>
+  <div id="cs-actions" style="padding:10px 16px;border-bottom:1px solid var(--line);background:var(--bg);flex-shrink:0;display:flex;gap:8px;align-items:center;justify-content:center;min-height:52px;flex-wrap:wrap"></div>
+  <div id="cs-review-panel" style="display:none;flex-direction:column;flex-shrink:0;border-bottom:1px solid var(--line);max-height:40vh">
+    <div style="display:flex;flex:1;overflow:hidden">
+      <div style="flex:1;border-right:1px solid var(--border);overflow-y:auto;padding:8px 10px;font-size:13px">
+        <div id="rv-lang-top" style="font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-bottom:4px">FR</div>
+        <div id="rv-text-orig"></div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:8px 10px;font-size:13px;color:var(--blue-text);font-weight:600">
+        <div id="rv-lang-bot" style="font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-bottom:4px">MK</div>
+        <div id="rv-text-trans"></div>
+      </div>
+    </div>
+  </div>
+  <div id="cs-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>
+</div>
+
+<!-- MODE BAR -->
+<div class="mode-bar" id="mode-bar">
+  <button class="mode-btn active-exchange" id="btn-exchange" onclick="setMode('exchange')">Échange</button>
+  <button class="mode-btn" id="btn-learn" onclick="setMode('learn')">Apprentissage</button>
+</div>
+<div class="nav-spacer" id="nav-spacer"></div>
+<div class="toast" id="toast"></div>
+
+<!-- OVERLAYS -->
+<div class="overlay" id="ov-setup" style="display:none">
+  <div class="overlay-card">
+    <button class="overlay-close" onclick="hideOv('ov-setup')">×</button>
+    <div class="overlay-title">⚙ Paramètres</div>
+    <div class="setting-row">
+      <div class="setting-label">Clé API Google</div>
+      <input type="password" id="api-key-input" placeholder="AIzaSy…">
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Langue de l'interface</div>
+      <button onclick="setUILang('fr')" id="ulang-fr" class="lang-btn">🇫🇷 Français</button>
+      <button onclick="setUILang('en')" id="ulang-en" class="lang-btn">🇬🇧 English</button>
+      <button onclick="setUILang('mk')" id="ulang-mk" class="lang-btn">🇲🇰 Македонски</button>
+      <button onclick="setUILang('es')" id="ulang-es" class="lang-btn">🇪🇸 Español</button>
+      <button onclick="setUILang('de')" id="ulang-de" class="lang-btn">🇩🇪 Deutsch</button>
+    </div>
+    <button class="setting-btn" onclick="saveApiKey()">Enregistrer la clé</button>
+    <div id="api-status" style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center"></div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="setting-label">Voix MK disponibles</div>
+      <div id="voice-list" style="font-size:13px;color:var(--muted);margin-bottom:8px"></div>
+      <button class="setting-btn" style="background:linear-gradient(135deg,#1565C0,#0D47A1)" onclick="scanVoices()">🔍 Scanner les voix MK</button>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="setting-label">GPS</div>
+      <div id="gps-status" style="font-size:13px;color:var(--muted)">📍 …</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-lang" style="display:none">
+  <div class="overlay-card">
+    <button class="overlay-close" onclick="hideOv('ov-lang')">×</button>
+    <div class="overlay-title" id="t-langpicker">Langue</div>
+    <div id="lang-list"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-contact" style="display:none">
+  <div class="overlay-card">
+    <button class="overlay-close" onclick="hideOv('ov-contact')">×</button>
+    <div class="overlay-title">Interlocuteur</div>
+    <div id="contact-list"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input type="text" id="new-contact-input" placeholder="Nouveau nom…">
+      <button class="setting-btn" style="width:auto;padding:10px 16px;margin:0" onclick="addNewContact()">+</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-save-lesson" style="display:none">
+  <div class="overlay-card">
+    <button class="overlay-close" onclick="hideOv('ov-save-lesson')">×</button>
+    <div class="overlay-title">💾 Sauvegarder la leçon</div>
+    <div class="setting-row">
+      <div class="setting-label">Nom de la leçon</div>
+      <input type="text" id="lesson-name-input" placeholder="My lesson…">
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">📅 <span id="lesson-date"></span></div>
+    <button class="setting-btn" onclick="confirmSaveLesson()">💾 Sauvegarder</button>
+  </div>
+</div>
+
+
+<script>
+
+// ── Backend URL ───────────────────────────────────────────────
+const API_BASE = 'https://makedoo-server-production.up.railway.app';
+
+// ── State ──────────────────────────────────────────────────────
+const S={
+  mode:'exchange',
+  langFrom:'fr',langTo:'mk',uiLang:'fr',
+  interlocutor:t('unknown')||'Unknown',location:'…',
+  direction:'AB',currentSpeaker:'A',
+  screen:0,listening:false,
+  lastTranslation:null,lastTranslationLang:null,lastOriginal:null,
+  currentExchanges:[],
+  journal:JSON.parse(localStorage.getItem('mk_journal')||'[]'),
+  lessons:JSON.parse(localStorage.getItem('mk_lessons')||'[]'),
+  contacts:JSON.parse(localStorage.getItem('mk_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
+  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,
+  selectedVoiceURI:localStorage.getItem('makedoo_voice_uri')||null,
+  selectedVoiceLang:localStorage.getItem('makedoo_voice_lang')||null,
+};
+
+// ── i18n ───────────────────────────────────────────────────────
+const I18N={
+  fr:{conv:'Conversations',lessons:'Leçons',waiting:'En attente de conversation',waitingLesson:'En attente de leçon',startConv:'Démarrer la conversation',startLesson:'Démarrer la leçon',inProgress:'Conversation en cours',lessonProgress:'Leçon en cours',ended:'Conversation terminée',lessonEnded:'Leçon terminée',clickStop:'Clic pour arrêter',repeat:'Répéter',resume:'Poursuivre',save:'Sauvegarder',exit:'Fin',replace:'Remplacer',oralTrans:'Traduction orale',clickTalk:'Clic pour parler',youFirst:'Vous parlez en premier',theyFirst:' parle en premier',keyOk:'✓ Clé enregistrée',learnSoon:'Mode Apprentissage bientôt !',myLang:'Ma langue',transLang:'Langue de traduction',exchanges:'échange(s)',noConv:'Aucune conversation',noLesson:'Aucune leçon',selectConv:'Sélectionner une conversation',selectLesson:'Sélectionner une leçon',review:'Réviser',rename:'Renommer',export:'Exporter MP3',delete:'Supprimer',listen:'Écouter',stop:'Arrêter',unknown:'Inconnu',choosePhrase:'Choisir une phrase',target:'Cible',source:'Source',settings:'⚙ Paramètres',apiKeyLabel:'Clé API Google',uiLangLabel:"Langue de l'interface",saveKey:'Enregistrer la clé',voicesLabel:'Voix MK disponibles',scanVoices:'🔍 Scanner les voix MK',scanPrompt:'Appuyez pour scanner…',noVoices:'Aucune voix MK trouvée',newContact:'Nouveau nom…',exitNoSave:'Sortir sans sauvegarder ?',deleteConfirm:'Supprimer ?',sttError:'Parole non reconnue',sttFail:'Erreur STT',micError:'Microphone non accessible',tagline:'Speak · Translate · Learn',skip:'Skip ›',exitBtn:'✕ Exit',lesonTitle:'💾 Save lesson',lessonName:'Lesson name',lessonPlaceholder:'My lesson…',contactTitle:'Contact',convTitle:'Conversations',lessonTitle2:'Lessons'},
+  en:{conv:'Conversations',lessons:'Lessons',waiting:'Waiting for conversation',waitingLesson:'Waiting for lesson',startConv:'Start conversation',startLesson:'Start lesson',inProgress:'Conversation in progress',lessonProgress:'Lesson in progress',ended:'Conversation ended',lessonEnded:'Lesson ended',clickStop:'Click to stop',repeat:'Repeat',resume:'Continue',save:'Save',exit:'Exit',replace:'Replace',oralTrans:'Oral translation',clickTalk:'Click to speak',youFirst:'You speak first',theyFirst:' speaks first',keyOk:'✓ Key saved',learnSoon:'Learning mode soon!',myLang:'My language',transLang:'Translation language',exchanges:'exchange(s)',noConv:'No conversations',noLesson:'No lessons',selectConv:'Select a conversation',selectLesson:'Select a lesson',review:'Review',rename:'Rename',export:'Export MP3',delete:'Delete',listen:'Listen',stop:'Stop',unknown:'Unknown',startLesson2:'Start lesson',target:'Target',source:'Source',settings:'⚙ Settings',apiKeyLabel:'Google API Key',uiLangLabel:'Interface language',saveKey:'Save key',voicesLabel:'Available MK voices',scanVoices:'🔍 Scan MK voices',scanPrompt:'Tap to scan…',noVoices:'No MK voice found',newContact:'New name…',exitNoSave:'Exit without saving?',deleteConfirm:'Delete?',sttError:'Speech not recognized',sttFail:'STT Error',micError:'Microphone not accessible',tagline:'Speak · Translate · Learn',skip:'Skip ›',exitBtn:'✕ Exit',lessonTitle:'💾 Save lesson',lessonName:'Lesson name',lessonPlaceholder:'My lesson…',contactTitle:'Contact',convTitle:'Conversations',lessonTitle2:'Lessons'},
+  mk:{conv:'Разговори',lessons:'Лекции',waiting:'Чекање разговор',waitingLesson:'Чекање лекција',startConv:'Започни разговор',startLesson:'Започни лекција',inProgress:'Разговор во тек',lessonProgress:'Лекција во тек',ended:'Разговорот завршен',lessonEnded:'Лекцијата завршена',clickStop:'Клик за стопирање',repeat:'Повтори',resume:'Продолжи',save:'Зачувај',exit:'Излез',replace:'Замени',oralTrans:'Устен превод',clickTalk:'Клик за зборување',youFirst:'Вие зборувате прво',theyFirst:' зборува прво',keyOk:'✓ Зачувано',learnSoon:'Режим учење наскоро!',myLang:'Мојот јазик',transLang:'Јазик на превод',exchanges:'размена(и)',noConv:'Нема разговори',noLesson:'Нема лекции',selectConv:'Изберете разговор',selectLesson:'Изберете лекција',review:'Прегледај',rename:'Преименувај',export:'Извоз MP3',delete:'Избриши',listen:'Слушај',stop:'Стопирај',unknown:'Непознат',startLesson2:'Започни лекција',target:'Цел',source:'Извор',settings:'⚙ Поставки',apiKeyLabel:'Google API Клуч',uiLangLabel:'Јазик на интерфејс',saveKey:'Зачувај',voicesLabel:'МК гласови',scanVoices:'🔍 Скенирај гласови',scanPrompt:'Притиснете за скенирање…',noVoices:'Нема МК глас',newContact:'Ново ime…',exitNoSave:'Излез без зачувување?',deleteConfirm:'Избриши?',sttError:'Говорот не е препознаен',sttFail:'Грешка STT',micError:'Микрофонот не е достапен',tagline:'Зборувај · Преведи · Учи',skip:'Прескокни ›',exitBtn:'✕ Излез',lessonTitle:'💾 Зачувај лекција',lessonName:'Ime на лекцијата',lessonPlaceholder:'Моја лекција…',contactTitle:'Соговорник',convTitle:'Разговори',lessonTitle2:'Лекции'},
+  es:{conv:'Conversaciones',lessons:'Lecciones',waiting:'Esperando',waitingLesson:'Esperando lección',startConv:'Iniciar conversación',startLesson:'Iniciar lección',inProgress:'En curso',lessonProgress:'Lección en curso',ended:'Terminada',lessonEnded:'Lección terminada',clickStop:'Clic para detener',repeat:'Repetir',resume:'Continuar',save:'Guardar',exit:'Salir',replace:'Reemplazar',oralTrans:'Traducción oral',clickTalk:'Clic para hablar',youFirst:'Usted habla primero',theyFirst:' habla primero',keyOk:'✓ Guardado',learnSoon:'¡Modo aprendizaje pronto!',myLang:'Mi idioma',transLang:'Idioma traducción',exchanges:'intercambio(s)',noConv:'Sin conversaciones',noLesson:'Sin lecciones',selectConv:'Seleccionar conversación',selectLesson:'Seleccionar lección',review:'Revisar',rename:'Renombrar',export:'Exportar MP3',delete:'Eliminar',listen:'Escuchar',stop:'Parar',unknown:'Desconocido',startLesson2:'Iniciar lección',target:'Destino',source:'Origen',settings:'⚙ Ajustes',apiKeyLabel:'Clave API Google',uiLangLabel:'Idioma interfaz',saveKey:'Guardar clave',voicesLabel:'Voces MK disponibles',scanVoices:'🔍 Buscar voces MK',scanPrompt:'Toca para buscar…',noVoices:'Sin voz MK',newContact:'Nuevo nombre…',exitNoSave:'¿Salir sin guardar?',deleteConfirm:'¿Eliminar?',sttError:'Voz no reconocida',sttFail:'Error STT',micError:'Micrófono no accesible',tagline:'Habla · Traduce · Aprende',skip:'Omitir ›',exitBtn:'✕ Salir',lessonTitle:'💾 Guardar lección',lessonName:'Nombre de lección',lessonPlaceholder:'Mi lección…',contactTitle:'Interlocutor',convTitle:'Conversaciones',lessonTitle2:'Lecciones'},
+  de:{conv:'Gespräche',lessons:'Lektionen',waiting:'Warte',waitingLesson:'Warte auf Lektion',startConv:'Gespräch starten',startLesson:'Lektion starten',inProgress:'Läuft',lessonProgress:'Lektion läuft',ended:'Beendet',lessonEnded:'Lektion beendet',clickStop:'Klick zum Stoppen',repeat:'Wiederholen',resume:'Fortfahren',save:'Speichern',exit:'Beenden',replace:'Ersetzen',oralTrans:'Mündliche Übersetzung',clickTalk:'Klick zum Sprechen',youFirst:'Sie sprechen zuerst',theyFirst:' spricht zuerst',keyOk:'✓ Gespeichert',learnSoon:'Lernmodus bald!',myLang:'Meine Sprache',transLang:'Übersetzungssprache',exchanges:'Austausch',noConv:'Keine Gespräche',noLesson:'Keine Lektionen',selectConv:'Gespräch auswählen',selectLesson:'Lektion auswählen',review:'Überprüfen',rename:'Umbenennen',export:'MP3 Export',delete:'Löschen',listen:'Anhören',stop:'Stoppen',unknown:'Unbekannt',startLesson2:'Lektion starten',target:'Ziel',source:'Quelle',settings:'⚙ Einstellungen',apiKeyLabel:'Google API-Schlüssel',uiLangLabel:'Oberflächensprache',saveKey:'Schlüssel speichern',voicesLabel:'MK-Stimmen verfügbar',scanVoices:'🔍 MK-Stimmen suchen',scanPrompt:'Zum Scannen tippen…',noVoices:'Keine MK-Stimme gefunden',newContact:'Neuer Name…',exitNoSave:'Ohne Speichern beenden?',deleteConfirm:'Löschen?',sttError:'Sprache nicht erkannt',sttFail:'STT-Fehler',micError:'Mikrofon nicht zugänglich',tagline:'Sprechen · Übersetzen · Lernen',skip:'Überspringen ›',exitBtn:'✕ Beenden',lessonTitle:'💾 Lektion speichern',lessonName:'Lektionsname',lessonPlaceholder:'Meine Lektion…',contactTitle:'Gesprächspartner',convTitle:'Gespräche',lessonTitle2:'Lektionen'},
+};
+function t(k){return(I18N[S.uiLang]||I18N.fr)[k]||k}
+const isLearn=()=>S.mode==='learn';
+
+const LANGS=[
+  {code:'fr',label:'Français',flag:'🇫🇷',bcp47:'fr-FR',display:'FR'},
+  {code:'mk',label:'Македонски',flag:'🇲🇰',bcp47:'mk-MK',display:'MK'},
+  {code:'en',label:'English',flag:'🇬🇧',bcp47:'en-US',display:'EN'},
+  {code:'es',label:'Español',flag:'🇪🇸',bcp47:'es-ES',display:'ES'},
+  {code:'de',label:'Deutsch',flag:'🇩🇪',bcp47:'de-DE',display:'DE'},
+  {code:'it',label:'Italiano',flag:'🇮🇹',bcp47:'it-IT',display:'IT'},
+  {code:'ar',label:'العربية',flag:'🇸🇦',bcp47:'ar-XA',display:'AR'},
+];
+
+// ── Init ───────────────────────────────────────────────────────
+const storedKey=localStorage.getItem('makedoo_apikey');
+if(storedKey){document.getElementById('api-key-input').value=storedKey;document.getElementById('api-status').textContent='✓';document.getElementById('api-status').style.color='var(--accent)'}
+const storedUILang=localStorage.getItem('makedoo_uilang');
+if(storedUILang)S.uiLang=storedUILang;
+else S.uiLang='en';
+
+navigator.geolocation&&navigator.geolocation.getCurrentPosition(async pos=>{
+  try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&format=json');const d=await r.json();S.location=(d.display_name||'').split(',').slice(0,2).join(', ')}catch{S.location='Position obtenue'}
+  document.getElementById('gps-status').textContent='📍 '+S.location;
+},()=>{S.location='Ohrid, Macédoine du Nord';document.getElementById('gps-status').textContent='📍 '+S.location});
+
+// ── Long press ─────────────────────────────────────────────────
+function startLP(a){S.lpTimer=setTimeout(()=>execLP(a),750)}
+function cancelLP(){clearTimeout(S.lpTimer)}
+function execLP(a){
+  if(a==='changeLangFrom')openLangPicker('from');
+  else if(a==='changeLangTo')openLangPicker('to');
+  else if(a==='openSetup')showOv('ov-setup');
+}
+
+// ── Mode ───────────────────────────────────────────────────────
+function setMode(mode){
+  if(S.screen!==0)return;
+  S.mode=mode;
+  const learn=mode==='learn';
+  if(learn){S.direction='AB';S.currentSpeaker='A';document.getElementById('left-arrow').classList.remove('reversed')}
+  document.getElementById('btn-exchange').className='mode-btn'+(mode==='exchange'?' active-exchange':'');
+  document.getElementById('btn-learn').className='mode-btn'+(mode==='learn'?' active-learn':'');
+  document.getElementById('left-arrow').classList.toggle('disabled',learn);
+  document.getElementById('name-display').style.display=learn?'none':'';
+  ['lang-top-card','lang-bottom-card'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      if(learn){el.classList.remove('to-lang','from-lang');el.classList.add('learn-mode');}
+      else{el.classList.remove('learn-mode');if(id==='lang-top-card')el.classList.add('to-lang');else el.classList.add('from-lang');}
+    }
+  });
+  document.getElementById('btn-top-center').classList.toggle('learn-mode',learn);
+  renderScreen();updateDisplay();updateUILabels();
+}
+
+// ── Arrow ──────────────────────────────────────────────────────
+function handleArrowClick(){
+  if(isLearn())return;
+  S.direction=S.direction==='AB'?'BA':'AB';
+  S.currentSpeaker=S.direction==='AB'?'A':'B';
+  document.getElementById('left-arrow').classList.toggle('reversed',S.direction==='BA');
+  if(S.screen===1&&S.listening)stopListening();
+  if(S.screen===1)setScreen(1);
+  else showToast(S.direction==='AB'?t('youFirst'):S.interlocutor+t('theyFirst'));
+  S.ignoreTap=true;setTimeout(()=>S.ignoreTap=false,500);
+  updateMicIndicators();
+}
+
+// ── Tap ────────────────────────────────────────────────────────
+function handleTap(){
+  if(S.ignoreTap)return;
+  if(S.screen===1&&!S.listening)startListening();
+  else if(S.screen===1&&S.listening)stopListening();
+  else if(S.screen===2)doResume();
+}
+
+function showTopCenter(){isLearn()?showLessons():showConversations()}
+
+// ── Screen ─────────────────────────────────────────────────────
+function setScreen(n){S.screen=n;renderScreen()}
+
+function renderScreen(){
+  const status=document.getElementById('center-status');
+  const pill=document.getElementById('status-pill');
+  const finBtn=document.getElementById('fin-btn');
+  const intLabel=document.getElementById('intervention-label');
+  const intActions=document.getElementById('action-row');
+  const convActions=document.getElementById('conv-action-row');
+  const micC=document.getElementById('mic-center');
+  const hgC=document.getElementById('hg-center');
+  const arcTop=document.getElementById('arc-top');
+  const arcBot=document.getElementById('arc-bottom');
+  const circleContainer=document.getElementById('circle-container');
+  const textPanel=document.getElementById('text-panel');
+  const textZone=document.getElementById('text-input-zone');
+
+  // Reset
+  intActions.innerHTML='';convActions.innerHTML='';
+  pill.className='status-tag waiting';pill.textContent='';
+  intLabel.className='intervention-label';intLabel.textContent='';
+  if(micC)micC.style.opacity='0';
+  if(hgC)hgC.style.opacity='0';
+  ['wave1','wave2','wave3'].forEach(id=>{const w=document.getElementById(id);if(w){w.style.animation='none';w.style.opacity='0'}});
+  if(arcTop)arcTop.classList.remove('fast');
+  if(arcBot)arcBot.classList.remove('fast');
+  if(finBtn)finBtn.style.display='none';
+
+  const learn=isLearn();
+  const pillActive=learn?'status-pill learn':'status-pill active';
+  const inProgress=learn?t('lessonProgress'):t('inProgress');
+
+  // Cercle ou panneau texte
+  const showPanel=learn&&(S.screen===2||S.screen===3);
+  circleContainer.style.display=showPanel?'none':'flex';
+  if(showPanel)textPanel.classList.add('visible');
+  else textPanel.classList.remove('visible');
+
+  // Zone texte (mode learn, screens 0 et 1)
+  if(textZone)textZone.className='text-input-zone'+(learn&&S.screen>=1?' visible':'');
+
+  if(S.screen===0){
+    status.textContent='';
+    convActions.innerHTML='<button class="action-btn green solid" onclick="startSession()">▶ '+(learn?t('startLesson'):t('startConv'))+'</button>';
+
+  }else if(S.screen===1&&!S.listening){
+    if(micC)micC.style.opacity='1';
+    status.textContent=t('clickTalk');
+    pill.className=(learn?'status-tag learn':'status-tag active');
+    pill.textContent='💬 '+inProgress;
+    if(!learn&&S.currentExchanges.length>0){
+      convActions.innerHTML='<button class="action-btn primary" onclick="doSave()">'+t('save')+'</button><button class="action-btn danger" onclick="doExitConv()">'+t('exit')+'</button>';
+    }
+    if(finBtn)finBtn.style.display=learn?'inline-flex':'none';
+
+  }else if(S.screen===1&&S.listening){
+    if(arcTop)arcTop.classList.add('fast');
+    if(arcBot)arcBot.classList.add('fast');
+    if(micC)micC.style.opacity='1';
+    ['wave1','wave2','wave3'].forEach((id,i)=>{const w=document.getElementById(id);if(w)w.style.animation='waveExp 1.8s ease-out infinite '+(i*0.4)+'s'});
+    status.textContent=t('clickStop');
+    pill.className=(learn?'status-tag learn':'status-tag active');
+    pill.textContent='💬 '+inProgress;
+    if(!learn&&S.currentExchanges.length>0){
+      convActions.innerHTML='<button class="action-btn primary" onclick="doSave()">'+t('save')+'</button><button class="action-btn danger" onclick="doExitConv()">'+t('exit')+'</button>';
+    }
+    if(finBtn)finBtn.style.display=learn?'inline-flex':'none';
+    updateMicIndicators();
+
+  }else if(S.screen===2){
+    if(learn){
+      if(finBtn)finBtn.style.display='none';
+      intLabel.textContent=t('choosePhrase');
+      intLabel.classList.add('visible');
+      intLabel.style.cssText='opacity:1;background:#E3F2FD;border-radius:20px;padding:5px 14px;font-size:12px;color:var(--learn);font-weight:700;width:100%;text-align:center';
+      intActions.innerHTML='<button class="action-btn learn" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn learn" onclick="doReplaceSelected()">'+t('replace')+'</button>';
+      // ZONE BASSE : bandeau + boutons
+      pill.className=(learn?'status-tag learn':'status-tag active');
+      
+      pill.textContent='💬 '+inProgress;
+      convActions.innerHTML='<button class="action-btn green solid" onclick="doResume()">'+t('resume')+'</button><button class="action-btn learn" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn danger" onclick="doExitLesson()">'+t('exit')+'</button>';
+    }else{
+      intLabel.textContent='🔊 '+t('oralTrans');
+      intLabel.classList.add('visible');
+      intLabel.style.cssText='opacity:1;background:#E8F5F3;border-radius:20px;padding:5px 14px;font-size:12px;color:var(--accent);font-weight:700;width:100%;text-align:center';
+      intActions.innerHTML='<button class="action-btn green solid" onclick="doRepeat()">🔊 '+t('repeat')+'</button>';
+      status.textContent=t('clickTalk');
+      pill.className=(learn?'status-tag learn':'status-tag active');
+      pill.textContent='💬 '+inProgress;
+      convActions.innerHTML='<button class="action-btn primary" onclick="doSave()">'+t('save')+'</button><button class="action-btn danger" onclick="doExitConv()">'+t('exit')+'</button>';
+      if(finBtn)finBtn.style.display='none';
+    }
+
+  }else if(S.screen===3){
+    // Screen 3 only used for learn save dialog now
+    if(learn){
+      pill.className='status-tag warning';pill.textContent=t('lessonEnded');
+      convActions.innerHTML='<button class="action-btn learn" onclick="doResume()">'+t('resume')+'</button><button class="action-btn learn primary" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn danger" onclick="doExitLesson()">'+t('exit')+'</button>';
+    }
+  }
+  updateUILabels();
+  updateMicIndicators();
+}
+
+// ── Session ────────────────────────────────────────────────────
+function startSession(){
+  S.currentExchanges=[];
+  selectedPhraseIdx=-1;selectedPhraseIdxs.clear();
+  document.getElementById('tp-text-orig').innerHTML='';
+  document.getElementById('tp-text-trans').innerHTML='';
+  setScreen(1);
+}
+function endSession(){
+  if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false}
+  setScreen(3);
+}
+function confirmEnd(){endSession()}
+function doExitLesson(){
+  if(confirm(t('exitNoSave'))){
+    S.currentExchanges=[];setScreen(0);
+  }
+}
+function doExitConv(){
+  if(confirm(t('exitNoSave'))){
+    if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
+    S.currentExchanges=[];setScreen(0);
+  }
+}
+function doResume(){setScreen(1)}
+function doReplace(){if(S.currentExchanges.length>0)S.currentExchanges.pop();setScreen(1)}
+function doRepeat(){if(S.lastTranslation)speakText(S.lastTranslation,S.lastTranslationLang)}
+function doRepeatLearn(){if(S.lastTranslation)speakText(S.lastTranslation,S.lastTranslationLang)}
+
+// Sélection multiple de phrases
+let selectedPhraseIdx=-1;
+let selectedPhraseIdxs=new Set();
+
+function selectPhrase(idx){
+  // Toggle sélection
+  if(selectedPhraseIdxs.has(idx))selectedPhraseIdxs.delete(idx);
+  else selectedPhraseIdxs.add(idx);
+  selectedPhraseIdx=idx; // Dernière sélectionnée
+  // Surligner toutes les phrases sélectionnées
+  document.querySelectorAll('.tp-phrase').forEach(el=>{
+    const i=parseInt(el.dataset.idx);
+    el.style.background=selectedPhraseIdxs.has(i)?'#BBDEFB':'';
+  });
+}
+
+function doRepeatSelected(){
+  const idxs=selectedPhraseIdxs.size>0?[...selectedPhraseIdxs].sort():[S.currentExchanges.length-1];
+  (async()=>{
+    for(const i of idxs){
+      const ex=S.currentExchanges[i];
+      if(ex)await speakText(ex.translated,ex.langTo||S.langTo);
+    }
+  })();
+  // Reste sur screen 2
+}
+
+function doReplaceSelected(){
+  const idxs=selectedPhraseIdxs.size>0?[...selectedPhraseIdxs].sort((a,b)=>b-a):[S.currentExchanges.length-1];
+  // Supprimer par index décroissant
+  idxs.forEach(i=>{if(i>=0&&i<S.currentExchanges.length)S.currentExchanges.splice(i,1)});
+  selectedPhraseIdxs.clear();selectedPhraseIdx=-1;
+  // Re-rendre le panneau texte
+  const oe=document.getElementById('tp-text-orig');const te=document.getElementById('tp-text-trans');
+  oe.innerHTML='';te.innerHTML='';
+  const sep='<div style="border-top:1px solid var(--border);margin:4px 0"></div>';
+  S.currentExchanges.forEach((ex,i)=>{
+    oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+ex.original+'</div>';
+    te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+ex.translated+'</div>';
+  });
+  if(S.currentExchanges.length>0){const last=S.currentExchanges[S.currentExchanges.length-1];S.lastTranslation=last.translated;S.lastTranslationLang=last.langTo||S.langTo;}
+  setScreen(2);
+}
+function doSave(){
+  if(S.currentExchanges.length>0){
+    S.journal.unshift({id:Date.now(),date:new Date().toISOString().split('T')[0],location:S.location,interlocutor:S.interlocutor,langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
+    localStorage.setItem('mk_journal',JSON.stringify(S.journal));
+  }
+  S.currentExchanges=[];setScreen(0);showToast('💾 '+t('save'));
+}
+function doSaveLesson(){
+  document.getElementById('lesson-name-input').value='';
+  document.getElementById('lesson-date').textContent=new Date().toLocaleDateString();
+  showOv('ov-save-lesson');
+}
+function confirmSaveLesson(){
+  const name=document.getElementById('lesson-name-input').value.trim()||('Leçon '+new Date().toLocaleDateString());
+  S.lessons.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
+  localStorage.setItem('mk_lessons',JSON.stringify(S.lessons));
+  hideOv('ov-save-lesson');
+  S.currentExchanges=[];setScreen(0);showToast('💾 '+name);
+}
+function doExit(){S.currentExchanges=[];setScreen(0)}
+
+async function submitTextLesson(){
+  const input=document.getElementById('text-lesson-input');
+  const text=input.value.trim();if(!text)return;input.value='';
+  if(S.screen===0){S.currentExchanges=[];document.getElementById('tp-text-orig').innerHTML='';document.getElementById('tp-text-trans').innerHTML='';}
+  const hgC=document.getElementById('hg-center');if(hgC)hgC.style.opacity='1';
+  await translateAndSpeak(text,S.langFrom,S.langTo);
+}
+
+// ── Recognition ────────────────────────────────────────────────
+let recognition=null,mediaRecorder=null,audioChunksSTT=[];
+
+function startListening(){
+  const isB=isLearn()?false:(S.currentSpeaker==='B');
+  const fromLang=isB?S.langTo:S.langFrom;
+  const toLang=isB?S.langFrom:S.langTo;
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA'};
+  const recogLang=langMap[fromLang]||'fr-FR';
+  S.listening=true;setScreen(1);
+  startCloudSTT(fromLang,toLang,recogLang);
+}
+
+function startWebSpeech(recogLang,fromLang,toLang){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('Reconnaissance vocale non disponible');return}
+  recognition=new SR();recognition.lang=recogLang;recognition.interimResults=false;recognition.continuous=false;
+  let acc='';
+  recognition.onresult=e=>{acc+=' '+e.results[0][0].transcript};
+  recognition.onerror=e=>{if(e.error==='no-speech'&&S.listening){try{recognition.start()}catch(err){}return}S.listening=false;setScreen(S.currentExchanges.length>0?2:0)};
+  recognition.onend=()=>{if(S.listening){try{recognition.start()}catch(err){}}else{const text=acc.trim();if(!text){setScreen(S.currentExchanges.length>0?2:0);return}finishListening(text,fromLang,toLang)}};
+  recognition.start();
+}
+
+async function startCloudSTT(fromLang,toLang,recogLang){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+    audioChunksSTT=[];
+    const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+    mediaRecorder=new MediaRecorder(stream,{mimeType});
+    mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunksSTT.push(e.data)};
+    mediaRecorder.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      if(!audioChunksSTT.length){setScreen(S.currentExchanges.length>0?2:0);return}
+      const micC=document.getElementById('mic-center');
+      const hgC=document.getElementById('hg-center');
+      if(micC)micC.style.opacity='0';if(hgC)hgC.style.opacity='1';
+      updateMicIndicators();
+      const blob=new Blob(audioChunksSTT,{type:mimeType});
+      const reader=new FileReader();
+      reader.onloadend=async()=>{
+        const base64=reader.result.split(',')[1];
+        try{
+          const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,languageCode:recogLang})});
+          const data=await res.json();
+          const text=data.transcript||'';
+          if(text)finishListening(text,fromLang,toLang);
+          else{if(hgC)hgC.style.opacity='0';if(micC)micC.style.opacity='1';setScreen(1);}
+        }catch(e){showToast(t('sttFail'));setScreen(S.currentExchanges.length>0?2:0)}
+      };
+      reader.readAsDataURL(blob);
+    };
+    mediaRecorder.start();
+  }catch(e){showToast(t('micError'));S.listening=false;setScreen(0)}
+}
+
+function stopListening(){
+  S.listening=false;
+  if(recognition){recognition.stop();recognition=null}
+  if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
+  ['wave1','wave2','wave3'].forEach(id=>{const w=document.getElementById(id);if(w){w.style.animation='none';w.style.opacity='0'}});
+  const at=document.getElementById('arc-top');const ab=document.getElementById('arc-bottom');
+  if(at)at.classList.remove('fast');if(ab)ab.classList.remove('fast');
+}
+
+function finishListening(text,fromLang,toLang){
+  const micC=document.getElementById('mic-center');const hgC=document.getElementById('hg-center');
+  const at=document.getElementById('arc-top');const ab=document.getElementById('arc-bottom');
+  if(micC)micC.style.opacity='0';if(hgC)hgC.style.opacity='1';
+  ['wave1','wave2','wave3'].forEach(id=>{const w=document.getElementById(id);if(w){w.style.animation='none';w.style.opacity='0'}});
+  if(at)at.classList.remove('fast');if(ab)ab.classList.remove('fast');
+  updateMicIndicators();
+  translateAndSpeak(text,fromLang,toLang);
+}
+
+// ── Translate & Speak ──────────────────────────────────────────
+async function translateAndSpeak(text,fromLang,toLang){
+  let translated=text;
+  try{
+    const res=await fetch(API_BASE+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:fromLang,target:toLang})});
+    const data=await res.json();
+    if(data.translated)translated=data.translated;
+  }catch(e){}
+  S.currentExchanges.push({original:text,translated,langFrom:fromLang,langTo:toLang});
+  S.lastTranslation=translated;S.lastTranslationLang=toLang;S.lastOriginal=text;
+  if(isLearn()){
+    const lf=LANGS.find(l=>l.code===fromLang);const lt=LANGS.find(l=>l.code===toLang);
+    document.getElementById('tp-lang-top').textContent=lf?lf.display:fromLang.toUpperCase();
+    document.getElementById('tp-lang-bot').textContent=lt?lt.display:toLang.toUpperCase();
+    const sep='<div style="border-top:1px solid var(--border);margin:4px 0"></div>';
+    const oe=document.getElementById('tp-text-orig');const te=document.getElementById('tp-text-trans');
+    const idx=S.currentExchanges.length-1;
+    oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+idx+'" onclick="selectPhrase('+idx+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+text+'</div>';
+    te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+idx+'" onclick="selectPhrase('+idx+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+translated+'</div>';
+  }
+  await speakText(translated,toLang);
+  setScreen(2);
+}
+
+async function speakText(text,langCode){
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA'};
+  const lc=langMap[langCode]||'fr-FR';
+  try{
+    const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:lc,speakingRate:0.85})});
+    const data=await res.json();
+    if(data.audioContent){await playAudio('data:audio/mp3;base64,'+data.audioContent);return}
+  }catch(e){}
+  return new Promise(resolve=>{
+    const utt=new SpeechSynthesisUtterance(text);utt.lang=lc;utt.rate=0.85;
+    if(S.selectedVoiceURI&&langCode===S.langTo){const v=speechSynthesis.getVoices().find(v=>v.voiceURI===S.selectedVoiceURI);if(v){utt.voice=v;utt.lang=S.selectedVoiceLang||lc}}
+    utt.onend=resolve;window.speechSynthesis.cancel();window.speechSynthesis.speak(utt);
+  });
+}
+function playAudio(src){return new Promise(resolve=>{const a=new Audio(src);a.onended=resolve;a.onerror=resolve;a.play()})}
+
+// ── Mic indicators ─────────────────────────────────────────────
+function updateMicIndicators(){
+  const mt=document.getElementById('mic-top');const mb=document.getElementById('mic-bottom');
+  mt.classList.remove('visible');mb.classList.remove('visible');
+  if(S.screen===3)return;
+  if(isLearn()){if(S.screen>=1)mb.classList.add('visible');return}
+  if(S.direction==='AB')mb.classList.add('visible');else mt.classList.add('visible');
+}
+
+// ── Conv/Lesson screen ─────────────────────────────────────────
+let convViewMode=false,selectedEntry=null,isPlayingConv=false;
+
+function showConversations(){convViewMode=false;selectedEntry=null;showConvScreen()}
+function showLessons(){convViewMode=true;selectedEntry=null;showConvScreen()}
+
+function showConvScreen(){
+  const ml=document.getElementById('main-layout');
+  const mb=document.getElementById('mode-bar');
+  const ns=document.getElementById('nav-spacer');
+  const cs=document.getElementById('conv-screen');
+  if(ml)ml.style.display='none';
+  if(mb)mb.style.display='none';
+  if(ns)ns.style.display='none';
+  if(cs){cs.style.display='flex';cs.style.position='fixed';cs.style.inset='0';cs.style.zIndex='50';cs.style.background='var(--bg)';}
+  renderConvScreen();
+}
+function hideConvScreen(){
+  const ml=document.getElementById('main-layout');
+  const mb=document.getElementById('mode-bar');
+  const ns=document.getElementById('nav-spacer');
+  const cs=document.getElementById('conv-screen');
+  if(cs){cs.style.display='none';cs.style.position='';cs.style.inset='';cs.style.zIndex='';}
+  if(ml)ml.style.display='flex';
+  if(mb)mb.style.display='flex';
+  if(ns)ns.style.display='block';
+  selectedEntry=null;isPlayingConv=false;
+}
+
+function renderConvScreen(){
+  const data=convViewMode?S.lessons:S.journal;
+  const color=convViewMode?'var(--learn)':'var(--accent)';
+  document.getElementById('cs-title').textContent=convViewMode?t('lessons'):t('conv');
+  document.getElementById('cs-title').style.color=color;
+  const actionDiv=document.getElementById('cs-actions');
+  if(selectedEntry){
+    if(convViewMode){
+      actionDiv.innerHTML='<button class="cs-btn" onclick="resumeLesson()" style="border-color:'+color+';color:'+color+'">📖 '+t('review')+'</button>'
+        +'<button class="cs-btn" onclick="renameLesson()" style="border-color:'+color+';color:'+color+'">✏️ '+t('rename')+'</button>'
+        +'<button class="cs-btn" onclick="exportEntry()" style="border-color:'+color+';color:'+color+'">⬇ '+t('export')+'</button>'
+        +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>';
+    }else{
+      actionDiv.innerHTML='<button class="cs-btn" id="cs-listen" onclick="listenEntry()" style="border-color:'+color+';color:'+color+'">🔊 '+t('listen')+'</button>'
+        +'<button class="cs-btn" onclick="exportEntry()" style="border-color:'+color+';color:'+color+'">⬇ '+t('export')+'</button>'
+        +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>';
+    }
+  }else{
+    actionDiv.innerHTML='<div style="font-size:12px;color:var(--muted);font-style:italic">'+( convViewMode?t('selectLesson'):t('selectConv'))+'</div>';
+  }
+  document.getElementById('cs-list').innerHTML=data.length===0
+    ?'<div style="color:var(--muted);text-align:center;padding:24px">'+(convViewMode?t('noLesson'):t('noConv'))+'</div>'
+    :data.map((e,i)=>'<div class="cs-item'+(selectedEntry&&selectedEntry.id===e.id?' selected':'')+'" ontouchend="selectEntry('+i+')" onclick="selectEntry('+i+')">'
+      +'<div style="font-weight:700;font-size:14px">'+(convViewMode?'📖 '+(e.name||t('lessons')):'👤 '+e.interlocutor)+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:3px">📅 '+new Date(e.date).toLocaleDateString()+' · '+(e.langFrom||'').toUpperCase()+'→'+(e.langTo||'').toUpperCase()+' · '+e.count+' '+t('exchanges')+'</div>'
+      +'</div>').join('');
+}
+
+function selectEntry(idx){
+  const data=convViewMode?S.lessons:S.journal;
+  selectedEntry=data[idx];S.reviewOpen=false;isPlayingConv=false;
+  renderConvScreen();
+}
+
+function resumeLesson(){
+  if(!selectedEntry)return;
+  S.langFrom=selectedEntry.langFrom||'fr';S.langTo=selectedEntry.langTo||'mk';
+  S.currentExchanges=[...selectedEntry.exchanges];
+  S.lastTranslation=selectedEntry.exchanges[selectedEntry.exchanges.length-1]&&selectedEntry.exchanges[selectedEntry.exchanges.length-1].translated||null;
+  S.lastTranslationLang=selectedEntry.langTo||'mk';
+  const oe=document.getElementById('tp-text-orig');const te=document.getElementById('tp-text-trans');
+  oe.innerHTML='';te.innerHTML='';
+  const sep='<div style="border-top:1px solid var(--border);margin:4px 0"></div>';
+  selectedEntry.exchanges.forEach((e,i)=>{
+    oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.original+'</div>';
+    te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.translated+'</div>';
+  });
+  const lf=LANGS.find(l=>l.code===S.langFrom);const lt=LANGS.find(l=>l.code===S.langTo);
+  document.getElementById('tp-lang-top').textContent=lf?lf.display:S.langFrom.toUpperCase();
+  document.getElementById('tp-lang-bot').textContent=lt?lt.display:S.langTo.toUpperCase();
+  S.screen=0;S.mode='learn';selectedPhraseIdx=-1;selectedPhraseIdxs.clear();
+  document.getElementById('btn-exchange').className='mode-btn';
+  document.getElementById('btn-learn').className='mode-btn active-learn';
+  document.getElementById('left-arrow').classList.add('disabled');
+  document.getElementById('name-display').style.display='none';
+  ['lang-top-card','lang-bottom-card'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.classList.remove('to-lang','from-lang');el.classList.add('learn-mode');}
+  });
+  document.getElementById('btn-top-center').classList.add('learn-mode');
+  hideConvScreen();
+  updateDisplay();
+  setScreen(2);
+}
+
+function renameLesson(){
+  if(!selectedEntry)return;
+  const newName=prompt('Nouveau nom :',selectedEntry.name||'Leçon');
+  if(!newName||newName===selectedEntry.name)return;
+  selectedEntry.name=newName;
+  const idx=S.lessons.findIndex(l=>l.id===selectedEntry.id);
+  if(idx>=0){S.lessons[idx].name=newName;localStorage.setItem('mk_lessons',JSON.stringify(S.lessons))}
+  showToast('✓ '+newName);renderConvScreen();
+}
+
+function deleteEntry(){
+  if(!selectedEntry)return;
+  if(!confirm(t('deleteConfirm')))return;
+  if(convViewMode){S.lessons=S.lessons.filter(e=>e.id!==selectedEntry.id);localStorage.setItem('mk_lessons',JSON.stringify(S.lessons))}
+  else{S.journal=S.journal.filter(e=>e.id!==selectedEntry.id);localStorage.setItem('mk_journal',JSON.stringify(S.journal))}
+  selectedEntry=null;renderConvScreen();showToast('🗑 Supprimé');
+}
+
+async function listenEntry(){
+  if(!selectedEntry||isPlayingConv)return;
+  isPlayingConv=true;
+  const btn=document.getElementById('cs-listen');
+  if(btn){btn.textContent='⏹ '+t('stop');btn.onclick=()=>{isPlayingConv=false;if(btn){btn.textContent='🔊 '+t('listen');btn.onclick=listenEntry}}}
+  for(const ex of selectedEntry.exchanges){
+    if(!isPlayingConv)break;
+    await speakText(ex.original,ex.langFrom);if(!isPlayingConv)break;
+    await new Promise(r=>setTimeout(r,400));if(!isPlayingConv)break;
+    await speakText(ex.translated,ex.langTo);if(!isPlayingConv)break;
+    await new Promise(r=>setTimeout(r,600));
+  }
+  isPlayingConv=false;
+  const b=document.getElementById('cs-listen');
+  if(b){b.textContent='🔊 '+t('listen');b.onclick=listenEntry}
+}
+
+async function exportEntry(){
+  if(!selectedEntry)return;
+  const key=localStorage.getItem('makedoo_apikey');
+  if(!key){showToast('Clé API requise');return}
+  const btn=document.getElementById('cs-export')||document.querySelector('[onclick="exportEntry()"]');
+  if(btn)btn.textContent='⏳…';
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA'};
+  const chunks=[];
+  for(const ex of selectedEntry.exchanges){
+    for(const [txt,lang] of [[ex.original,ex.langFrom],[ex.translated,ex.langTo]]){
+      try{
+        const res=await fetch('https://texttospeech.googleapis.com/v1/text:synthesize?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{text:txt},voice:{languageCode:langMap[lang]||'fr-FR',ssmlGender:'FEMALE'},audioConfig:{audioEncoding:'MP3',speakingRate:0.85}})});
+        const data=await res.json();
+        if(data.audioContent){const bytes=atob(data.audioContent);const arr=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);chunks.push(arr)}
+      }catch(e){}
+    }
+  }
+  if(chunks.length){
+    const total=chunks.reduce((s,a)=>s+a.length,0);const merged=new Uint8Array(total);let off=0;chunks.forEach(a=>{merged.set(a,off);off+=a.length});
+    const blob=new Blob([merged],{type:'audio/mpeg'});const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='makedoo_'+(selectedEntry.name||selectedEntry.interlocutor||'export')+'_'+selectedEntry.date+'.mp3';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    showToast('✓ MP3 téléchargé');
+  }else showToast('Export échoué');
+  if(btn)btn.textContent='⬇ '+t('export');
+}
+
+// ── Lang picker ────────────────────────────────────────────────
+function openLangPicker(target){
+  S.langPickerTarget=target;
+  document.getElementById('t-langpicker').textContent=target==='from'?t('myLang'):t('transLang');
+  document.getElementById('lang-list').innerHTML=LANGS.map(l=>'<div class="list-item'+(( target==='from'&&l.code===S.langFrom)||(target==='to'&&l.code===S.langTo)?' selected':'')+'" onclick="selectLang(\''+l.code+'\')">'+l.flag+' '+l.label+'</div>').join('');
+  showOv('ov-lang');
+}
+function selectLang(code){if(S.langPickerTarget==='from')S.langFrom=code;else S.langTo=code;updateDisplay();hideOv('ov-lang')}
+
+// ── Contact picker ─────────────────────────────────────────────
+async function showContactPicker(){
+  if('contacts' in navigator&&'ContactsManager' in window){
+    try{const contacts=await navigator.contacts.select(['name'],{multiple:false});if(contacts.length>0){const name=contacts[0].name&&contacts[0].name[0]||t('unknown');if(!S.contacts.find(c=>c.name===name)){S.contacts.push({id:Date.now(),name,lang:S.langTo});localStorage.setItem('mk_contacts',JSON.stringify(S.contacts))}selectContact(name);return}}catch(e){}
+  }
+  document.getElementById('contact-list').innerHTML=[{id:0,name:t('unknown')},...S.contacts].map(c=>'<div class="list-item'+(c.name===S.interlocutor?' selected':'')+'" onclick="selectContact(\''+c.name+'\')">'+c.name+'</div>').join('');
+  showOv('ov-contact');
+}
+function selectContact(name){S.interlocutor=name;updateDisplay();hideOv('ov-contact')}
+function addNewContact(){const i=document.getElementById('new-contact-input');const name=i.value.trim();if(!name)return;if(!S.contacts.find(c=>c.name===name)){S.contacts.push({id:Date.now(),name,lang:S.langTo});localStorage.setItem('mk_contacts',JSON.stringify(S.contacts))}selectContact(name);i.value=''}
+
+// ── Settings ───────────────────────────────────────────────────
+function saveApiKey(){const key=document.getElementById('api-key-input').value.trim();if(!key)return;localStorage.setItem('makedoo_apikey',key);document.getElementById('api-status').textContent=t('keyOk');document.getElementById('api-status').style.color='var(--accent)';setTimeout(()=>hideOv('ov-setup'),700)}
+
+function setUILang(lang){
+  S.uiLang=lang;localStorage.setItem('makedoo_uilang',lang);
+  ['fr','en','mk','es','de'].forEach(l=>{const b=document.getElementById('ulang-'+l);if(b)b.classList.toggle('sel',l===lang)});
+  updateUILabels();renderScreen();updateDisplay();
+}
+
+function scanVoices(){
+  const listEl=document.getElementById('voice-list');listEl.innerHTML='⏳ Scan…';
+  const doScan=()=>{
+    const all=speechSynthesis.getVoices();
+    const mk=all.filter(v=>v.lang.startsWith('mk')||v.lang.startsWith('hr')||v.lang.startsWith('sr'));
+    if(mk.length===0){listEl.innerHTML='<div style="color:#E53935">'+t('noVoices')+'</div>';return}
+    listEl.innerHTML=mk.map(v=>'<div style="background:#F0F4F8;border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer;border:1.5px solid '+(S.selectedVoiceURI===v.voiceURI?'var(--learn)':'var(--border)')+'" onclick="testVoice(\''+v.voiceURI.replace(/'/g,"\\'")+'\',' +'\''+v.lang+'\',\''+v.name.replace(/'/g,"\\'")+'\')"><div style="font-weight:700;font-size:13px">'+v.name+'</div><div style="font-size:11px;color:var(--muted)">'+v.lang+' · '+(v.localService?'🟢 Local':'🌐 Réseau')+'</div><div style="font-size:11px;color:var(--learn)">▶ Appuyer pour tester</div></div>').join('');
+  };
+  if(speechSynthesis.getVoices().length>0)doScan();else{speechSynthesis.onvoiceschanged=doScan;setTimeout(doScan,1500)}
+}
+
+function testVoice(uri,lang,name){
+  window.speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance('Здраво, јас сум Makedoo');
+  const voice=speechSynthesis.getVoices().find(v=>v.voiceURI===uri);
+  if(voice)utt.voice=voice;utt.lang=lang;utt.rate=0.85;
+  window.speechSynthesis.speak(utt);
+  S.selectedVoiceURI=uri;S.selectedVoiceLang=lang;
+  localStorage.setItem('makedoo_voice_uri',uri);localStorage.setItem('makedoo_voice_lang',lang);
+  showToast('✓ '+name);scanVoices();
+}
+
+// ── Display ────────────────────────────────────────────────────
+function updateDisplay(){
+  const lf=LANGS.find(l=>l.code===S.langFrom);const lt=LANGS.find(l=>l.code===S.langTo);
+  document.getElementById('lang-top').textContent=lt?lt.display:S.langTo.toUpperCase();
+  document.getElementById('lang-bottom').textContent=lf?lf.display:S.langFrom.toUpperCase();
+  document.getElementById('name-display').textContent=S.interlocutor;
+}
+
+function updateUILabels(){
+  // Mode buttons
+  document.getElementById('btn-top-center').textContent=isLearn()?t('lessons'):t('conv');
+  const exchLabels={fr:'Échange',mk:'Размена',es:'Intercambio',de:'Austausch',en:'Exchange'};
+  const learnLabels={fr:'Apprentissage',mk:'Учење',es:'Aprendizaje',de:'Lernen',en:'Learning'};
+  document.getElementById('btn-exchange').textContent=exchLabels[S.uiLang]||'Exchange';
+  document.getElementById('btn-learn').textContent=learnLabels[S.uiLang]||'Learning';
+  // Lang card sub labels
+  const lsTop=document.getElementById('lang-sub-top');
+  const lsBot=document.getElementById('lang-sub-bot');
+  if(lsTop)lsTop.textContent=t('target');
+  if(lsBot)lsBot.textContent=t('source');
+  // Conv screen exit button
+  const exitBtn=document.querySelector('#conv-screen .cs-btn');
+  if(exitBtn)exitBtn.textContent=t('exitBtn');
+  // Voice list prompt if empty
+  const vl=document.getElementById('voice-list');
+  if(vl&&(vl.textContent.trim()===''||vl.textContent.includes('scanner')||vl.textContent.includes('scan')))vl.textContent=t('scanPrompt');
+  // UI lang buttons highlight
+  ['fr','en','mk','es','de'].forEach(l=>{const b=document.getElementById('ulang-'+l);if(b)b.classList.toggle('sel',l===S.uiLang)});
+}
+
+// ── Overlays ───────────────────────────────────────────────────
+function showOv(id){document.getElementById(id).style.display='flex'}
+function hideOv(id){document.getElementById(id).style.display='none'}
+
+// ── Toast ──────────────────────────────────────────────────────
+let toastTimer=null;
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
+
+// ── Boot ───────────────────────────────────────────────────────
+updateDisplay();updateUILabels();renderScreen();
+
+// ── Splash ─────────────────────────────────────────────────────
+function hideSplash(){
+  const s=document.getElementById('splash');
+  if(!s)return;
+  s.style.transition='opacity 0.6s';
+  s.style.opacity='0';
+  setTimeout(()=>{s.style.display='none'},650);
+}
+
+(function(){
+  const tagline=document.getElementById('splash-tagline');
+  const skip=document.getElementById('splash-skip');
+  const arcTop=document.getElementById('splash-arc-top');
+  const arcBot=document.getElementById('splash-arc-bot');
+
+  // Tagline fade in
+  setTimeout(()=>{
+    if(tagline){tagline.style.transition='opacity 0.6s';tagline.style.opacity='1';}
+  },600);
+
+  // Skip button appears
+  setTimeout(()=>{
+    if(skip){skip.style.transition='opacity 0.5s';skip.style.opacity='1';}
+  },1500);
+
+  // Accelerate
+  setTimeout(()=>{
+    if(arcTop)arcTop.classList.add('fast');
+    if(arcBot)arcBot.classList.add('fast');
+  },2200);
+
+  // Hide splash
+  setTimeout(hideSplash, 3500);
+})();
+
+</script>
+</body>
+</html>
