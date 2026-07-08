@@ -282,7 +282,7 @@ input:focus{border-color:var(--blue)}
     <div class="conversation-zone">
       <div style="display:flex;align-items:center;gap:8px;justify-content:center">
         <div class="status-tag waiting" id="status-pill"></div>
-        <button class="fin-btn" id="fin-btn" onclick="confirmEnd()">⏹ <span id="fin-btn-label">Exit</span></button>
+        <button class="fin-btn" id="fin-btn" onclick="confirmEnd()"><span id="fin-btn-label">Exit</span></button>
       </div>
       <div class="action-row" id="conv-action-row"></div>
     </div>
@@ -437,14 +437,13 @@ const LANGS=[
 // ── Init ───────────────────────────────────────────────────────
 const storedKey=localStorage.getItem('makedoo_v3_apikey');
 if(storedKey){document.getElementById('api-key-input').value=storedKey;document.getElementById('api-status').textContent='✓';document.getElementById('api-status').style.color='var(--accent)'}
-// Restaurer les langues de la dernière session
+// Restaurer les langues — AVANT tout rendu
 const storedLangFrom=localStorage.getItem('makedoo_v3_langFrom');
 const storedLangTo=localStorage.getItem('makedoo_v3_langTo');
 const storedUILang=localStorage.getItem('makedoo_v3_uilang');
 if(storedLangFrom)S.langFrom=storedLangFrom;
 if(storedLangTo)S.langTo=storedLangTo;
-if(storedUILang)S.uiLang=storedUILang;
-// Sinon par défaut EN/MK/EN
+S.uiLang=storedUILang||'en'; // Anglais par défaut si première ouverture
 
 navigator.geolocation&&navigator.geolocation.getCurrentPosition(async pos=>{
   try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&format=json');const d=await r.json();S.location=(d.display_name||'').split(',').slice(0,2).join(', ')}catch{S.location='Position obtenue'}
