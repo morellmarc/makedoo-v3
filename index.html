@@ -962,7 +962,6 @@ function resumeLesson(){
   document.getElementById('btn-exchange').className='mode-btn';
   document.getElementById('btn-learn').className='mode-btn active-learn';
   document.getElementById('left-arrow').classList.add('disabled');
-  document.getElementById('name-display').style.display='none';
   ['lang-top-card','lang-bottom-card'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.classList.remove('to-lang','from-lang');el.classList.add('learn-mode');}
@@ -1116,8 +1115,6 @@ function updateDisplay(){
   const lf=LANGS.find(l=>l.code===S.langFrom);const lt=LANGS.find(l=>l.code===S.langTo);
   document.getElementById('lang-top').textContent=lt?lt.display:S.langTo.toUpperCase();
   document.getElementById('lang-bottom').textContent=lf?lf.display:S.langFrom.toUpperCase();
-  const nameBtn=document.getElementById('name-display');
-  if(nameBtn)nameBtn.textContent='👤 '+(S.interlocutor==='Unknown'||S.interlocutor==='Inconnu'?t('unknown'):S.interlocutor);
 }
 
 function updateUILabels(){
