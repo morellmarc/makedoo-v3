@@ -722,11 +722,17 @@ function doReplaceSelected(){
   setScreen(2);
 }
 function doSave(){
-  if(S.currentExchanges.length>0){
-    S.journal.unshift({id:Date.now(),date:new Date().toISOString().split('T')[0],location:S.location,interlocutor:S.interlocutor,langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
-    localStorage.setItem('mk_v3_journal',JSON.stringify(S.journal));
-  }
-  S.currentExchanges=[];setScreen(0);showToast('💾 '+t('save'));
+  if(S.currentExchanges.length===0){setScreen(0);return;}
+  document.getElementById('conv-name-input').value='';
+  document.getElementById('conv-date').textContent=new Date().toLocaleDateString()+' · '+S.location;
+  showOv('ov-save-conv');
+}
+function confirmSaveConv(){
+  const name=document.getElementById('conv-name-input').value.trim()||('Conv. '+new Date().toLocaleDateString());
+  S.journal.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],location:S.location,langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
+  localStorage.setItem('mk_v3_journal',JSON.stringify(S.journal));
+  hideOv('ov-save-conv');
+  S.currentExchanges=[];setScreen(0);showToast('💾 '+name);
 }
 function doSaveLesson(){
   document.getElementById('lesson-name-input').value='';
