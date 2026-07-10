@@ -499,7 +499,6 @@ function setMode(mode){
   document.getElementById('btn-exchange').className='mode-btn'+(mode==='exchange'?' active-exchange':'');
   document.getElementById('btn-learn').className='mode-btn'+(mode==='learn'?' active-learn':'');
   document.getElementById('left-arrow').classList.toggle('disabled',learn);
-  document.getElementById('name-display').style.display=learn?'none':'';
   ['lang-top-card','lang-bottom-card'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
