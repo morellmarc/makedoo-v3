@@ -937,7 +937,8 @@ function renderConvScreen(){
     if(convViewMode){
       actionDiv.innerHTML='<button class="cs-btn" onclick="resumeLesson()" style="border-color:'+color+';color:'+color+'">📖 '+t('review')+'</button>'
         +'<button class="cs-btn" onclick="renameLesson()" style="border-color:'+color+';color:'+color+'">✏️ '+t('rename')+'</button>'
-        +'<button class="cs-btn" onclick="exportEntry()" style="border-color:'+color+';color:'+color+'">⬇ '+t('export')+'</button>'
+        +'<button class="cs-btn" onclick="exportEntry()" style="border-color:'+color+';color:'+color+'">🎵 MP3</button>'
+        +'<button class="cs-btn" onclick="exportDocx()" style="border-color:'+color+';color:'+color+'">📄 DOCX</button>'
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>';
     }else{
       actionDiv.innerHTML='<button class="cs-btn" id="cs-listen" onclick="listenEntry()" style="border-color:'+color+';color:'+color+'">🔊 '+t('listen')+'</button>'
@@ -1088,7 +1089,68 @@ async function exportEntry(){
   if(btn)btn.textContent='⬇ '+t('export');
 }
 
-// ── Lang picker ────────────────────────────────────────────────
+async function exportDocx(){
+  if(!selectedEntry)return;
+
+  // Grouper par phrase originale (même logique que MP3)
+  const groups=[];
+  for(const ex of selectedEntry.exchanges){
+    const last=groups[groups.length-1];
+    if(last&&last.original===ex.original&&last.langFrom===ex.langFrom){
+      last.translations.push({text:ex.translated,lang:ex.langTo});
+    } else {
+      groups.push({original:ex.original,langFrom:ex.langFrom,translations:[{text:ex.translated,lang:ex.langTo}]});
+    }
+  }
+
+  // Détecter si multilingue
+  const maxTrans=Math.max(...groups.map(g=>g.translations.length));
+  const isMulti=maxTrans>1;
+
+  // Générer le HTML pour conversion en DOCX via Blob
+  const name=selectedEntry.name||'Leçon';
+  const date=new Date(selectedEntry.date).toLocaleDateString();
+
+  let tableRows='';
+  if(isMulti){
+    // Entête colonnes langues
+    const langs=[...new Set(selectedEntry.exchanges.map(e=>e.langTo))];
+    const headers='<tr><th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+selectedEntry.langFrom.toUpperCase()+'</th>'
+      +langs.map(l=>'<th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+l.toUpperCase()+'</th>').join('')+'</tr>';
+    tableRows=headers+groups.map(g=>{
+      const cells=langs.map(l=>{
+        const tr=g.translations.find(t=>t.lang===l);
+        return '<td style="padding:8px 12px;border-bottom:1px solid #eee">'+(tr?tr.text:'—')+'</td>';
+      }).join('');
+      return '<tr><td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:600">'+g.original+'</td>'+cells+'</tr>';
+    }).join('');
+  } else {
+    tableRows='<tr><th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+selectedEntry.langFrom.toUpperCase()+'</th>'
+      +'<th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+(selectedEntry.langTo||'').toUpperCase()+'</th></tr>'
+      +groups.map(g=>'<tr>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:600">'+g.original+'</td>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #eee">'+( g.translations[0]?.text||'')+'</td>'
+        +'</tr>').join('');
+  }
+
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+  <head><meta charset="UTF-8"><title>${name}</title>
+  <style>body{font-family:Calibri,sans-serif;margin:40px}h1{color:#1A2340;font-size:20px}h2{color:#4A6CF7;font-size:13px;font-weight:normal}table{border-collapse:collapse;width:100%;margin-top:20px}td,th{border:1px solid #ddd}</style>
+  </head><body>
+  <h1>📖 ${name}</h1>
+  <h2>📅 ${date} · 📍 ${selectedEntry.location||''} · ${groups.length} phrase(s)</h2>
+  <table>${tableRows}</table>
+  </body></html>`;
+
+  const blob=new Blob(['\ufeff'+html],{type:'application/msword'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='makedoo_'+name+'_'+selectedEntry.date+'.doc';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📄 Document téléchargé');
+}
 function openLangPicker(target){
   S.langPickerTarget=target;
   document.getElementById('t-langpicker').textContent=target==='from'?t('myLang'):t('transLang');
