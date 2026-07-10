@@ -155,7 +155,15 @@ input:focus{border-color:var(--blue)}
 #splash-wordmark{font-size:42px;font-weight:900;letter-spacing:-1px;color:#1A2340}
 #splash-tagline{font-size:12px;color:#8A96B4;letter-spacing:3px;text-transform:uppercase;opacity:0}
 #splash-skip{position:absolute;bottom:40px;right:24px;font-size:12px;color:#C0C8D8;cursor:pointer;opacity:0}
-@keyframes splashCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+/* Splash explosion */
+@keyframes wordFlyUp{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-60px) scale(0.5)}
+}
+@keyframes circleGrow{
+  0%{transform:scale(1);opacity:1}
+  100%{transform:scale(3);opacity:0}
+}
 @keyframes splashCW {from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .splash-arc-top{animation:splashCCW 3s linear infinite;transform-origin:40px 40px}
 .splash-arc-bot{animation:splashCW  3s linear infinite;transform-origin:40px 40px}
@@ -438,6 +446,11 @@ const LANGS=[
   {code:'de',label:'Deutsch',flag:'🇩🇪',bcp47:'de-DE',display:'DE'},
   {code:'it',label:'Italiano',flag:'🇮🇹',bcp47:'it-IT',display:'IT'},
   {code:'ar',label:'العربية',flag:'🇸🇦',bcp47:'ar-XA',display:'AR'},
+  {code:'sq',label:'Shqip',flag:'🇦🇱',bcp47:'sq-AL',display:'SQ'},
+  {code:'sr',label:'Српски',flag:'🇷🇸',bcp47:'sr-RS',display:'SR'},
+  {code:'tr',label:'Türkçe',flag:'🇹🇷',bcp47:'tr-TR',display:'TR'},
+  {code:'el',label:'Ελληνικά',flag:'🇬🇷',bcp47:'el-GR',display:'EL'},
+  {code:'bg',label:'Български',flag:'🇧🇬',bcp47:'bg-BG',display:'BG'},
 ];
 
 // ── Init ───────────────────────────────────────────────────────
@@ -732,7 +745,7 @@ function startListening(){
   const isB=isLearn()?false:(S.currentSpeaker==='B');
   const fromLang=isB?S.langTo:S.langFrom;
   const toLang=isB?S.langFrom:S.langTo;
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG'};
   const recogLang=langMap[fromLang]||'fr-FR';
   S.listening=true;setScreen(1);
   startCloudSTT(fromLang,toLang,recogLang);
@@ -825,7 +838,7 @@ async function translateAndSpeak(text,fromLang,toLang){
 }
 
 async function speakText(text,langCode){
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG'};
   const lc=langMap[langCode]||'fr-FR';
   try{
     const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:lc,speakingRate:0.85})});
@@ -980,16 +993,14 @@ async function listenEntry(){
 
 async function exportEntry(){
   if(!selectedEntry)return;
-  const key=localStorage.getItem('makedoo_v3_apikey');
-  if(!key){showToast('Clé API requise');return}
   const btn=document.getElementById('cs-export')||document.querySelector('[onclick="exportEntry()"]');
   if(btn)btn.textContent='⏳…';
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG'};
   const chunks=[];
   for(const ex of selectedEntry.exchanges){
     for(const [txt,lang] of [[ex.original,ex.langFrom],[ex.translated,ex.langTo]]){
       try{
-        const res=await fetch('https://texttospeech.googleapis.com/v1/text:synthesize?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{text:txt},voice:{languageCode:langMap[lang]||'fr-FR',ssmlGender:'FEMALE'},audioConfig:{audioEncoding:'MP3',speakingRate:0.85}})});
+        const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,languageCode:langMap[lang]||'en-US',speakingRate:0.85})});
         const data=await res.json();
         if(data.audioContent){const bytes=atob(data.audioContent);const arr=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);chunks.push(arr)}
       }catch(e){}
@@ -1181,6 +1192,16 @@ function hideSplash(){
     if(arcTop)arcTop.classList.add('fast');
     if(arcBot)arcBot.classList.add('fast');
   },2200);
+
+  // Explosion — mot monte, cercle grossit
+  setTimeout(()=>{
+    const logo=document.getElementById('splash-logo');
+    const wordmark=document.getElementById('splash-wordmark');
+    const svg=document.querySelector('#splash-logo svg');
+    if(tagline){tagline.style.transition='opacity 0.3s';tagline.style.opacity='0';}
+    if(wordmark){wordmark.style.animation='wordFlyUp 0.7s ease-in forwards';}
+    if(svg){svg.style.animation='circleGrow 0.7s ease-in forwards';}
+  },2800);
 
   // Hide splash — garanti même si erreur JS
   setTimeout(hideSplash, 3500);
