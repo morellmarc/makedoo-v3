@@ -1193,14 +1193,66 @@ function hideSplash(){
     if(arcBot)arcBot.classList.add('fast');
   },2200);
 
-  // Explosion — mot monte, cercle grossit
+  // Explosion — mot vers le bandeau, cercle vers le centre de l'app
   setTimeout(()=>{
-    const logo=document.getElementById('splash-logo');
     const wordmark=document.getElementById('splash-wordmark');
     const svg=document.querySelector('#splash-logo svg');
+    const logo=document.getElementById('splash-logo');
     if(tagline){tagline.style.transition='opacity 0.3s';tagline.style.opacity='0';}
-    if(wordmark){wordmark.style.animation='wordFlyUp 0.7s ease-in forwards';}
-    if(svg){svg.style.animation='circleGrow 0.7s ease-in forwards';}
+    if(skip){skip.style.transition='opacity 0.3s';skip.style.opacity='0';}
+
+    const W=window.innerWidth;
+    const H=window.innerHeight;
+
+    // Position actuelle du logo centré
+    const logoRect=logo?logo.getBoundingClientRect():null;
+
+    // Cible du mot : bandeau logo en haut (~20px du haut, centré)
+    const logoBand=document.querySelector('.logo-band');
+    const bandRect=logoBand?logoBand.getBoundingClientRect():{top:0,height:44};
+    const wordTargetY=bandRect.top+bandRect.height/2;
+    const wordTargetX=W/2;
+
+    // Cible du cercle : centre de l'app
+    const circleContainer=document.getElementById('circle-container');
+    const circRect=circleContainer?circleContainer.getBoundingClientRect():null;
+    const circTargetX=circRect?circRect.left+circRect.width/2:W/2;
+    const circTargetY=circRect?circRect.top+circRect.height/2:H/2;
+
+    // Animer le mot
+    if(wordmark&&logoRect){
+      const wx=logoRect.left+logoRect.width/2;
+      const wy=logoRect.top+logoRect.height/2;
+      wordmark.style.position='fixed';
+      wordmark.style.left=wx+'px';
+      wordmark.style.top=wy+'px';
+      wordmark.style.transform='translate(-50%,-50%)';
+      wordmark.style.zIndex='9999';
+      wordmark.style.transition='left 0.8s cubic-bezier(0.4,0,0.2,1),top 0.8s cubic-bezier(0.4,0,0.2,1),font-size 0.8s';
+      requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+        wordmark.style.left=wordTargetX+'px';
+        wordmark.style.top=wordTargetY+'px';
+        wordmark.style.fontSize='20px';
+      })});
+    }
+
+    // Animer le cercle SVG
+    if(svg&&logoRect){
+      const sx=logoRect.left;
+      const sy=logoRect.top;
+      svg.style.position='fixed';
+      svg.style.left=sx+'px';
+      svg.style.top=sy+'px';
+      svg.style.zIndex='9999';
+      svg.style.transition='left 0.8s cubic-bezier(0.4,0,0.2,1),top 0.8s cubic-bezier(0.4,0,0.2,1),width 0.8s,height 0.8s';
+      requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+        const targetSize=190;
+        svg.style.left=(circTargetX-targetSize/2)+'px';
+        svg.style.top=(circTargetY-targetSize/2)+'px';
+        svg.style.width=targetSize+'px';
+        svg.style.height=targetSize+'px';
+      })});
+    }
   },2800);
 
   // Hide splash — garanti même si erreur JS
