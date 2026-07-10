@@ -939,6 +939,7 @@ function renderConvScreen(){
         +'<button class="cs-btn" onclick="renameLesson()" style="border-color:'+color+';color:'+color+'">✏️ '+t('rename')+'</button>'
         +'<button class="cs-btn" onclick="exportEntry()" style="border-color:'+color+';color:'+color+'">🎵 MP3</button>'
         +'<button class="cs-btn" onclick="exportDocx()" style="border-color:'+color+';color:'+color+'">📄 DOCX</button>'
+        +'<button class="cs-btn" onclick="exportPdf()" style="border-color:'+color+';color:'+color+'">📋 PDF</button>'
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>';
     }else{
       actionDiv.innerHTML='<button class="cs-btn" id="cs-listen" onclick="listenEntry()" style="border-color:'+color+';color:'+color+'">🔊 '+t('listen')+'</button>'
@@ -1146,11 +1147,45 @@ async function exportDocx(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;
-  a.download='makedoo_'+name+'_'+selectedEntry.date+'.doc';
+  a.download='makedoo_'+name+'_'+selectedEntry.date+'.docx';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast('📄 Document téléchargé');
 }
+
+function exportPdf(){
+  if(!selectedEntry)return;
+  const groups=[];
+  for(const ex of selectedEntry.exchanges){
+    const last=groups[groups.length-1];
+    if(last&&last.original===ex.original&&last.langFrom===ex.langFrom){
+      last.translations.push({text:ex.translated,lang:ex.langTo});
+    } else {
+      groups.push({original:ex.original,langFrom:ex.langFrom,translations:[{text:ex.translated,lang:ex.langTo}]});
+    }
+  }
+  const maxTrans=Math.max(...groups.map(g=>g.translations.length));
+  const isMulti=maxTrans>1;
+  const name=selectedEntry.name||'Leçon';
+  const date=new Date(selectedEntry.date).toLocaleDateString();
+  const langs=[...new Set(selectedEntry.exchanges.map(e=>e.langTo))];
+  let tableRows='';
+  if(isMulti){
+    tableRows='<tr><th>'+selectedEntry.langFrom.toUpperCase()+'</th>'+langs.map(l=>'<th>'+l.toUpperCase()+'</th>').join('')+'</tr>'
+      +groups.map(g=>'<tr><td class="orig">'+g.original+'</td>'+langs.map(l=>{const tr=g.translations.find(t=>t.lang===l);return'<td>'+(tr?tr.text:'—')+'</td>';}).join('')+'</tr>').join('');
+  } else {
+    tableRows='<tr><th>'+selectedEntry.langFrom.toUpperCase()+'</th><th>'+(selectedEntry.langTo||'').toUpperCase()+'</th></tr>'
+      +groups.map(g=>'<tr><td class="orig">'+g.original+'</td><td>'+(g.translations[0]?.text||'')+'</td></tr>').join('');
+  }
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Calibri,Arial,sans-serif;margin:30px;color:#1A2340}h1{font-size:22px;margin-bottom:4px}.meta{color:#8A96B4;font-size:13px;margin-bottom:24px}table{border-collapse:collapse;width:100%}th{background:#4A6CF7;color:white;padding:10px 14px;text-align:left}td{padding:10px 14px;border-bottom:1px solid #eee}td.orig{font-weight:700}tr:nth-child(even) td{background:#F8F9FF}@media print{body{margin:15px}}</style><title>'+name+'</title></head><body>'
+    +'<h1>📖 '+name+'</h1><div class="meta">📅 '+date+' · 📍 '+(selectedEntry.location||'')+' · '+groups.length+' phrase(s)</div>'
+    +'<table>'+tableRows+'</table>'
+    +'<script>window.onload=function(){window.print()}<\/script></body></html>';
+  const w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+  else showToast('Autorisez les popups pour le PDF');
+}
+
 function openLangPicker(target){
   S.langPickerTarget=target;
   document.getElementById('t-langpicker').textContent=target==='from'?t('myLang'):t('transLang');
