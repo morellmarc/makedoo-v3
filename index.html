@@ -581,6 +581,15 @@ function renderScreen(){
     if(helpLang)helpLang.textContent=t('longPressLang');
     if(helpArrow)helpArrow.textContent=isLearn()?'':t('clickArrow');
   }
+  // Placeholder du champ texte — indique retranslation possible
+  const textInput=document.getElementById('text-lesson-input');
+  if(textInput){
+    if(S.screen===2&&S.lastOriginal&&isLearn()){
+      textInput.placeholder='→ '+S.lastOriginal.substring(0,30)+(S.lastOriginal.length>30?'…':'');
+    } else {
+      textInput.placeholder=t('typePhrase')||'Type your phrase…';
+    }
+  }
 
   // Zone texte (mode learn, screens 0 et 1)
   if(textZone)textZone.className='text-input-zone'+(learn&&S.screen>=1?' visible':'');
@@ -672,7 +681,11 @@ function doExitConv(){
     S.currentExchanges=[];setScreen(0);
   }
 }
-function doResume(){setScreen(1)}
+function doResume(){
+  // En mode apprentissage, Poursuivre = nouvelle phrase → efface la mémoire
+  if(isLearn())S.lastOriginal=null;
+  setScreen(1);
+}
 function doReplace(){if(S.currentExchanges.length>0)S.currentExchanges.pop();setScreen(1)}
 function doRepeat(){if(S.lastTranslation)speakText(S.lastTranslation,S.lastTranslationLang)}
 function doRepeatLearn(){if(S.lastTranslation)speakText(S.lastTranslation,S.lastTranslationLang)}
@@ -749,7 +762,13 @@ function doExit(){S.currentExchanges=[];setScreen(0)}
 
 async function submitTextLesson(){
   const input=document.getElementById('text-lesson-input');
-  const text=input.value.trim();if(!text)return;input.value='';
+  let text=input.value.trim();
+  // Si champ vide et phrase précédente en mémoire → retraduit dans la nouvelle langue
+  if(!text&&S.lastOriginal&&S.screen===2){
+    text=S.lastOriginal;
+  }
+  if(!text)return;
+  input.value='';
   if(S.screen===0){S.currentExchanges=[];document.getElementById('tp-text-orig').innerHTML='';document.getElementById('tp-text-trans').innerHTML='';}
   const hgC=document.getElementById('hg-center');if(hgC)hgC.style.opacity='1';
   await translateAndSpeak(text,S.langFrom,S.langTo);
