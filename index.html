@@ -1014,11 +1014,27 @@ async function listenEntry(){
   isPlayingConv=true;
   const btn=document.getElementById('cs-listen');
   if(btn){btn.textContent='⏹ '+t('stop');btn.onclick=()=>{isPlayingConv=false;if(btn){btn.textContent='🔊 '+t('listen');btn.onclick=listenEntry}}}
+
+  // Grouper par phrase originale
+  const groups=[];
   for(const ex of selectedEntry.exchanges){
+    const last=groups[groups.length-1];
+    if(last&&last.original===ex.original&&last.langFrom===ex.langFrom){
+      last.translations.push({text:ex.translated,lang:ex.langTo});
+    } else {
+      groups.push({original:ex.original,langFrom:ex.langFrom,translations:[{text:ex.translated,lang:ex.langTo}]});
+    }
+  }
+
+  for(const group of groups){
     if(!isPlayingConv)break;
-    await speakText(ex.original,ex.langFrom);if(!isPlayingConv)break;
-    await new Promise(r=>setTimeout(r,400));if(!isPlayingConv)break;
-    await speakText(ex.translated,ex.langTo);if(!isPlayingConv)break;
+    await speakText(group.original,group.langFrom);
+    for(const tr of group.translations){
+      if(!isPlayingConv)break;
+      await new Promise(r=>setTimeout(r,300));
+      await speakText(tr.text,tr.lang);
+    }
+    if(!isPlayingConv)break;
     await new Promise(r=>setTimeout(r,600));
   }
   isPlayingConv=false;
@@ -1032,21 +1048,42 @@ async function exportEntry(){
   if(btn)btn.textContent='⏳…';
   const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG'};
   const chunks=[];
+
+  // Grouper les échanges par phrase originale
+  const groups=[];
   for(const ex of selectedEntry.exchanges){
-    for(const [txt,lang] of [[ex.original,ex.langFrom],[ex.translated,ex.langTo]]){
-      try{
-        const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,languageCode:langMap[lang]||'en-US',speakingRate:0.85})});
-        const data=await res.json();
-        if(data.audioContent){const bytes=atob(data.audioContent);const arr=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);chunks.push(arr)}
-      }catch(e){}
+    const last=groups[groups.length-1];
+    if(last&&last.original===ex.original&&last.langFrom===ex.langFrom){
+      // Même phrase originale → ajouter juste la traduction
+      last.translations.push({text:ex.translated,lang:ex.langTo});
+    } else {
+      groups.push({original:ex.original,langFrom:ex.langFrom,translations:[{text:ex.translated,lang:ex.langTo}]});
     }
   }
+
+  const ttsCall=async(text,lang)=>{
+    try{
+      const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:langMap[lang]||'en-US',speakingRate:0.85})});
+      const data=await res.json();
+      if(data.audioContent){const bytes=atob(data.audioContent);const arr=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);chunks.push(arr)}
+    }catch(e){}
+  };
+
+  for(const group of groups){
+    // Phrase originale — une seule fois
+    await ttsCall(group.original,group.langFrom);
+    // Toutes les traductions
+    for(const tr of group.translations){
+      await ttsCall(tr.text,tr.lang);
+    }
+  }
+
   if(chunks.length){
     const total=chunks.reduce((s,a)=>s+a.length,0);const merged=new Uint8Array(total);let off=0;chunks.forEach(a=>{merged.set(a,off);off+=a.length});
     const blob=new Blob([merged],{type:'audio/mpeg'});const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='makedoo_'+(selectedEntry.name||selectedEntry.interlocutor||'export')+'_'+selectedEntry.date+'.mp3';
+    const a=document.createElement('a');a.href=url;a.download='makedoo_'+(selectedEntry.name||'export')+'_'+selectedEntry.date+'.mp3';
     document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-    showToast('✓ MP3 téléchargé');
+    showToast('✓ MP3 '+t('export'));
   }else showToast('Export échoué');
   if(btn)btn.textContent='⬇ '+t('export');
 }
