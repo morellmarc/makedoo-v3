@@ -673,11 +673,12 @@ function endSession(){
 }
 function confirmEnd(){
   if(S.currentExchanges.length===0){
-    // Pas encore d'échanges → retour direct à l'écran 0
+    // Pas encore d'échanges → retour direct sans confirmation
     if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
     setScreen(0);
   } else {
-    endSession();
+    // Échanges en cours → confirmation
+    if(confirm(t('exitNoSave')))endSession();
   }
 }
 function doExitLesson(){
@@ -698,8 +699,15 @@ function doExitLesson(){
   setScreen(0);
 }
 function doExitConv(){
-  if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
-  S.currentExchanges=[];setScreen(0);
+  if(S.currentExchanges.length===0){
+    if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
+    S.currentExchanges=[];setScreen(0);
+  } else {
+    if(confirm(t('exitNoSave'))){
+      if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
+      S.currentExchanges=[];setScreen(0);
+    }
+  }
 }
 function doResume(){
   // En mode apprentissage, Poursuivre = nouvelle phrase → efface la mémoire
@@ -914,7 +922,7 @@ function updateMicIndicators(){
   const mt=document.getElementById('mic-top');const mb=document.getElementById('mic-bottom');
   mt.classList.remove('visible');mb.classList.remove('visible');
   if(S.screen===3)return;
-  if(isLearn()){if(S.screen>=1)mb.classList.add('visible');return}
+  if(isLearn()){if(S.screen>=0)mb.classList.add('visible');return}
   if(S.direction==='AB')mb.classList.add('visible');else mt.classList.add('visible');
 }
 
