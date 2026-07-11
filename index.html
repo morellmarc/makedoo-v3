@@ -106,8 +106,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 /* ── TEXT PANEL ── */
 .text-panel{position:absolute;top:68px;left:0;right:0;bottom:90px;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
 .text-panel.visible{display:flex}
-.text-panel-top{flex:1;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);line-height:1.5;overflow-y:auto;min-height:70px}
-.text-panel-bot{flex:1;padding:8px 12px;font-size:13px;color:var(--blue-text);font-weight:600;line-height:1.5;overflow-y:auto;min-height:70px;background:#F8F9FF}
+.text-panel-top{flex:1;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);line-height:1.5;overflow-y:auto;min-height:0}
+.text-panel-bot{flex:1;padding:8px 12px;font-size:13px;color:var(--blue-text);font-weight:600;line-height:1.5;overflow-y:auto;min-height:0;background:#F8F9FF}
 .tp-lang{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
 
 /* ── TEXT INPUT ── */
@@ -673,13 +673,24 @@ function endSession(){
 }
 function confirmEnd(){
   if(S.currentExchanges.length===0){
-    // Pas encore d'échanges → retour direct sans confirmation
     if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
     setScreen(0);
   } else {
-    // Échanges en cours → confirmation
-    if(confirm(t('exitNoSave')))endSession();
+    // Confirmation inline — remplace le bouton Exit par Confirmer/Annuler
+    const finBtn=document.getElementById('fin-btn');
+    if(finBtn){
+      finBtn.innerHTML='<button class="action-btn red" style="font-size:11px;padding:5px 10px" onclick="doConfirmedExit()">✓ '+t('exit')+'</button>'
+        +'<button class="action-btn neutral" style="font-size:11px;padding:5px 10px;margin-left:4px" onclick="cancelExit()">✕</button>';
+    }
   }
+}
+function doConfirmedExit(){
+  if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
+  endSession();
+}
+function cancelExit(){
+  const finBtn=document.getElementById('fin-btn');
+  if(finBtn)finBtn.innerHTML='<span id="fin-btn-label">'+t('exit')+'</span>';
 }
 function doExitLesson(){
   S.currentExchanges=[];
@@ -703,11 +714,17 @@ function doExitConv(){
     if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
     S.currentExchanges=[];setScreen(0);
   } else {
-    if(confirm(t('exitNoSave'))){
-      if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
-      S.currentExchanges=[];setScreen(0);
+    // Confirmation inline dans conv-action-row
+    const car=document.getElementById('conv-action-row');
+    if(car){
+      car.innerHTML='<button class="action-btn red" style="font-size:11px;padding:5px 10px" onclick="doConfirmedExitConv()">✓ '+t('exit')+'</button>'
+        +'<button class="action-btn neutral" style="font-size:11px;padding:5px 10px" onclick="renderScreen()">✕</button>';
     }
   }
+}
+function doConfirmedExitConv(){
+  if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
+  S.currentExchanges=[];setScreen(0);
 }
 function doResume(){
   // En mode apprentissage, Poursuivre = nouvelle phrase → efface la mémoire
@@ -896,9 +913,14 @@ async function translateAndSpeak(text,fromLang,toLang){
     const idx=S.currentExchanges.length-1;
     oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+idx+'" onclick="selectPhrase('+idx+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+text+'</div>';
     te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+idx+'" onclick="selectPhrase('+idx+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+translated+'</div>';
+    // Scroller vers le bas immédiatement
+    setTimeout(()=>{
+      const tp=document.getElementById('tp-top-wrap');const tb=document.getElementById('tp-bot-wrap');
+      if(tp)tp.scrollTop=tp.scrollHeight;if(tb)tb.scrollTop=tb.scrollHeight;
+    },50);
   }
+  setScreen(2); // Avant speakText pour éviter les inversions
   await speakText(translated,toLang);
-  setScreen(2);
 }
 
 async function speakText(text,langCode){
