@@ -74,7 +74,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .center-zone{flex:1;display:block;position:relative;overflow:hidden;padding:4px 8px}
 .intervention-zone{position:absolute;top:0;left:0;right:0;height:68px;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center;overflow:hidden}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
-.conversation-zone{position:absolute;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;justify-content:center;background:var(--bg)}
+.conversation-zone{position:absolute;bottom:0;left:0;right:0;height:90px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0;justify-content:center;background:var(--bg);overflow:hidden}
 .status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
 .status-tag.active{color:var(--green-text);background:var(--green-light)}
 .status-tag.learn{color:var(--blue-text);background:var(--blue-light)}
@@ -635,7 +635,7 @@ function renderScreen(){
       pill.className=(learn?'status-tag learn':'status-tag active');
       
       pill.textContent='💬 '+inProgress;
-      convActions.innerHTML='<button class="action-btn green solid" onclick="doResume()">'+t('resume')+'</button><button class="action-btn learn" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn danger" onclick="doExitLesson()">'+t('exit')+'</button>';
+      convActions.innerHTML='<button class="action-btn green solid" onclick="doResume()">'+t('resume')+'</button><button class="action-btn learn" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn red" onclick="confirmEnd()">'+t('exit')+'</button>';
     }else{
       intLabel.textContent='🔊 '+t('oralTrans');
       intLabel.classList.add('visible');
@@ -652,7 +652,7 @@ function renderScreen(){
     // Screen 3 only used for learn save dialog now
     if(learn){
       pill.className='status-tag warning';pill.textContent=t('lessonEnded');
-      convActions.innerHTML='<button class="action-btn learn" onclick="doResume()">'+t('resume')+'</button><button class="action-btn learn primary" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn danger" onclick="doExitLesson()">'+t('exit')+'</button>';
+      convActions.innerHTML='<button class="action-btn learn" onclick="doResume()">'+t('resume')+'</button><button class="action-btn learn primary" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn red" onclick="confirmEnd()">'+t('exit')+'</button>';
     }
   }
   updateUILabels();
