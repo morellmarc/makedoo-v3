@@ -56,7 +56,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .action-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
 
 /* Circle */
-.circle-area{display:flex;flex-direction:column;align-items:center;gap:10px}
 .circle-outer{position:relative;width:190px;height:190px;display:flex;align-items:center;justify-content:center}
 .circle-bg{position:absolute;inset:-6px;border-radius:50%;background:conic-gradient(from 0deg,rgba(245,166,35,0.15),rgba(229,57,53,0.1),rgba(245,166,35,0.15));filter:blur(10px)}
 .circle-card{width:190px;height:190px;border-radius:50%;background:var(--surface);box-shadow:0 8px 32px rgba(74,108,247,0.1),0 2px 8px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:center;position:relative;border:1.5px solid var(--border)}
@@ -71,11 +70,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .arc-bottom{animation:cw 6s linear infinite;transform-origin:95px 95px}
 .arc-top.fast,.arc-bottom.fast{animation-duration:1s}
 
-/* Centre — zones fixes pour que le cercle ne bouge pas */
-.center-zone{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 8px;gap:0}
-.intervention-zone{display:flex;flex-direction:column;align-items:center;gap:6px;height:64px;min-height:64px;justify-content:center;width:100%;flex-shrink:0}
-.circle-area-wrap{flex:1;display:flex;align-items:center;justify-content:center}
-.conversation-zone{display:flex;flex-direction:column;align-items:center;gap:6px;height:80px;min-height:80px;justify-content:center;width:100%;flex-shrink:0}
+/* Centre — cercle absolument positionné */
+.center-zone{flex:1;display:block;position:relative;overflow:hidden;padding:4px 8px}
+.intervention-zone{position:absolute;top:0;left:0;right:0;height:68px;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center;overflow:hidden}
+.circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
+.conversation-zone{position:absolute;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;justify-content:center;background:var(--bg)}
 .status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
 .status-tag.active{color:var(--green-text);background:var(--green-light)}
 .status-tag.learn{color:var(--blue-text);background:var(--blue-light)}
@@ -105,14 +104,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .fin-btn{display:none;background:var(--red-light);border:none;border-radius:12px;color:var(--red-text);font-size:12px;font-weight:700;padding:7px 16px;cursor:pointer;font-family:inherit}
 
 /* ── TEXT PANEL ── */
-.text-panel{width:100%;border:1.5px solid #C7D5FF;border-radius:14px;overflow:hidden;background:var(--surface);display:none;flex-direction:column;max-height:200px;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
+.text-panel{position:absolute;top:68px;left:0;right:0;bottom:90px;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
 .text-panel.visible{display:flex}
 .text-panel-top{flex:1;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);line-height:1.5;overflow-y:auto;min-height:70px}
 .text-panel-bot{flex:1;padding:8px 12px;font-size:13px;color:var(--blue-text);font-weight:600;line-height:1.5;overflow-y:auto;min-height:70px;background:#F8F9FF}
 .tp-lang{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
 
 /* ── TEXT INPUT ── */
-.text-input-zone{display:none;width:100%;padding:0 4px}
+.text-input-zone{display:none;position:absolute;top:68px;left:0;right:0;padding:0 4px;z-index:5}
 .text-input-zone.visible{display:block}
 
 /* ── MODE BAR ── */
@@ -296,11 +295,11 @@ input:focus{border-color:var(--blue)}
 
     <!-- ZONE BASSE -->
     <div class="conversation-zone">
-      <div style="display:flex;align-items:center;gap:8px;justify-content:center">
+      <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-shrink:0">
         <div class="status-tag waiting" id="status-pill"></div>
         <button class="fin-btn" id="fin-btn" onclick="confirmEnd()"><span id="fin-btn-label">Exit</span></button>
       </div>
-      <div class="action-row" id="conv-action-row"></div>
+      <div class="action-row" id="conv-action-row" style="flex-shrink:0"></div>
     </div>
 
   </div>
@@ -571,7 +570,7 @@ function renderScreen(){
 
   // Cercle ou panneau texte
   const showPanel=learn&&(S.screen===2||S.screen===3);
-  circleContainer.style.display=showPanel?'none':'flex';
+  if(circleContainer)circleContainer.style.visibility=showPanel?'hidden':'visible';
   if(showPanel)textPanel.classList.add('visible');
   else textPanel.classList.remove('visible');
 
@@ -606,8 +605,8 @@ function renderScreen(){
     status.textContent=t('clickTalk');
     pill.className=(learn?'status-tag learn':'status-tag active');
     pill.textContent='💬 '+inProgress;
-    if(!learn&&S.currentExchanges.length>0){
-      convActions.innerHTML='<button class="action-btn primary" onclick="doSave()">'+t('save')+'</button><button class="action-btn danger" onclick="doExitConv()">'+t('exit')+'</button>';
+    if(!learn){
+      convActions.innerHTML=(S.currentExchanges.length>0?'<button class="action-btn blue solid" onclick="doSave()">'+t('save')+'</button>':'')+'<button class="action-btn red" onclick="doExitConv()">'+t('exit')+'</button>';
     }
     if(finBtn)finBtn.style.display=learn?'inline-flex':'none';
 
@@ -619,8 +618,8 @@ function renderScreen(){
     status.textContent=t('clickStop');
     pill.className=(learn?'status-tag learn':'status-tag active');
     pill.textContent='💬 '+inProgress;
-    if(!learn&&S.currentExchanges.length>0){
-      convActions.innerHTML='<button class="action-btn primary" onclick="doSave()">'+t('save')+'</button><button class="action-btn danger" onclick="doExitConv()">'+t('exit')+'</button>';
+    if(!learn){
+      convActions.innerHTML=(S.currentExchanges.length>0?'<button class="action-btn blue solid" onclick="doSave()">'+t('save')+'</button>':'')+'<button class="action-btn red" onclick="doExitConv()">'+t('exit')+'</button>';
     }
     if(finBtn)finBtn.style.display=learn?'inline-flex':'none';
     updateMicIndicators();
@@ -672,17 +671,35 @@ function endSession(){
   if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false}
   setScreen(3);
 }
-function confirmEnd(){endSession()}
-function doExitLesson(){
-  if(confirm(t('exitNoSave'))){
-    S.currentExchanges=[];setScreen(0);
+function confirmEnd(){
+  if(S.currentExchanges.length===0){
+    // Pas encore d'échanges → retour direct à l'écran 0
+    if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
+    setScreen(0);
+  } else {
+    endSession();
   }
 }
+function doExitLesson(){
+  S.currentExchanges=[];
+  S.lastOriginal=null;
+  selectedPhraseIdx=-1;
+  selectedPhraseIdxs.clear();
+  // Réinitialiser le panneau texte
+  const oe=document.getElementById('tp-text-orig');
+  const te=document.getElementById('tp-text-trans');
+  if(oe)oe.innerHTML='';
+  if(te)te.innerHTML='';
+  // Cacher le panneau texte et montrer le cercle
+  const textPanel=document.getElementById('text-panel');
+  const cc=document.getElementById('circle-container');
+  if(textPanel)textPanel.classList.remove('visible');
+  if(cc)cc.style.visibility='visible';
+  setScreen(0);
+}
 function doExitConv(){
-  if(confirm(t('exitNoSave'))){
-    if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
-    S.currentExchanges=[];setScreen(0);
-  }
+  if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
+  S.currentExchanges=[];setScreen(0);
 }
 function doResume(){
   // En mode apprentissage, Poursuivre = nouvelle phrase → efface la mémoire
@@ -1350,6 +1367,22 @@ function showToast(msg){const el=document.getElementById('toast');el.textContent
 
 // ── Boot ───────────────────────────────────────────────────────
 updateDisplay();updateUILabels();renderScreen();
+
+// Fixer la position du cercle une fois pour toutes
+setTimeout(()=>{
+  const cz=document.getElementById('circle-container');
+  const zone=document.querySelector('.center-zone');
+  if(cz&&zone){
+    const zr=zone.getBoundingClientRect();
+    const cr=cz.getBoundingClientRect();
+    const top=cr.top-zr.top;
+    const left=cr.left-zr.left;
+    cz.style.position='absolute';
+    cz.style.top=top+'px';
+    cz.style.left=left+'px';
+    cz.style.transform='none';
+  }
+},100);
 
 // ── Splash ─────────────────────────────────────────────────────
 function hideSplash(){
