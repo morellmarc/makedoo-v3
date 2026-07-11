@@ -74,7 +74,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .center-zone{flex:1;display:block;position:relative;padding:4px 8px}
 .intervention-zone{position:absolute;top:0;left:0;right:0;height:68px;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center;overflow:hidden}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
-.conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:120px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;justify-content:center;background:var(--bg)}
+.conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:120px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;justify-content:center;background:var(--bg);z-index:10}
 .status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
 .status-tag.active{color:var(--green-text);background:var(--green-light)}
 .status-tag.learn{color:var(--blue-text);background:var(--blue-light)}
@@ -104,7 +104,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .fin-btn{display:none;background:var(--red-light);border:none;border-radius:12px;color:var(--red-text);font-size:12px;font-weight:700;padding:7px 16px;cursor:pointer;font-family:inherit}
 
 /* ── TEXT PANEL ── */
-.text-panel{position:absolute;top:68px;left:0;right:0;bottom:125px;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
+.text-panel{position:absolute;top:68px;left:0;right:0;bottom:125px;z-index:5;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
 .text-panel.visible{display:flex}
 .text-panel-top{flex:1;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);line-height:1.5;overflow-y:auto;min-height:0}
 .text-panel-bot{flex:1;padding:8px 12px;font-size:13px;color:var(--blue-text);font-weight:600;line-height:1.5;overflow-y:auto;min-height:0;background:#F8F9FF}
@@ -608,6 +608,7 @@ function renderScreen(){
     if(!learn){
       convActions.innerHTML=(S.currentExchanges.length>0?'<button class="action-btn blue solid" onclick="doSave()">'+t('save')+'</button>':'')+'<button class="action-btn red" onclick="doExitConv()">'+t('exit')+'</button>';
     }
+    // SOLO screen 1 : pas de bouton Exit, juste le statut
     if(finBtn)finBtn.style.display=learn?'inline-flex':'none';
 
   }else if(S.screen===1&&S.listening){
@@ -621,7 +622,8 @@ function renderScreen(){
     if(!learn){
       convActions.innerHTML=(S.currentExchanges.length>0?'<button class="action-btn blue solid" onclick="doSave()">'+t('save')+'</button>':'')+'<button class="action-btn red" onclick="doExitConv()">'+t('exit')+'</button>';
     }
-    if(finBtn)finBtn.style.display=learn?'inline-flex':'none';
+    // Masquer Exit pendant l'enregistrement en SOLO
+    if(finBtn)finBtn.style.display='none';
     updateMicIndicators();
 
   }else if(S.screen===2){
