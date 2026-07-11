@@ -397,8 +397,8 @@ input:focus{border-color:var(--blue)}
     <div class="overlay-title" style="text-align:center">⚠️</div>
     <p id="confirm-exit-msg" style="color:var(--muted);font-size:14px;margin-bottom:20px"></p>
     <div style="display:flex;gap:10px;justify-content:center">
-      <button class="action-btn red" onclick="isLearn()?doConfirmedExit():doConfirmedExitConv()" id="btn-confirm-exit"></button>
-      <button class="action-btn neutral" onclick="cancelExit()"></button>
+      <button class="action-btn neutral" onclick="cancelExit()" id="btn-cancel-exit">Cancel</button>
+      <button class="action-btn red" onclick="isLearn()?doConfirmedExit():doConfirmedExitConv()" id="btn-confirm-exit">Exit</button>
     </div>
   </div>
 </div>
@@ -619,8 +619,8 @@ function renderScreen(){
     if(!learn){
       convActions.innerHTML=(S.currentExchanges.length>0?'<button class="action-btn blue solid" onclick="doSave()">'+t('save')+'</button>':'')+'<button class="action-btn red" onclick="doExitConv()">'+t('exit')+'</button>';
     }
-    // SOLO screen 1 : pas de bouton Exit, juste le statut
-    if(finBtn)finBtn.style.display=learn?'inline-flex':'none';
+    // SOLO : Exit visible seulement si 0 échange (démarrage par erreur)
+    if(finBtn)finBtn.style.display=(learn&&S.currentExchanges.length===0)?'inline-flex':'none';
 
   }else if(S.screen===1&&S.listening){
     if(arcTop)arcTop.classList.add('fast');
@@ -690,17 +690,26 @@ function confirmEnd(){
     setScreen(0);
   } else {
     document.getElementById('confirm-exit-msg').textContent=t('exitNoSave');
-    const btn=document.getElementById('btn-confirm-exit');
-    if(btn)btn.textContent=t('exit');
-    const cancel=document.querySelector('#ov-confirm-exit .action-btn.neutral');
-    if(cancel)cancel.textContent='✕ '+t('resume');
+    document.getElementById('btn-confirm-exit').textContent=t('exit');
+    document.getElementById('btn-cancel-exit').textContent=t('resume');
     showOv('ov-confirm-exit');
   }
 }
 function doConfirmedExit(){
   hideOv('ov-confirm-exit');
   if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
-  endSession();
+  // Réinitialiser et retourner à l'écran 0
+  S.currentExchanges=[];
+  S.lastOriginal=null;
+  selectedPhraseIdx=-1;
+  selectedPhraseIdxs.clear();
+  const textPanel=document.getElementById('text-panel');
+  const cc=document.getElementById('circle-container');
+  if(textPanel)textPanel.classList.remove('visible');
+  if(cc)cc.style.visibility='visible';
+  document.getElementById('tp-text-orig').innerHTML='';
+  document.getElementById('tp-text-trans').innerHTML='';
+  setScreen(0);
 }
 function cancelExit(){hideOv('ov-confirm-exit');}
 function doExitLesson(){
@@ -726,10 +735,8 @@ function doExitConv(){
     S.currentExchanges=[];setScreen(0);
   } else {
     document.getElementById('confirm-exit-msg').textContent=t('exitNoSave');
-    const btn=document.getElementById('btn-confirm-exit');
-    if(btn)btn.textContent=t('exit');
-    const cancel=document.querySelector('#ov-confirm-exit .action-btn.neutral');
-    if(cancel)cancel.textContent='✕ '+t('resume');
+    document.getElementById('btn-confirm-exit').textContent=t('exit');
+    document.getElementById('btn-cancel-exit').textContent=t('resume');
     showOv('ov-confirm-exit');
   }
 }
