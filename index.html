@@ -71,9 +71,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .arc-bottom{animation:cw 6s linear infinite;transform-origin:95px 95px}
 .arc-top.fast,.arc-bottom.fast{animation-duration:1s}
 
-/* Conversation zone */
-.conversation-zone{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:68px;justify-content:center;width:100%}
-.status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center}
+/* Centre — zones fixes pour que le cercle ne bouge pas */
+.center-zone{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 8px;gap:0}
+.intervention-zone{display:flex;flex-direction:column;align-items:center;gap:6px;height:64px;min-height:64px;justify-content:center;width:100%;flex-shrink:0}
+.circle-area-wrap{flex:1;display:flex;align-items:center;justify-content:center}
+.conversation-zone{display:flex;flex-direction:column;align-items:center;gap:6px;height:80px;min-height:80px;justify-content:center;width:100%;flex-shrink:0}
+.status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
 .status-tag.active{color:var(--green-text);background:var(--green-light)}
 .status-tag.learn{color:var(--blue-text);background:var(--blue-light)}
 .status-tag.waiting{color:var(--muted);background:var(--neutral-light)}
