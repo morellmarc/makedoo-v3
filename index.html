@@ -546,7 +546,11 @@ function handleTap(){
   if(S.ignoreTap)return;
   if(S.screen===1&&!S.listening)startListening();
   else if(S.screen===1&&S.listening)stopListening();
-  else if(S.screen===2)doResume();
+  else if(S.screen===2&&!isLearn()){
+    // DUO : tap sur le cercle → micro directement
+    setScreen(1);
+    startListening();
+  }
 }
 
 function showTopCenter(){isLearn()?showLessons():showConversations()}
@@ -773,8 +777,12 @@ function doResume(){
     S.lastOriginal=null;
     const input=document.getElementById('text-lesson-input');
     if(input)input.value='';
+    setScreen(1);
+  } else {
+    // En mode DUO, on va directement au micro
+    setScreen(1);
+    startListening();
   }
-  setScreen(1);
 }
 function doReplace(){if(S.currentExchanges.length>0)S.currentExchanges.pop();setScreen(1)}
 function doRepeat(){if(S.lastTranslation)speakText(S.lastTranslation,S.lastTranslationLang)}
