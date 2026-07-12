@@ -72,7 +72,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 
 /* Centre — cercle absolument positionné */
 .center-zone{flex:1;display:block;position:relative;padding:4px 8px}
-.intervention-zone{position:absolute;top:0;left:0;right:0;min-height:80px;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center;overflow:visible;background:var(--bg);z-index:20;padding:4px 8px}
+.intervention-zone{position:absolute;top:44px;left:0;right:0;height:68px;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center;overflow:hidden;z-index:20;padding:4px 8px}
+.help-zone-css{position:absolute;top:0;left:0;right:0;height:44px;display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:center;padding:2px 8px;z-index:20;background:var(--bg)}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
 .conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:120px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;justify-content:center;background:var(--bg);z-index:10}
 .status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
@@ -237,6 +238,12 @@ input:focus{border-color:var(--blue)}
   <!-- CENTER -->
   <div class="center-zone">
 
+    <!-- AIDE screen 0 -->
+    <div id="help-zone" class="help-zone-css" style="display:none">
+      <div id="help-lang" style="font-size:10px;color:var(--muted);text-align:center;font-weight:600;background:var(--blue-light);border-radius:8px;padding:3px 10px;width:100%"></div>
+      <div id="help-arrow" style="font-size:10px;color:var(--muted);text-align:center;font-weight:600;background:var(--neutral-light);border-radius:8px;padding:3px 10px;width:100%"></div>
+    </div>
+
     <!-- ZONE HAUTE -->
     <div class="intervention-zone">
       <div class="intervention-label" id="intervention-label"></div>
@@ -244,7 +251,7 @@ input:focus{border-color:var(--blue)}
     </div>
 
     <!-- SAISIE TEXTE SOLO -->
-    <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:84px;left:8px;right:8px;z-index:20;background:var(--bg);padding:4px 0">
+    <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:116px;left:8px;right:8px;z-index:20;background:var(--bg);padding:4px 0">
       <div style="display:flex;gap:6px;align-items:center">
         <input type="text" id="text-lesson-input" placeholder="Tapez votre phrase…" style="flex:1">
         <button onclick="submitTextLesson()" style="background:linear-gradient(135deg,#00C48C,#00A878);border:none;border-radius:10px;color:white;font-weight:700;font-size:15px;padding:10px 14px;cursor:pointer">→</button>
@@ -252,11 +259,6 @@ input:focus{border-color:var(--blue)}
     </div>
 
     <!-- AIDE (screen 0 seulement) -->
-    <div id="help-zone" style="display:none;flex-direction:column;align-items:center;gap:4px;width:100%;padding:0 8px;min-height:60px;justify-content:center">
-      <div id="help-lang" style="font-size:11px;color:var(--muted);text-align:center;font-weight:600;background:var(--blue-light);border-radius:10px;padding:5px 12px;width:100%"></div>
-      <div id="help-arrow" style="font-size:11px;color:var(--muted);text-align:center;font-weight:600;background:var(--neutral-light);border-radius:10px;padding:5px 12px;width:100%"></div>
-    </div>
-
     <!-- CERCLE -->
     <div class="circle-area" id="circle-container">
       <div class="circle-outer">
