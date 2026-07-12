@@ -72,7 +72,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 
 /* Centre — cercle absolument positionné */
 .center-zone{flex:1;display:block;position:relative;padding:4px 8px}
-.intervention-zone{position:absolute;top:0;left:0;right:0;height:68px;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center;overflow:hidden}
+.intervention-zone{position:absolute;top:0;left:0;right:0;min-height:68px;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center;overflow:visible;background:var(--bg);z-index:20;padding:4px 8px}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
 .conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:120px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;justify-content:center;background:var(--bg);z-index:10}
 .status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
@@ -111,7 +111,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .tp-lang{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
 
 /* ── TEXT INPUT ── */
-.text-input-zone{display:none;position:absolute;top:68px;left:0;right:0;padding:0 4px;z-index:5}
+.text-input-zone{display:none;width:100%;padding:0 4px}
 .text-input-zone.visible{display:block}
 
 /* ── MODE BAR ── */
@@ -241,11 +241,13 @@ input:focus{border-color:var(--blue)}
     <div class="intervention-zone">
       <div class="intervention-label" id="intervention-label"></div>
       <div class="action-row" id="action-row"></div>
-      <div class="text-input-zone" id="text-input-zone">
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" id="text-lesson-input" placeholder="Tapez votre phrase…" style="flex:1">
-          <button onclick="submitTextLesson()" style="background:linear-gradient(135deg,#00C48C,#00A878);border:none;border-radius:10px;color:white;font-weight:700;font-size:15px;padding:10px 14px;cursor:pointer">→</button>
-        </div>
+    </div>
+
+    <!-- SAISIE TEXTE SOLO -->
+    <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:72px;left:8px;right:8px;z-index:20;background:var(--bg);padding:4px 0">
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="text-lesson-input" placeholder="Tapez votre phrase…" style="flex:1">
+        <button onclick="submitTextLesson()" style="background:linear-gradient(135deg,#00C48C,#00A878);border:none;border-radius:10px;color:white;font-weight:700;font-size:15px;padding:10px 14px;cursor:pointer">→</button>
       </div>
     </div>
 
@@ -582,8 +584,8 @@ function renderScreen(){
   // Cercle ou panneau texte
   const showPanel=learn&&(S.screen===2||S.screen===3);
   if(circleContainer)circleContainer.style.visibility=showPanel?'hidden':'visible';
-  if(showPanel)textPanel.classList.add('visible');
-  else textPanel.classList.remove('visible');
+  if(showPanel&&textPanel)textPanel.classList.add('visible');
+  else if(textPanel)textPanel.classList.remove('visible');
 
   // Zone d'aide — screen 0 uniquement
   const helpZone=document.getElementById('help-zone');
@@ -605,7 +607,10 @@ function renderScreen(){
   }
 
   // Zone texte (mode learn, screens 0 et 1)
-  if(textZone)textZone.className='text-input-zone'+(learn&&S.screen>=1?' visible':'');
+  if(textZone){
+    const show=learn&&S.screen>=1&&S.screen<=2;
+    textZone.style.display=show?'block':'none';
+  }
 
   if(S.screen===0){
     status.textContent='';
@@ -746,8 +751,12 @@ function doConfirmedExitConv(){
   S.currentExchanges=[];setScreen(0);
 }
 function doResume(){
-  // En mode apprentissage, Poursuivre = nouvelle phrase → efface la mémoire
-  if(isLearn())S.lastOriginal=null;
+  // En mode SOLO, Poursuivre = nouvelle phrase → efface la mémoire et le champ
+  if(isLearn()){
+    S.lastOriginal=null;
+    const input=document.getElementById('text-lesson-input');
+    if(input)input.value='';
+  }
   setScreen(1);
 }
 function doReplace(){if(S.currentExchanges.length>0)S.currentExchanges.pop();setScreen(1)}
