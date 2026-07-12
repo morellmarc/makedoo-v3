@@ -452,7 +452,7 @@ const S={
   journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
   lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
   contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
-  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,
+  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,
   selectedVoiceURI:localStorage.getItem('makedoo_v3_voice_uri')||null,
   selectedVoiceLang:localStorage.getItem('makedoo_v3_voice_lang')||null,
 };
@@ -619,12 +619,16 @@ function renderScreen(){
 
   if(S.screen===0){
     status.textContent='';
-    // Message de bienvenue dans le cercle
+    // Message de bienvenue — première ouverture uniquement
     const wt=document.getElementById('welcome-text');
     if(wt){
-      const lines=t('welcome').split('\n');
-      wt.innerHTML=lines.map((l,i)=>'<tspan x="95" dy="'+(i===0?'0':'22')+'">'+l+'</tspan>').join('');
-      wt.style.opacity='1';
+      if(!S.welcomeShown){
+        const lines=t('welcome').split('\n');
+        wt.innerHTML=lines.map((l,i)=>'<tspan x="95" dy="'+(i===0?'0':'22')+'">'+l+'</tspan>').join('');
+        wt.style.opacity='1';
+      } else {
+        wt.style.opacity='0';
+      }
     }
     convActions.innerHTML='<button class="action-btn green solid" onclick="startSession()">▶ '+(learn?t('startLesson'):t('startConv'))+'</button>';
 
@@ -691,6 +695,7 @@ function renderScreen(){
 
 // ── Session ────────────────────────────────────────────────────
 function startSession(){
+  S.welcomeShown=true;
   S.currentExchanges=[];
   selectedPhraseIdx=-1;selectedPhraseIdxs.clear();
   document.getElementById('tp-text-orig').innerHTML='';
