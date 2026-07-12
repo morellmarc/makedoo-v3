@@ -1033,7 +1033,7 @@ function renderConvScreen(){
   }
   document.getElementById('cs-list').innerHTML=data.length===0
     ?'<div style="color:var(--muted);text-align:center;padding:24px">'+(convViewMode?t('noLesson'):t('noConv'))+'</div>'
-    :data.map((e,i)=>'<div class="cs-item'+(selectedEntry&&selectedEntry.id===e.id?' selected':'')+'" ontouchend="selectEntry('+i+')" onclick="selectEntry('+i+')">'
+    :data.map((e,i)=>'<div class="cs-item'+(selectedEntry&&selectedEntry.id===e.id?' selected':'')+'" onclick="selectEntry('+i+')">'
       +'<div style="font-weight:700;font-size:14px">'+(convViewMode?'📖 '+(e.name||t('lessons')):'💬 '+(e.name||t('conv')))+'</div>'
       +'<div style="font-size:11px;color:var(--muted);margin-top:3px">📅 '+new Date(e.date).toLocaleDateString()+' · '+(e.langFrom||'').toUpperCase()+'→'+(e.langTo||'').toUpperCase()+' · '+e.count+' '+t('exchanges')+'</div>'
       +'</div>').join('');
