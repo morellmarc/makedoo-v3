@@ -608,7 +608,7 @@ function renderScreen(){
 
   // Zone texte (mode learn, screens 0 et 1)
   if(textZone){
-    const show=learn&&S.screen>=1&&S.screen<=2;
+    const show=learn&&S.screen===1;
     textZone.style.display=show?'block':'none';
   }
 
@@ -948,6 +948,9 @@ async function translateAndSpeak(text,fromLang,toLang){
     },50);
   }
   setScreen(2); // Avant speakText pour éviter les inversions
+  // Cacher la zone de saisie texte
+  const tz=document.getElementById('text-input-zone');
+  if(tz)tz.style.display='none';
   await speakText(translated,toLang);
 }
 
