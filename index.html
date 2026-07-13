@@ -465,7 +465,7 @@ const I18N={
   es:{conv:'Conversaciones',lessons:'Sessions',waiting:'Esperando',waitingLesson:'Esperando session',startConv:'Iniciar conversación',startLesson:'Iniciar session',inProgress:'En curso',lessonProgress:'Session en curso',ended:'Terminada',lessonEnded:'Session terminada',clickStop:'Clic para detener',repeat:'Repetir',resume:'Continuar',save:'Guardar',exit:'Salir',welcome:'Bienvenido\na\nMakedoo',longPressLang:'Mantén pulsado para cambiar idioma',clickArrow:'Pulsa la flecha para cambiar interlocutor',replace:'Reemplazar',oralTrans:'Traducción oral',clickTalk:'Clic para hablar',youFirst:'Usted habla primero',theyFirst:' habla primero',keyOk:'✓ Guardado',learnSoon:'¡Modo aprendizaje pronto!',myLang:'Mi idioma',transLang:'Idioma traducción',exchanges:'intercambio(s)',noConv:'Sin conversaciones',noLesson:'Sin sessions',selectConv:'Seleccionar conversación',selectLesson:'Seleccionar session',review:'Revisar',rename:'Renombrar',export:'Exportar MP3',delete:'Eliminar',listen:'Escuchar',stop:'Parar',unknown:'Desconocido',startLesson2:'Iniciar lección',target:'Destino',source:'Origen',settings:'⚙ Ajustes',apiKeyLabel:'Clave API Google',uiLangLabel:'Idioma interfaz',saveKey:'Guardar clave',voicesLabel:'Voces MK disponibles',scanVoices:'🔍 Buscar voces MK',scanPrompt:'Toca para buscar…',noVoices:'Sin voz MK',newContact:'Nuevo nombre…',exitNoSave:'¿Salir sin guardar?',deleteConfirm:'¿Eliminar?',sttError:'Voz no reconocida',sttFail:'Error STT',micError:'Micrófono no accesible',tagline:'Habla · Traduce · Aprende',skip:'Omitir ›',exitBtn:'✕ Salir',lessonTitle:'💾 Guardar lección',lessonName:'Nombre de lección',lessonPlaceholder:'Mi lección…',contactTitle:'Interlocutor',convTitle:'Conversaciones',lessonTitle2:'Sessions',saveConvTitle:'💾 Guardar conversación',convNameLabel:'Nombre conversación',convPlaceholder:'Mi conversación…',saveConvBtn:'💾 Guardar'},
   de:{conv:'Gespräche',lessons:'Sessions',waiting:'Warte',waitingLesson:'Warte auf Session',startConv:'Gespräch starten',startLesson:'Session starten',inProgress:'Läuft',lessonProgress:'Session läuft',ended:'Beendet',lessonEnded:'Session beendet',clickStop:'Klick zum Stoppen',repeat:'Wiederholen',resume:'Fortfahren',save:'Speichern',exit:'Beenden',welcome:'Willkommen\nbei\nMakedoo',longPressLang:'Lang drücken zum Sprachwechsel',clickArrow:'Pfeil klicken zum Partnerwechsel',replace:'Ersetzen',oralTrans:'Mündliche Übersetzung',clickTalk:'Klick zum Sprechen',youFirst:'Sie sprechen zuerst',theyFirst:' spricht zuerst',keyOk:'✓ Gespeichert',learnSoon:'Lernmodus bald!',myLang:'Meine Sprache',transLang:'Übersetzungssprache',exchanges:'Austausch',noConv:'Keine Gespräche',noLesson:'Keine Sessions',selectConv:'Gespräch auswählen',selectLesson:'Session auswählen',review:'Überprüfen',rename:'Umbenennen',export:'MP3 Export',delete:'Löschen',listen:'Anhören',stop:'Stoppen',unknown:'Unbekannt',startLesson2:'Lektion starten',target:'Ziel',source:'Quelle',settings:'⚙ Einstellungen',apiKeyLabel:'Google API-Schlüssel',uiLangLabel:'Oberflächensprache',saveKey:'Schlüssel speichern',voicesLabel:'MK-Stimmen verfügbar',scanVoices:'🔍 MK-Stimmen suchen',scanPrompt:'Zum Scannen tippen…',noVoices:'Keine MK-Stimme gefunden',newContact:'Neuer Name…',exitNoSave:'Ohne Speichern beenden?',deleteConfirm:'Löschen?',sttError:'Sprache nicht erkannt',sttFail:'STT-Fehler',micError:'Mikrofon nicht zugänglich',tagline:'Sprechen · Übersetzen · Lernen',skip:'Überspringen ›',exitBtn:'✕ Beenden',lessonTitle:'💾 Lektion speichern',lessonName:'Lektionsname',lessonPlaceholder:'Meine Lektion…',contactTitle:'Gesprächspartner',convTitle:'Gespräche',lessonTitle2:'Sessions',saveConvTitle:'💾 Gespräch speichern',convNameLabel:'Gesprächsname',convPlaceholder:'Mein Gespräch…',saveConvBtn:'💾 Speichern'},
 };
-function t(k){return(I18N[S.uiLang]||I18N.fr)[k]||k}
+function t(k){return(I18N[S.uiLang]||I18N.en)[k]||I18N.en[k]||k}
 const isLearn=()=>S.mode==='learn';
 
 const LANGS=[
@@ -1335,12 +1335,11 @@ function selectLang(code){
   if(S.langPickerTarget==='from'){
     S.langFrom=code;
     localStorage.setItem('makedoo_v3_langFrom',code);
-    // La langue de l'interface suit la langue de l'utilisateur
+    // UI suit la langue utilisateur si supportée, sinon anglais
     const supported=['fr','en','mk','es','de'];
-    if(supported.includes(code)){
-      S.uiLang=code;
-      localStorage.setItem('makedoo_v3_uilang',code);
-    }
+    const uiLang=supported.includes(code)?code:'en';
+    S.uiLang=uiLang;
+    localStorage.setItem('makedoo_v3_uilang',uiLang);
     updateUILabels();
     renderScreen();
   } else {
@@ -1419,11 +1418,11 @@ function updateUILabels(){
   const lsBot=document.getElementById('lang-sub-bot');
   if(lsTop)lsTop.textContent=t('target');
   if(lsBot)lsBot.textContent=t('source');
-  // Help text
-  const helpLang=document.getElementById('help-lang');
-  const helpArrow=document.getElementById('help-arrow');
-  if(helpLang)helpLang.textContent=t('longPressLang');
-  if(helpArrow)helpArrow.textContent=isLearn()?'':t('clickArrow');
+  // Help texts — always update
+  const helpLangEl=document.getElementById('help-lang');
+  const helpArrowEl=document.getElementById('help-arrow');
+  if(helpLangEl)helpLangEl.textContent=t('longPressLang');
+  if(helpArrowEl)helpArrowEl.textContent=isLearn()?'':t('clickArrow');
   // Fin/Exit button
   const finLabel=document.getElementById('fin-btn-label');
   if(finLabel)finLabel.textContent=t('exit');
