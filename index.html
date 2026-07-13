@@ -1058,7 +1058,8 @@ function renderConvScreen(){
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>';
     }else{
       actionDiv.innerHTML='<button class="cs-btn" id="cs-listen" onclick="listenEntry()" style="border-color:'+color+';color:'+color+'">🔊 '+t('listen')+'</button>'
-        +'<button class="cs-btn" onclick="exportEntry()" style="border-color:'+color+';color:'+color+'">⬇ '+t('export')+'</button>'
+        +'<button class="cs-btn" onclick="exportEntry(1)" style="border-color:'+color+';color:'+color+'">🎵 MP3-1L</button>'
+        +'<button class="cs-btn" onclick="exportEntry(2)" style="border-color:'+color+';color:'+color+'">🎵 MP3-2L</button>'
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>';
     }
   }else{
