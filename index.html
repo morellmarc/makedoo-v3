@@ -1064,10 +1064,15 @@ function renderConvScreen(){
         +'<button class="cs-btn" onclick="exportEntry(2)" style="border-color:'+color+';color:'+color+'">🎵 MP3-2L</button>'
         +'</div>';
     }else{
-      actionDiv.innerHTML='<button class="cs-btn" id="cs-listen" onclick="listenEntry()" style="border-color:'+color+';color:'+color+'">🔊 '+t('listen')+'</button>'
+      actionDiv.innerHTML=
+        '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">'
+        +'<button class="cs-btn" id="cs-listen" onclick="listenEntry()" style="border-color:'+color+';color:'+color+'">🔊 '+t('listen')+'</button>'
+        +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>'
+        +'</div>'
+        +'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">'
         +'<button class="cs-btn" onclick="exportEntry(1)" style="border-color:'+color+';color:'+color+'">🎵 MP3-1L</button>'
         +'<button class="cs-btn" onclick="exportEntry(2)" style="border-color:'+color+';color:'+color+'">🎵 MP3-2L</button>'
-        +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>';
+        +'</div>';
     }
   }else{
     actionDiv.innerHTML='<div style="font-size:12px;color:var(--muted);font-style:italic">'+( convViewMode?t('selectLesson'):t('selectConv'))+'</div>';
