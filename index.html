@@ -481,6 +481,7 @@ const LANGS=[
   {code:'tr',label:'Türkçe',flag:'🇹🇷',bcp47:'tr-TR',display:'TR'},
   {code:'el',label:'Ελληνικά',flag:'🇬🇷',bcp47:'el-GR',display:'EL'},
   {code:'bg',label:'Български',flag:'🇧🇬',bcp47:'bg-BG',display:'BG'},
+  {code:'nl',label:'Nederlands',flag:'🇳🇱',bcp47:'nl-NL',display:'NL'},
 ];
 
 // ── Init ───────────────────────────────────────────────────────
@@ -880,7 +881,7 @@ function startListening(){
   const isB=isLearn()?false:(S.currentSpeaker==='B');
   const fromLang=isB?S.langTo:S.langFrom;
   const toLang=isB?S.langFrom:S.langTo;
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL'};
   const recogLang=langMap[fromLang]||'fr-FR';
   S.listening=true;setScreen(1);
   startCloudSTT(fromLang,toLang,recogLang);
@@ -986,7 +987,7 @@ async function translateAndSpeak(text,fromLang,toLang){
 }
 
 async function speakText(text,langCode){
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL'};
   const lc=langMap[langCode]||'fr-FR';
   try{
     const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:lc,speakingRate:0.85})});
@@ -1049,7 +1050,8 @@ function renderConvScreen(){
     if(convViewMode){
       actionDiv.innerHTML='<button class="cs-btn" onclick="resumeLesson()" style="border-color:'+color+';color:'+color+'">📖 '+t('review')+'</button>'
         +'<button class="cs-btn" onclick="renameLesson()" style="border-color:'+color+';color:'+color+'">✏️ '+t('rename')+'</button>'
-        +'<button class="cs-btn" onclick="exportEntry()" style="border-color:'+color+';color:'+color+'">🎵 MP3</button>'
+        +'<button class="cs-btn" onclick="exportEntry(1)" style="border-color:'+color+';color:'+color+'">🎵 MP3-1L</button>'
+        +'<button class="cs-btn" onclick="exportEntry(2)" style="border-color:'+color+';color:'+color+'">🎵 MP3-2L</button>'
         +'<button class="cs-btn" onclick="exportDocx()" style="border-color:'+color+';color:'+color+'">📄 DOCX</button>'
         +'<button class="cs-btn" onclick="exportPdf(\'C\')" style="border-color:'+color+';color:'+color+'">📋 PDF-C</button>'
         +'<button class="cs-btn" onclick="exportPdf(\'L\')" style="border-color:'+color+';color:'+color+'">📋 PDF-L</button>'
@@ -1157,25 +1159,21 @@ async function listenEntry(){
   if(b){b.textContent='🔊 '+t('listen');b.onclick=listenEntry}
 }
 
-async function exportEntry(){
+async function exportEntry(mode=2){
   if(!selectedEntry)return;
-  const btn=document.getElementById('cs-export')||document.querySelector('[onclick="exportEntry()"]');
+  const btn=document.querySelector('[onclick="exportEntry('+mode+')"]');
   if(btn)btn.textContent='⏳…';
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL'};
   const chunks=[];
-
-  // Grouper les échanges par phrase originale
   const groups=[];
   for(const ex of selectedEntry.exchanges){
     const last=groups[groups.length-1];
     if(last&&last.original===ex.original&&last.langFrom===ex.langFrom){
-      // Même phrase originale → ajouter juste la traduction
       last.translations.push({text:ex.translated,lang:ex.langTo});
     } else {
       groups.push({original:ex.original,langFrom:ex.langFrom,translations:[{text:ex.translated,lang:ex.langTo}]});
     }
   }
-
   const ttsCall=async(text,lang)=>{
     try{
       const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:langMap[lang]||'en-US',speakingRate:0.85})});
@@ -1183,24 +1181,19 @@ async function exportEntry(){
       if(data.audioContent){const bytes=atob(data.audioContent);const arr=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);chunks.push(arr)}
     }catch(e){}
   };
-
   for(const group of groups){
-    // Phrase originale — une seule fois
-    await ttsCall(group.original,group.langFrom);
-    // Toutes les traductions
-    for(const tr of group.translations){
-      await ttsCall(tr.text,tr.lang);
-    }
+    if(mode===2)await ttsCall(group.original,group.langFrom);
+    for(const tr of group.translations)await ttsCall(tr.text,tr.lang);
   }
-
   if(chunks.length){
     const total=chunks.reduce((s,a)=>s+a.length,0);const merged=new Uint8Array(total);let off=0;chunks.forEach(a=>{merged.set(a,off);off+=a.length});
     const blob=new Blob([merged],{type:'audio/mpeg'});const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='makedoo_'+(selectedEntry.name||'export')+'_'+selectedEntry.date+'.mp3';
+    const a=document.createElement('a');
+    a.href=url;a.download='makedoo_'+(selectedEntry.name||'export')+'_'+selectedEntry.date+'_MP3-'+(mode===2?'2':'1')+'L.mp3';
     document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-    showToast('✓ MP3 '+t('export'));
+    showToast('✓ MP3-'+(mode===2?'2':'1')+'L');
   }else showToast('Export échoué');
-  if(btn)btn.textContent='⬇ '+t('export');
+  if(btn)btn.textContent='🎵 MP3-'+(mode===2?'2':'1')+'L';
 }
 
 async function exportDocx(){
