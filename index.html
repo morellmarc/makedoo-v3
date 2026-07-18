@@ -815,10 +815,29 @@ function doRepeatSelected(){
   (async()=>{
     for(const i of idxs){
       const ex=S.currentExchanges[i];
-      if(ex)await speakText(ex.translated,ex.langTo||S.langTo);
+      if(!ex)continue;
+      // Surligner la phrase en cours dans les deux colonnes
+      document.querySelectorAll('.tp-phrase').forEach(el=>{
+        const idx=parseInt(el.dataset.idx);
+        if(idx===i){
+          el.style.background='#FFE0B2';
+          el.style.fontWeight='700';
+          // Scroller vers la phrase
+          el.scrollIntoView({block:'nearest',behavior:'smooth'});
+        } else {
+          el.style.background=selectedPhraseIdxs.has(idx)?'#BBDEFB':'';
+          el.style.fontWeight='';
+        }
+      });
+      await speakText(ex.translated,ex.langTo||S.langTo);
     }
+    // Remettre le surlignage de sélection
+    document.querySelectorAll('.tp-phrase').forEach(el=>{
+      const idx=parseInt(el.dataset.idx);
+      el.style.background=selectedPhraseIdxs.has(idx)?'#BBDEFB':'';
+      el.style.fontWeight='';
+    });
   })();
-  // Reste sur screen 2
 }
 
 function doReplaceSelected(){
