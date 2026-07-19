@@ -1512,8 +1512,8 @@ function updateUILabels(){
   const finLabel=document.getElementById('fin-btn-label');
   if(finLabel)finLabel.textContent=t('exit');
   // Conv screen exit button
-  const exitBtn=document.querySelector('#conv-screen .cs-btn');
-  if(exitBtn)exitBtn.textContent=t('exitBtn');
+  const exitConvBtn=document.getElementById('btn-exit-convscreen');
+  if(exitConvBtn)exitConvBtn.textContent=t('exit');
   // Voice list prompt if empty/default
   const vl=document.getElementById('voice-list');
   if(vl&&vl.children.length===0)vl.textContent=t('scanPrompt');
