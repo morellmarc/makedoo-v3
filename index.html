@@ -676,7 +676,7 @@ function renderScreen(){
       intLabel.textContent=t('choosePhrase');
       intLabel.classList.add('visible');
       intLabel.style.cssText='opacity:1;background:#E3F2FD;border-radius:20px;padding:5px 14px;font-size:12px;color:var(--learn);font-weight:700;width:100%;text-align:center';
-      intActions.innerHTML='<button class="action-btn orange" style="padding:8px 12px;font-size:12px" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn neutral" style="padding:8px 12px;font-size:12px" onclick="doInsertBefore()">'+t('insert')+'</button><button class="action-btn neutral" style="padding:8px 12px;font-size:12px" onclick="doReplaceSelected()">'+t('replace')+'</button>';
+      intActions.innerHTML='<button class="action-btn orange" style="padding:8px 12px;font-size:12px" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn neutral" style="padding:8px 12px;font-size:12px" onclick="doReplaceSelected()">'+t('replace')+'</button>';
       // ZONE BASSE : bandeau + boutons
       pill.className=(learn?'status-tag learn':'status-tag active');
       
@@ -781,11 +781,19 @@ function doConfirmedExitConv(){
   S.currentExchanges=[];setScreen(0);
 }
 function doResume(){
-  // En mode SOLO, Poursuivre = nouvelle phrase → efface la mémoire et le champ
   if(isLearn()){
     S.lastOriginal=null;
     const input=document.getElementById('text-lesson-input');
     if(input)input.value='';
+    // Insérer après la phrase sélectionnée, sinon à la fin
+    if(selectedPhraseIdxs.size>0){
+      const idxs=[...selectedPhraseIdxs].sort((a,b)=>a-b);
+      S.insertBeforeIdx=idxs[idxs.length-1]+1;
+      S.insertMode=true;
+    } else {
+      S.insertMode=false;S.insertBeforeIdx=undefined;
+    }
+    selectedPhraseIdxs.clear();selectedPhraseIdx=-1;
     setScreen(1);
   } else {
     // En mode DUO, on va directement au micro
@@ -1010,7 +1018,8 @@ async function translateAndSpeak(text,fromLang,toLang){
     if(data.translated)translated=data.translated;
   }catch(e){}
   const exchange={original:text,translated,langFrom:fromLang,langTo:toLang};
-  if(S.insertMode&&S.insertBeforeIdx!==undefined){
+  const wasInsert=S.insertMode&&S.insertBeforeIdx!==undefined;
+  if(wasInsert){
     S.currentExchanges.splice(S.insertBeforeIdx,0,exchange);
     S.insertMode=false;S.insertBeforeIdx=undefined;
   } else {
@@ -1023,10 +1032,18 @@ async function translateAndSpeak(text,fromLang,toLang){
     document.getElementById('tp-lang-bot').textContent=lt?lt.display:toLang.toUpperCase();
     const sep='<div style="border-top:1px solid var(--border);margin:4px 0"></div>';
     const oe=document.getElementById('tp-text-orig');const te=document.getElementById('tp-text-trans');
-    const idx=S.currentExchanges.length-1;
-    oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+idx+'" onclick="selectPhrase('+idx+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+text+'</div>';
-    te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+idx+'" onclick="selectPhrase('+idx+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+translated+'</div>';
-    // Scroller vers le bas immédiatement
+    if(wasInsert){
+      // Reconstruire tout le panneau après insertion
+      oe.innerHTML='';te.innerHTML='';
+      S.currentExchanges.forEach((ex,i)=>{
+        oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+ex.original+'</div>';
+        te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+ex.translated+'</div>';
+      });
+    } else {
+      const idx=S.currentExchanges.length-1;
+      oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+idx+'" onclick="selectPhrase('+idx+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+text+'</div>';
+      te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+idx+'" onclick="selectPhrase('+idx+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+translated+'</div>';
+    }
     setTimeout(()=>{
       const tp=document.getElementById('tp-top-wrap');const tb=document.getElementById('tp-bot-wrap');
       if(tp)tp.scrollTop=tp.scrollHeight;if(tb)tb.scrollTop=tb.scrollHeight;
