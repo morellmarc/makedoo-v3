@@ -321,7 +321,7 @@ input:focus{border-color:var(--blue)}
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--surface);flex-shrink:0">
     <div id="cs-title" style="font-size:16px;font-weight:800"></div>
     <div style="display:flex;gap:6px">
-      <button class="cs-btn" onclick="importSession()" style="background:var(--blue-light);color:var(--blue)">📥</button>
+      <button class="cs-btn" id="btn-import-session" onclick="importSession()" style="background:var(--blue-light);color:var(--blue);display:none">📥</button>
       <button class="cs-btn" onclick="hideConvScreen()" style="background:var(--red-light);color:var(--red-text)">✕</button>
     </div>
   </div>
@@ -1085,6 +1085,9 @@ function renderConvScreen(){
   const color=convViewMode?'var(--learn)':'var(--accent)';
   document.getElementById('cs-title').textContent=convViewMode?t('lessons'):t('conv');
   document.getElementById('cs-title').style.color=color;
+  // Bouton import visible uniquement en mode Sessions
+  const importBtn=document.getElementById('btn-import-session');
+  if(importBtn)importBtn.style.display=convViewMode?'block':'none';
   const actionDiv=document.getElementById('cs-actions');
   if(selectedEntry){
     if(convViewMode){
