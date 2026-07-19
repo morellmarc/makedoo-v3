@@ -676,7 +676,7 @@ function renderScreen(){
       intLabel.textContent=t('choosePhrase');
       intLabel.classList.add('visible');
       intLabel.style.cssText='opacity:1;background:#E3F2FD;border-radius:20px;padding:5px 14px;font-size:12px;color:var(--learn);font-weight:700;width:100%;text-align:center';
-      intActions.innerHTML='<button class="action-btn orange" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn neutral" onclick="doInsertBefore()">'+t('insert')+'</button><button class="action-btn neutral" onclick="doReplaceSelected()">'+t('replace')+'</button>';
+      intActions.innerHTML='<button class="action-btn orange" style="padding:8px 12px;font-size:12px" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn neutral" style="padding:8px 12px;font-size:12px" onclick="doInsertBefore()">'+t('insert')+'</button><button class="action-btn neutral" style="padding:8px 12px;font-size:12px" onclick="doReplaceSelected()">'+t('replace')+'</button>';
       // ZONE BASSE : bandeau + boutons
       pill.className=(learn?'status-tag learn':'status-tag active');
       
