@@ -322,7 +322,7 @@ input:focus{border-color:var(--blue)}
     <div id="cs-title" style="font-size:16px;font-weight:800"></div>
     <div style="display:flex;gap:6px">
       <button class="cs-btn" id="btn-import-session" onclick="importSession()" style="background:var(--blue-light);color:var(--blue);display:none">📥</button>
-      <button class="cs-btn" onclick="hideConvScreen()" style="background:var(--red-light);color:var(--red-text)">✕</button>
+      <button class="cs-btn" onclick="hideConvScreen()" style="background:var(--red-light);color:var(--red-text)" id="btn-exit-convscreen">Exit</button>
     </div>
   </div>
   <div id="cs-actions" style="padding:10px 16px;border-bottom:1px solid var(--line);background:var(--bg);flex-shrink:0;display:flex;flex-direction:column;gap:4px;align-items:stretch;justify-content:center;min-height:52px;flex-wrap:wrap"></div>
@@ -1087,7 +1087,10 @@ function renderConvScreen(){
   document.getElementById('cs-title').style.color=color;
   // Bouton import visible uniquement en mode Sessions
   const importBtn=document.getElementById('btn-import-session');
-  if(importBtn)importBtn.style.display=convViewMode?'block':'none';
+  if(importBtn)importBtn.style.display=convViewMode?'inline-block':'none';
+  // Bouton Exit
+  const exitBtn=document.getElementById('btn-exit-convscreen');
+  if(exitBtn)exitBtn.textContent=t('exit');
   const actionDiv=document.getElementById('cs-actions');
   if(selectedEntry){
     if(convViewMode){
