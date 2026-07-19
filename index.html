@@ -457,7 +457,7 @@ const S={
   journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
   lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
   contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
-  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,
+  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,
   selectedVoiceURI:localStorage.getItem('makedoo_v3_voice_uri')||null,
   selectedVoiceLang:localStorage.getItem('makedoo_v3_voice_lang')||null,
 };
@@ -564,7 +564,7 @@ function handleTap(){
 function showTopCenter(){isLearn()?showLessons():showConversations()}
 
 // ── Screen ─────────────────────────────────────────────────────
-function setScreen(n){S.screen=n;renderScreen()}
+function setScreen(n){S.screen=n;S.isSpeaking=false;renderScreen()}
 
 function renderScreen(){
   const status=document.getElementById('center-status');
@@ -834,32 +834,29 @@ function doInsertBefore(){
 }
 
 function doRepeatSelected(){
+  if(S.isSpeaking)return;
   const idxs=selectedPhraseIdxs.size>0?[...selectedPhraseIdxs].sort():[S.currentExchanges.length-1];
+  const repeatBtn=document.querySelector('.action-btn.orange');
+  if(repeatBtn){repeatBtn.style.opacity='0.4';repeatBtn.style.pointerEvents='none';}
+  S.isSpeaking=true;
   (async()=>{
     for(const i of idxs){
       const ex=S.currentExchanges[i];
       if(!ex)continue;
-      // Surligner la phrase en cours dans les deux colonnes
       document.querySelectorAll('.tp-phrase').forEach(el=>{
         const idx=parseInt(el.dataset.idx);
-        if(idx===i){
-          el.style.background='#FFE0B2';
-          el.style.fontWeight='700';
-          // Scroller vers la phrase
-          el.scrollIntoView({block:'nearest',behavior:'smooth'});
-        } else {
-          el.style.background=selectedPhraseIdxs.has(idx)?'#BBDEFB':'';
-          el.style.fontWeight='';
-        }
+        if(idx===i){el.style.background='#FFE0B2';el.style.fontWeight='700';el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+        else{el.style.background=selectedPhraseIdxs.has(idx)?'#BBDEFB':'';el.style.fontWeight='';}
       });
       await speakText(ex.translated,ex.langTo||S.langTo);
     }
-    // Remettre le surlignage de sélection
     document.querySelectorAll('.tp-phrase').forEach(el=>{
       const idx=parseInt(el.dataset.idx);
       el.style.background=selectedPhraseIdxs.has(idx)?'#BBDEFB':'';
       el.style.fontWeight='';
     });
+    S.isSpeaking=false;
+    if(repeatBtn){repeatBtn.style.opacity='1';repeatBtn.style.pointerEvents='';}
   })();
 }
 
