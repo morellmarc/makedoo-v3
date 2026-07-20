@@ -652,8 +652,20 @@ function renderScreen(){
     if(!learn){
       convActions.innerHTML=(S.currentExchanges.length>0?'<button class="action-btn blue solid" onclick="doSave()">'+t('save')+'</button>':'')+'<button class="action-btn red" onclick="doExitConv()">'+t('exit')+'</button>';
     }
-    // SOLO : Exit toujours visible sur screen 1
-    if(finBtn)finBtn.style.display=learn?'inline-flex':'none';
+    // SOLO screen 1 : bouton Retour si session en cours, Sortir si démarrage
+    if(finBtn){
+      if(learn&&S.currentExchanges.length>0){
+        finBtn.style.display='inline-flex';
+        document.getElementById('fin-btn-label').textContent='← '+t('resume');
+        finBtn.onclick=function(){S.insertMode=false;S.insertBeforeIdx=undefined;setScreen(2);};
+      } else if(learn){
+        finBtn.style.display='inline-flex';
+        document.getElementById('fin-btn-label').textContent=t('exit');
+        finBtn.onclick=function(){confirmEnd();};
+      } else {
+        finBtn.style.display='none';
+      }
+    }
 
   }else if(S.screen===1&&S.listening){
     if(arcTop)arcTop.classList.add('fast');
