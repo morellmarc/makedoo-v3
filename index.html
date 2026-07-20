@@ -652,8 +652,8 @@ function renderScreen(){
     if(!learn){
       convActions.innerHTML=(S.currentExchanges.length>0?'<button class="action-btn blue solid" onclick="doSave()">'+t('save')+'</button>':'')+'<button class="action-btn red" onclick="doExitConv()">'+t('exit')+'</button>';
     }
-    // SOLO : Exit visible seulement si 0 échange (démarrage par erreur)
-    if(finBtn)finBtn.style.display=(learn&&S.currentExchanges.length===0)?'inline-flex':'none';
+    // SOLO : Exit toujours visible sur screen 1
+    if(finBtn)finBtn.style.display=learn?'inline-flex':'none';
 
   }else if(S.screen===1&&S.listening){
     if(arcTop)arcTop.classList.add('fast');
