@@ -567,6 +567,7 @@ function showTopCenter(){isLearn()?showLessons():showConversations()}
 function setScreen(n){S.screen=n;S.isSpeaking=false;renderScreen()}
 
 function renderScreen(){
+  showToast('sc='+S.screen+' ls='+S.listening+' md='+S.mode);
   const status=document.getElementById('center-status');
   const pill=document.getElementById('status-pill');
   const finBtn=document.getElementById('fin-btn');
