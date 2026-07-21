@@ -940,7 +940,11 @@ async function submitTextLesson(){
   input.value='';
   if(S.screen===0){S.currentExchanges=[];document.getElementById('tp-text-orig').innerHTML='';document.getElementById('tp-text-trans').innerHTML='';}
   const hgC=document.getElementById('hg-center');if(hgC)hgC.style.opacity='1';
-  await translateAndSpeak(text,S.langFrom,S.langTo);
+  // Découper par point-virgule
+  const segments=text.split(';').map(s=>s.trim()).filter(s=>s.length>0);
+  for(const seg of segments){
+    await translateAndSpeak(seg,S.langFrom,S.langTo);
+  }
 }
 
 // ── Recognition ────────────────────────────────────────────────
