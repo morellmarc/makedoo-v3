@@ -940,7 +940,11 @@ async function submitTextLesson(){
   input.value='';
   if(S.screen===0){S.currentExchanges=[];document.getElementById('tp-text-orig').innerHTML='';document.getElementById('tp-text-trans').innerHTML='';}
   const hgC=document.getElementById('hg-center');if(hgC)hgC.style.opacity='1';
-  await translateAndSpeak(text,S.langFrom,S.langTo);
+  // Découper par point-virgule
+  const segments=text.split(';').map(s=>s.trim()).filter(s=>s.length>0);
+  for(const seg of segments){
+    await translateAndSpeak(seg,S.langFrom,S.langTo);
+  }
 }
 
 // ── Recognition ────────────────────────────────────────────────
@@ -1068,6 +1072,14 @@ async function translateAndSpeak(text,fromLang,toLang){
     if(micC)micC.style.opacity='1';
   }
   await speakText(translated,toLang);
+  // En mode DUO, inverser automatiquement la flèche après traduction
+  if(!isLearn()){
+    S.direction=S.direction==='AB'?'BA':'AB';
+    S.currentSpeaker=S.direction==='AB'?'A':'B';
+    const arrow=document.getElementById('left-arrow');
+    if(arrow)arrow.classList.toggle('reversed',S.direction==='BA');
+    updateMicIndicators();
+  }
 }
 
 async function speakText(text,langCode){
