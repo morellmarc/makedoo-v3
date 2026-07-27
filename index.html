@@ -1086,7 +1086,7 @@ async function speakText(text,langCode){
   const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL'};
   const lc=langMap[langCode]||'fr-FR';
   try{
-    const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:lc,speakingRate:0.85})});
+    const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:lc,speakingRate:isLearn()?0.85:1.0})});
     const data=await res.json();
     if(data.audioContent){await playAudio('data:audio/mp3;base64,'+data.audioContent);return}
   }catch(e){}
