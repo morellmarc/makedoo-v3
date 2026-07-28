@@ -518,7 +518,7 @@ function setMode(mode){
   if(learn){S.direction='AB';S.currentSpeaker='A';document.getElementById('left-arrow').classList.remove('reversed')}
   document.getElementById('btn-exchange').className='mode-btn'+(mode==='exchange'?' active-exchange':'');
   document.getElementById('btn-learn').className='mode-btn'+(mode==='learn'?' active-learn':'');
-  document.getElementById('left-arrow').classList.toggle('disabled',learn);
+  document.getElementById('left-arrow').classList.toggle('disabled',learn&&S.screen!==0);
   ['lang-top-card','lang-bottom-card'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
@@ -532,7 +532,23 @@ function setMode(mode){
 
 // ── Arrow ──────────────────────────────────────────────────────
 function handleArrowClick(){
-  if(isLearn())return;
+  if(isLearn()){
+    // En mode SOLO, la flèche n'est active qu'à l'écran 0 pour permuter les langues
+    if(S.screen!==0)return;
+    const tmp=S.langFrom;
+    S.langFrom=S.langTo;
+    S.langTo=tmp;
+    localStorage.setItem('makedoo_v3_langFrom',S.langFrom);
+    localStorage.setItem('makedoo_v3_langTo',S.langTo);
+    // Suivre la langue d'interface si supportée
+    const supported=['fr','en','mk','es','de','it','tr'];
+    if(supported.includes(S.langFrom)){
+      S.uiLang=S.langFrom;
+      localStorage.setItem('makedoo_v3_uilang',S.langFrom);
+    }
+    updateDisplay();updateUILabels();renderScreen();
+    return;
+  }
   S.direction=S.direction==='AB'?'BA':'AB';
   S.currentSpeaker=S.direction==='AB'?'A':'B';
   document.getElementById('left-arrow').classList.toggle('reversed',S.direction==='BA');
@@ -591,6 +607,9 @@ function renderScreen(){
   const learn=isLearn();
   const pillActive=learn?'status-pill learn':'status-pill active';
   const inProgress=learn?t('lessonProgress'):t('inProgress');
+  // Flèche active en SOLO uniquement à l'écran 0 (pour permuter les langues)
+  const leftArrow=document.getElementById('left-arrow');
+  if(leftArrow)leftArrow.classList.toggle('disabled',learn&&S.screen!==0);
 
   // Cercle ou panneau texte
   const showPanel=learn&&(S.screen===2||S.screen===3);
