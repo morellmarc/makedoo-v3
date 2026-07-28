@@ -1240,14 +1240,17 @@ function getActiveLangTo(entry){
 
 function resumeLesson(){
   if(!selectedEntry)return;
-  S.langFrom=selectedEntry.langFrom||'fr';S.langTo=selectedEntry.langTo||'mk';
-  S.currentExchanges=[...selectedEntry.exchanges];
-  S.lastTranslation=selectedEntry.exchanges[selectedEntry.exchanges.length-1]&&selectedEntry.exchanges[selectedEntry.exchanges.length-1].translated||null;
-  S.lastTranslationLang=selectedEntry.langTo||'mk';
+  const activeEx=getActiveExchanges(selectedEntry);
+  const activeFrom=getActiveLangFrom(selectedEntry);
+  const activeTo=getActiveLangTo(selectedEntry);
+  S.langFrom=activeFrom||'fr';S.langTo=activeTo||'mk';
+  S.currentExchanges=[...activeEx];
+  S.lastTranslation=activeEx[activeEx.length-1]&&activeEx[activeEx.length-1].translated||null;
+  S.lastTranslationLang=activeTo||'mk';
   const oe=document.getElementById('tp-text-orig');const te=document.getElementById('tp-text-trans');
   oe.innerHTML='';te.innerHTML='';
   const sep='<div style="border-top:1px solid var(--border);margin:4px 0"></div>';
-  selectedEntry.exchanges.forEach((e,i)=>{
+  activeEx.forEach((e,i)=>{
     oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.original+'</div>';
     te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.translated+'</div>';
   });
