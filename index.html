@@ -1159,6 +1159,7 @@ function renderConvScreen(){
         '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">'
         +'<button class="cs-btn" onclick="resumeLesson()" style="border-color:'+color+';color:'+color+'">📖 '+t('review')+'</button>'
         +'<button class="cs-btn" onclick="renameLesson()" style="border-color:'+color+';color:'+color+'">✏️ '+t('rename')+'</button>'
+        +'<button class="cs-btn" onclick="invertSessionDirection()" style="border-color:'+color+';color:'+color+'">⇄ '+(selectedEntry.invLangFrom||selectedEntry.langFrom||'').toUpperCase()+'→'+(selectedEntry.invLangTo||selectedEntry.langTo||'').toUpperCase()+'</button>'
         +'<button class="cs-btn" onclick="exportSessionJson()" style="border-color:'+color+';color:'+color+'">📤 JSON</button>'
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>'
         +'</div>'
@@ -1197,6 +1198,44 @@ function selectEntry(idx){
   const data=convViewMode?S.lessons:S.journal;
   selectedEntry=data[idx];S.reviewOpen=false;isPlayingConv=false;
   renderConvScreen();
+}
+
+function invertSessionDirection(){
+  if(!selectedEntry)return;
+  // Bascule le sens de lecture — n'affecte pas le fichier JSON original
+  const isInverted=!!selectedEntry.invLangFrom;
+  if(isInverted){
+    delete selectedEntry.invLangFrom;
+    delete selectedEntry.invLangTo;
+    delete selectedEntry.invExchanges;
+  } else {
+    selectedEntry.invLangFrom=selectedEntry.langTo;
+    selectedEntry.invLangTo=selectedEntry.langFrom;
+    selectedEntry.invExchanges=selectedEntry.exchanges.map(ex=>({
+      original:ex.translated,translated:ex.original,
+      langFrom:ex.langTo,langTo:ex.langFrom
+    }));
+  }
+  renderConvScreen();
+  showToast('⇄ '+(isInverted?selectedEntry.langFrom:selectedEntry.langTo).toUpperCase()+'→'+(isInverted?selectedEntry.langTo:selectedEntry.langFrom).toUpperCase());
+  // Persister le flag d'inversion
+  const arr=S.lessons.find(l=>l.id===selectedEntry.id);
+  if(arr){
+    if(isInverted){delete arr.invLangFrom;delete arr.invLangTo;delete arr.invExchanges;}
+    else{arr.invLangFrom=selectedEntry.invLangFrom;arr.invLangTo=selectedEntry.invLangTo;arr.invExchanges=selectedEntry.invExchanges;}
+    localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons));
+  }
+}
+
+// Retourne les échanges actifs selon le sens (normal ou inversé)
+function getActiveExchanges(entry){
+  return entry.invExchanges||entry.exchanges;
+}
+function getActiveLangFrom(entry){
+  return entry.invLangFrom||entry.langFrom;
+}
+function getActiveLangTo(entry){
+  return entry.invLangTo||entry.langTo;
 }
 
 function resumeLesson(){
@@ -1253,9 +1292,10 @@ async function listenEntry(){
   const btn=document.getElementById('cs-listen');
   if(btn){btn.textContent='⏹ '+t('stop');btn.onclick=()=>{isPlayingConv=false;if(btn){btn.textContent='🔊 '+t('listen');btn.onclick=listenEntry}}}
 
-  // Grouper par phrase originale
+  // Grouper par phrase originale (respecte le sens inversé si actif)
+  const activeEx=getActiveExchanges(selectedEntry);
   const groups=[];
-  for(const ex of selectedEntry.exchanges){
+  for(const ex of activeEx){
     const last=groups[groups.length-1];
     if(last&&last.original===ex.original&&last.langFrom===ex.langFrom){
       last.translations.push({text:ex.translated,lang:ex.langTo});
@@ -1287,7 +1327,8 @@ async function exportEntry(mode=2){
   const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL'};
   const chunks=[];
   const groups=[];
-  for(const ex of selectedEntry.exchanges){
+  const activeExE=getActiveExchanges(selectedEntry);
+  for(const ex of activeExE){
     const last=groups[groups.length-1];
     if(last&&last.original===ex.original&&last.langFrom===ex.langFrom){
       last.translations.push({text:ex.translated,lang:ex.langTo});
@@ -1319,10 +1360,13 @@ async function exportEntry(mode=2){
 
 async function exportDocx(){
   if(!selectedEntry)return;
+  const activeExD=getActiveExchanges(selectedEntry);
+  const activeFromD=getActiveLangFrom(selectedEntry);
+  const activeToD=getActiveLangTo(selectedEntry);
 
   // Grouper par phrase originale (même logique que MP3)
   const groups=[];
-  for(const ex of selectedEntry.exchanges){
+  for(const ex of activeExD){
     const last=groups[groups.length-1];
     if(last&&last.original===ex.original&&last.langFrom===ex.langFrom){
       last.translations.push({text:ex.translated,lang:ex.langTo});
@@ -1342,8 +1386,8 @@ async function exportDocx(){
   let tableRows='';
   if(isMulti){
     // Entête colonnes langues
-    const langs=[...new Set(selectedEntry.exchanges.map(e=>e.langTo))];
-    const headers='<tr><th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+selectedEntry.langFrom.toUpperCase()+'</th>'
+    const langs=[...new Set(activeExD.map(e=>e.langTo))];
+    const headers='<tr><th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+activeFromD.toUpperCase()+'</th>'
       +langs.map(l=>'<th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+l.toUpperCase()+'</th>').join('')+'</tr>';
     tableRows=headers+groups.map(g=>{
       const cells=langs.map(l=>{
@@ -1353,8 +1397,8 @@ async function exportDocx(){
       return '<tr><td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:600">'+g.original+'</td>'+cells+'</tr>';
     }).join('');
   } else {
-    tableRows='<tr><th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+selectedEntry.langFrom.toUpperCase()+'</th>'
-      +'<th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+(selectedEntry.langTo||'').toUpperCase()+'</th></tr>'
+    tableRows='<tr><th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+activeFromD.toUpperCase()+'</th>'
+      +'<th style="background:#4A6CF7;color:white;padding:8px 12px;text-align:left">'+activeToD.toUpperCase()+'</th></tr>'
       +groups.map(g=>'<tr>'
         +'<td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:600">'+g.original+'</td>'
         +'<td style="padding:8px 12px;border-bottom:1px solid #eee">'+( g.translations[0]?.text||'')+'</td>'
@@ -1382,8 +1426,11 @@ async function exportDocx(){
 
 function exportPdf(format='C'){
   if(!selectedEntry)return;
+  const activeExP=getActiveExchanges(selectedEntry);
+  const activeFromP=getActiveLangFrom(selectedEntry);
+  const activeToP=getActiveLangTo(selectedEntry);
   const groups=[];
-  for(const ex of selectedEntry.exchanges){
+  for(const ex of activeExP){
     const last=groups[groups.length-1];
     if(last&&last.original===ex.original&&last.langFrom===ex.langFrom){
       last.translations.push({text:ex.translated,lang:ex.langTo});
@@ -1393,7 +1440,7 @@ function exportPdf(format='C'){
   }
   const name=selectedEntry.name||'Session';
   const date=new Date(selectedEntry.date).toLocaleDateString();
-  const langs=[...new Set(selectedEntry.exchanges.map(e=>e.langTo))];
+  const langs=[...new Set(activeExP.map(e=>e.langTo))];
   const isMulti=langs.length>1;
 
   let body='';
@@ -1402,10 +1449,10 @@ function exportPdf(format='C'){
     // PDF-C : tableau colonnes
     let tableRows='';
     if(isMulti){
-      tableRows='<tr><th>'+selectedEntry.langFrom.toUpperCase()+'</th>'+langs.map(l=>'<th>'+l.toUpperCase()+'</th>').join('')+'</tr>'
+      tableRows='<tr><th>'+activeFromP.toUpperCase()+'</th>'+langs.map(l=>'<th>'+l.toUpperCase()+'</th>').join('')+'</tr>'
         +groups.map(g=>'<tr><td class="orig">'+g.original+'</td>'+langs.map(l=>{const tr=g.translations.find(t=>t.lang===l);return'<td>'+(tr?tr.text:'—')+'</td>';}).join('')+'</tr>').join('');
     } else {
-      tableRows='<tr><th>'+selectedEntry.langFrom.toUpperCase()+'</th><th>'+(selectedEntry.langTo||'').toUpperCase()+'</th></tr>'
+      tableRows='<tr><th>'+activeFromP.toUpperCase()+'</th><th>'+activeToP.toUpperCase()+'</th></tr>'
         +groups.map(g=>'<tr><td class="orig">'+g.original+'</td><td>'+(g.translations[0]?.text||'')+'</td></tr>').join('');
     }
     body='<table>'+tableRows+'</table>';
