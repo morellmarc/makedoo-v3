@@ -213,7 +213,7 @@ input:focus{border-color:var(--blue)}
   <!-- LEFT COL -->
   <div class="left-col">
     <div>
-      <div class="lang-card to-lang" id="lang-top-card" ontouchstart="startLP('changeLangTo')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('changeLangTo')" onmouseup="cancelLP()" onmouseleave="cancelLP()">
+      <div class="lang-card to-lang" id="lang-top-card" ontouchstart="startLP(isLearn()?'changeLangFrom':'changeLangTo')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP(isLearn()?'changeLangFrom':'changeLangTo')" onmouseup="cancelLP()" onmouseleave="cancelLP()">
         <div class="lang-card-code" id="lang-top">MK</div>
         <div class="lang-card-sub" id="lang-sub-top">Cible</div>
       </div>
@@ -224,7 +224,7 @@ input:focus{border-color:var(--blue)}
     </div>
     <div>
       <div class="mic-dot" id="mic-bottom">🎤</div>
-      <div class="lang-card from-lang" id="lang-bottom-card" ontouchstart="startLP('changeLangFrom')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('changeLangFrom')" onmouseup="cancelLP()" onmouseleave="cancelLP()">
+      <div class="lang-card from-lang" id="lang-bottom-card" ontouchstart="startLP(isLearn()?'changeLangTo':'changeLangFrom')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP(isLearn()?'changeLangTo':'changeLangFrom')" onmouseup="cancelLP()" onmouseleave="cancelLP()">
         <div class="lang-card-code" id="lang-bottom">FR</div>
         <div class="lang-card-sub" id="lang-sub-bot">Source</div>
       </div>
