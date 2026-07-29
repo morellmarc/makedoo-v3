@@ -515,7 +515,8 @@ function setMode(mode){
   if(S.screen!==0)return;
   S.mode=mode;
   const learn=mode==='learn';
-  if(learn){S.direction='AB';S.currentSpeaker='A';document.getElementById('left-arrow').classList.remove('reversed')}
+  if(learn){S.direction='AB';S.currentSpeaker='A';document.getElementById('left-arrow').classList.add('reversed')}
+  else{document.getElementById('left-arrow').classList.remove('reversed')}
   document.getElementById('btn-exchange').className='mode-btn'+(mode==='exchange'?' active-exchange':'');
   document.getElementById('btn-learn').className='mode-btn'+(mode==='learn'?' active-learn':'');
   ['lang-top-card','lang-bottom-card'].forEach(id=>{
@@ -1299,6 +1300,7 @@ function resumeLesson(){
   document.getElementById('btn-exchange').className='mode-btn';
   document.getElementById('btn-learn').className='mode-btn active-learn';
   document.getElementById('left-arrow').classList.remove('disabled');
+  document.getElementById('left-arrow').classList.add('reversed');
   ['lang-top-card','lang-bottom-card'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.classList.remove('to-lang','from-lang');el.classList.add('learn-mode');}
@@ -1651,8 +1653,14 @@ function testVoice(uri,lang,name){
 // ── Display ────────────────────────────────────────────────────
 function updateDisplay(){
   const lf=LANGS.find(l=>l.code===S.langFrom);const lt=LANGS.find(l=>l.code===S.langTo);
-  document.getElementById('lang-top').textContent=lt?lt.display:S.langTo.toUpperCase();
-  document.getElementById('lang-bottom').textContent=lf?lf.display:S.langFrom.toUpperCase();
+  if(isLearn()){
+    // SOLO : langue à traduire en haut, traduite en bas (aligné avec le panneau texte)
+    document.getElementById('lang-top').textContent=lf?lf.display:S.langFrom.toUpperCase();
+    document.getElementById('lang-bottom').textContent=lt?lt.display:S.langTo.toUpperCase();
+  } else {
+    document.getElementById('lang-top').textContent=lt?lt.display:S.langTo.toUpperCase();
+    document.getElementById('lang-bottom').textContent=lf?lf.display:S.langFrom.toUpperCase();
+  }
 }
 
 function updateUILabels(){
