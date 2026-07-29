@@ -1552,6 +1552,16 @@ function exportSessionJson(){
 
 // ── Bibliothèque Makedoo ──────────────────────────────────────
 const LIBRARY_BASE='https://raw.githubusercontent.com/morellmarc/makedoo-library/main';
+const LIBRARY_API='https://api.github.com/repos/morellmarc/makedoo-library/contents';
+
+async function listPackFiles(path){
+  try{
+    const res=await fetch(LIBRARY_API+'/'+path+'?t='+Date.now());
+    const files=await res.json();
+    if(!Array.isArray(files))return[];
+    return files.filter(f=>f.name.endsWith('.json')).map(f=>f.name);
+  }catch(e){return[];}
+}
 
 async function showLibrary(){
   showOv('ov-library');
@@ -1563,16 +1573,19 @@ async function showLibrary(){
     if(!data.packs||!data.packs.length){content.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">Aucun pack disponible</div>';return;}
     const tierLabels={gratuit:'🆓 Gratuit',abonnes:'⭐ Abonnés',professionnel:'💼 Professionnel'};
     const tierColors={gratuit:'var(--green-text)',abonnes:'var(--blue)',professionnel:'#C05000'};
-    content.innerHTML=data.packs.map(pack=>{
+    // Compter les fichiers réels de chaque pack via l'API GitHub (auto-détection)
+    const counts=await Promise.all(data.packs.map(p=>listPackFiles(p.path)));
+    content.innerHTML=data.packs.map((pack,i)=>{
       const tierColor=tierColors[pack.tier]||'var(--muted)';
       const priceTag=pack.price?' · '+pack.price+'€':'';
+      const n=counts[i].length;
       return '<div style="border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
         +'<span style="font-weight:700;font-size:14px">'+pack.name+'</span>'
         +'<span style="font-size:10px;font-weight:700;color:'+tierColor+'">'+(tierLabels[pack.tier]||pack.tier)+priceTag+'</span>'
         +'</div>'
         +'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">'+pack.description+'</div>'
-        +'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">'+pack.langPair.toUpperCase()+' · '+pack.sessions.length+' session(s)</div>'
+        +'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">'+pack.langPair.toUpperCase()+' · '+n+' session(s)</div>'
         +'<button class="setting-btn" style="margin-top:0" onclick="importPack(\''+pack.id+'\')">📥 Télécharger le pack</button>'
         +'</div>';
     }).join('');
@@ -1589,8 +1602,10 @@ async function importPack(packId){
     if(!pack)return;
     const btn=document.querySelector('[onclick="importPack(\''+packId+'\')"]');
     if(btn)btn.textContent='⏳ Téléchargement...';
+    // Liste automatique des fichiers du dossier (pas besoin de manifest à jour)
+    const filenames=await listPackFiles(pack.path);
     let imported=0,skipped=0,errors=0;
-    for(const filename of pack.sessions){
+    for(const filename of filenames){
       try{
         const fileRes=await fetch(LIBRARY_BASE+'/'+pack.path+'/'+filename+'?t='+Date.now());
         const sessionData=await fileRes.json();
