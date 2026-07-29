@@ -533,18 +533,39 @@ function setMode(mode){
 // ── Arrow ──────────────────────────────────────────────────────
 function handleArrowClick(){
   if(isLearn()){
-    // En mode SOLO, la flèche n'est active qu'à l'écran 0 pour permuter les langues
+    // En mode SOLO, la flèche n'est active qu'à l'écran 0
     if(S.screen!==0)return;
     const tmp=S.langFrom;
     S.langFrom=S.langTo;
     S.langTo=tmp;
     localStorage.setItem('makedoo_v3_langFrom',S.langFrom);
     localStorage.setItem('makedoo_v3_langTo',S.langTo);
-    // Suivre la langue d'interface si supportée
     const supported=['fr','en','mk','es','de','it','tr'];
     if(supported.includes(S.langFrom)){
       S.uiLang=S.langFrom;
       localStorage.setItem('makedoo_v3_uilang',S.langFrom);
+    }
+    // Si une session est chargée (révision), inverser aussi son contenu affiché
+    if(S.currentExchanges.length>0){
+      S.currentExchanges=S.currentExchanges.map(ex=>({
+        original:ex.translated,translated:ex.original,
+        langFrom:ex.langTo,langTo:ex.langFrom
+      }));
+      const oe=document.getElementById('tp-text-orig');const te=document.getElementById('tp-text-trans');
+      if(oe&&te){
+        oe.innerHTML='';te.innerHTML='';
+        const sep='<div style="border-top:1px solid var(--border);margin:4px 0"></div>';
+        S.currentExchanges.forEach((e,i)=>{
+          oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.original+'</div>';
+          te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.translated+'</div>';
+        });
+      }
+      const last=S.currentExchanges[S.currentExchanges.length-1];
+      if(last){S.lastTranslation=last.translated;S.lastTranslationLang=last.langTo;}
+      const lf=LANGS.find(l=>l.code===S.langFrom);const lt=LANGS.find(l=>l.code===S.langTo);
+      const tpTop=document.getElementById('tp-lang-top');const tpBot=document.getElementById('tp-lang-bot');
+      if(tpTop)tpTop.textContent=lf?lf.display:S.langFrom.toUpperCase();
+      if(tpBot)tpBot.textContent=lt?lt.display:S.langTo.toUpperCase();
     }
     updateDisplay();updateUILabels();renderScreen();
     return;
@@ -1178,7 +1199,6 @@ function renderConvScreen(){
         '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">'
         +'<button class="cs-btn" onclick="resumeLesson()" style="border-color:'+color+';color:'+color+'">📖 '+t('review')+'</button>'
         +'<button class="cs-btn" onclick="renameLesson()" style="border-color:'+color+';color:'+color+'">✏️ '+t('rename')+'</button>'
-        +'<button class="cs-btn" onclick="invertSessionDirection()" style="border-color:'+color+';color:'+color+'">⇄ '+(selectedEntry.invLangFrom||selectedEntry.langFrom||'').toUpperCase()+'→'+(selectedEntry.invLangTo||selectedEntry.langTo||'').toUpperCase()+'</button>'
         +'<button class="cs-btn" onclick="exportSessionJson()" style="border-color:'+color+';color:'+color+'">📤 JSON</button>'
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>'
         +'</div>'
@@ -1279,7 +1299,7 @@ function resumeLesson(){
   S.screen=0;S.mode='learn';selectedPhraseIdx=-1;selectedPhraseIdxs.clear();
   document.getElementById('btn-exchange').className='mode-btn';
   document.getElementById('btn-learn').className='mode-btn active-learn';
-  document.getElementById('left-arrow').classList.add('disabled');
+  document.getElementById('left-arrow').classList.remove('disabled');
   ['lang-top-card','lang-bottom-card'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.classList.remove('to-lang','from-lang');el.classList.add('learn-mode');}
