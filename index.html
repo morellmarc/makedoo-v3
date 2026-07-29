@@ -1537,24 +1537,37 @@ function exportSessionJson(){
 
 function importSession(){
   const input=document.createElement('input');
-  input.type='file';input.accept='.json';
+  input.type='file';input.accept='.json';input.multiple=true;
   input.onchange=e=>{
-    const file=e.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      try{
-        const data=JSON.parse(ev.target.result);
-        if(!data.exchanges||!Array.isArray(data.exchanges)){showToast('Fichier invalide');return;}
-        const exists=S.lessons.some(l=>l.id===data.id);
-        if(exists){showToast('Session déjà importée');return;}
-        data.id=data.id||Date.now();
-        S.lessons.unshift(data);
+    const files=Array.from(e.target.files);
+    if(!files.length)return;
+    let imported=0,skipped=0,errors=0;
+    let pending=files.length;
+    const finish=()=>{
+      pending--;
+      if(pending===0){
         localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons));
         renderConvScreen();
-        showToast('📥 '+(data.name||'Session importée'));
-      }catch(err){showToast('Erreur de lecture');}
+        showToast('📥 '+imported+' importée(s)'+(skipped?' · '+skipped+' déjà présente(s)':'')+(errors?' · '+errors+' erreur(s)':''));
+      }
     };
-    reader.readAsText(file);
+    files.forEach(file=>{
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        try{
+          const data=JSON.parse(ev.target.result);
+          if(!data.exchanges||!Array.isArray(data.exchanges)){errors++;finish();return;}
+          const exists=S.lessons.some(l=>l.id===data.id);
+          if(exists){skipped++;finish();return;}
+          data.id=data.id||Date.now()+Math.floor(Math.random()*1000);
+          S.lessons.unshift(data);
+          imported++;
+          finish();
+        }catch(err){errors++;finish();}
+      };
+      reader.onerror=()=>{errors++;finish();};
+      reader.readAsText(file);
+    });
   };
   document.body.appendChild(input);input.click();document.body.removeChild(input);
 }
