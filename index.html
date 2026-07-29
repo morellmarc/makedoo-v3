@@ -518,7 +518,7 @@ function setMode(mode){
   if(learn){S.direction='AB';S.currentSpeaker='A';document.getElementById('left-arrow').classList.remove('reversed')}
   document.getElementById('btn-exchange').className='mode-btn'+(mode==='exchange'?' active-exchange':'');
   document.getElementById('btn-learn').className='mode-btn'+(mode==='learn'?' active-learn':'');
-  document.getElementById('left-arrow').classList.toggle('disabled',learn&&S.screen!==0);
+  document.getElementById('left-arrow').classList.toggle('disabled',learn&&S.screen===1);
   ['lang-top-card','lang-bottom-card'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
@@ -533,8 +533,8 @@ function setMode(mode){
 // ── Arrow ──────────────────────────────────────────────────────
 function handleArrowClick(){
   if(isLearn()){
-    // En mode SOLO, la flèche n'est active qu'à l'écran 0
-    if(S.screen!==0)return;
+    // En mode SOLO, la flèche est active à l'écran 0 ou à l'écran de révision (2)
+    if(S.screen===1)return;
     const tmp=S.langFrom;
     S.langFrom=S.langTo;
     S.langTo=tmp;
