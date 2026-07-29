@@ -1148,7 +1148,7 @@ function updateMicIndicators(){
   const mt=document.getElementById('mic-top');const mb=document.getElementById('mic-bottom');
   mt.classList.remove('visible');mb.classList.remove('visible');
   if(S.screen===3)return;
-  if(isLearn()){if(S.screen>=0)mb.classList.add('visible');return}
+  if(isLearn()){if(S.screen>=0)mt.classList.add('visible');return}
   if(S.direction==='AB')mb.classList.add('visible');else mt.classList.add('visible');
 }
 
@@ -1671,8 +1671,13 @@ function updateUILabels(){
   // Lang card sub labels
   const lsTop=document.getElementById('lang-sub-top');
   const lsBot=document.getElementById('lang-sub-bot');
-  if(lsTop)lsTop.textContent=t('target');
-  if(lsBot)lsBot.textContent=t('source');
+  if(isLearn()){
+    if(lsTop)lsTop.textContent=t('source');
+    if(lsBot)lsBot.textContent=t('target');
+  } else {
+    if(lsTop)lsTop.textContent=t('target');
+    if(lsBot)lsBot.textContent=t('source');
+  }
   // Help texts — always update
   const helpLangEl=document.getElementById('help-lang');
   const helpArrowEl=document.getElementById('help-arrow');
