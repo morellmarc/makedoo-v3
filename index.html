@@ -518,7 +518,6 @@ function setMode(mode){
   if(learn){S.direction='AB';S.currentSpeaker='A';document.getElementById('left-arrow').classList.remove('reversed')}
   document.getElementById('btn-exchange').className='mode-btn'+(mode==='exchange'?' active-exchange':'');
   document.getElementById('btn-learn').className='mode-btn'+(mode==='learn'?' active-learn':'');
-  document.getElementById('left-arrow').classList.toggle('disabled',learn&&S.screen===1);
   ['lang-top-card','lang-bottom-card'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
@@ -628,9 +627,9 @@ function renderScreen(){
   const learn=isLearn();
   const pillActive=learn?'status-pill learn':'status-pill active';
   const inProgress=learn?t('lessonProgress'):t('inProgress');
-  // Flèche active en SOLO uniquement à l'écran 0 (pour permuter les langues)
+  // Flèche active en SOLO à l'écran 0 et à l'écran de révision (2), désactivée pendant l'enregistrement (1)
   const leftArrow=document.getElementById('left-arrow');
-  if(leftArrow)leftArrow.classList.toggle('disabled',learn&&S.screen!==0);
+  if(leftArrow)leftArrow.classList.toggle('disabled',learn&&S.screen===1);
 
   // Cercle ou panneau texte
   const showPanel=learn&&(S.screen===2||S.screen===3);
