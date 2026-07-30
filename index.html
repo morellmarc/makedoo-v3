@@ -508,6 +508,16 @@ if(storedLangFrom)S.langFrom=storedLangFrom;
 if(storedLangTo)S.langTo=storedLangTo;
 S.uiLang=storedUILang||'en'; // Anglais par défaut si première ouverture
 
+// Première ouverture : langue source = langue du téléphone si détectée et supportée
+if(!storedLangFrom){
+  const phoneLang=(navigator.language||navigator.userLanguage||'en').slice(0,2).toLowerCase();
+  const supportedCodes=LANGS.map(l=>l.code);
+  if(supportedCodes.includes(phoneLang)){
+    S.langFrom=phoneLang;
+    if(['fr','en','mk','es','de','it','tr'].includes(phoneLang))S.uiLang=phoneLang;
+  }
+}
+
 navigator.geolocation&&navigator.geolocation.getCurrentPosition(async pos=>{
   try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&format=json');const d=await r.json();S.location=(d.display_name||'').split(',').slice(0,2).join(', ')}catch{S.location='Position obtenue'}
   document.getElementById('gps-status').textContent='📍 '+S.location;
