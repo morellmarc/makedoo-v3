@@ -1815,6 +1815,9 @@ function showToast(msg){const el=document.getElementById('toast');el.textContent
 // ── Boot ───────────────────────────────────────────────────────
 updateDisplay();updateUILabels();renderScreen();
 
+// Compteur de visites (discret, silencieux en cas d'échec)
+fetch('https://api.countapi.xyz/hit/makedoo-marcmorell/v3').catch(()=>{});
+
 // Fixer la position du cercle une fois pour toutes
 setTimeout(()=>{
   const cz=document.getElementById('circle-container');
