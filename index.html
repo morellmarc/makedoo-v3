@@ -495,6 +495,9 @@ const LANGS=[
   {code:'el',label:'Ελληνικά',flag:'🇬🇷',bcp47:'el-GR',display:'EL'},
   {code:'bg',label:'Български',flag:'🇧🇬',bcp47:'bg-BG',display:'BG'},
   {code:'nl',label:'Nederlands',flag:'🇳🇱',bcp47:'nl-NL',display:'NL'},
+  {code:'pt',label:'Português',flag:'🇵🇹',bcp47:'pt-PT',display:'PT'},
+  {code:'ru',label:'Русский',flag:'🇷🇺',bcp47:'ru-RU',display:'RU'},
+  {code:'pl',label:'Polski',flag:'🇵🇱',bcp47:'pl-PL',display:'PL'},
 ];
 
 // ── Init ───────────────────────────────────────────────────────
@@ -1021,7 +1024,7 @@ function startListening(){
   const isB=isLearn()?false:(S.currentSpeaker==='B');
   const fromLang=isB?S.langTo:S.langFrom;
   const toLang=isB?S.langFrom:S.langTo;
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL'};
   const recogLang=langMap[fromLang]||'fr-FR';
   S.listening=true;setScreen(1);
   startCloudSTT(fromLang,toLang,recogLang);
@@ -1150,7 +1153,7 @@ async function translateAndSpeak(text,fromLang,toLang){
 }
 
 async function speakText(text,langCode){
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL'};
   const lc=langMap[langCode]||'fr-FR';
   try{
     const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:lc,speakingRate:isLearn()?0.85:1.0})});
@@ -1391,7 +1394,7 @@ async function exportEntry(mode=2){
   if(!selectedEntry)return;
   const btn=document.querySelector('[onclick="exportEntry('+mode+')"]');
   if(btn)btn.textContent='⏳…';
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL'};
   const chunks=[];
   const groups=[];
   const activeExE=getActiveExchanges(selectedEntry);
