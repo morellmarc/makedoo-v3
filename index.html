@@ -873,7 +873,16 @@ function doResume(){
   }
 }
 function doReplace(){if(S.currentExchanges.length>0)S.currentExchanges.pop();setScreen(1)}
-function doRepeat(){if(S.lastTranslation)speakText(S.lastTranslation,S.lastTranslationLang)}
+function doRepeat(){
+  if(S.isSpeaking||!S.lastTranslation)return;
+  const repeatBtn=document.querySelector('[onclick="doRepeat()"]');
+  if(repeatBtn){repeatBtn.style.opacity='0.4';repeatBtn.style.pointerEvents='none';}
+  S.isSpeaking=true;
+  speakText(S.lastTranslation,S.lastTranslationLang).finally(()=>{
+    S.isSpeaking=false;
+    if(repeatBtn){repeatBtn.style.opacity='1';repeatBtn.style.pointerEvents='';}
+  });
+}
 function doRepeatLearn(){if(S.lastTranslation)speakText(S.lastTranslation,S.lastTranslationLang)}
 
 // Sélection multiple de phrases
@@ -918,7 +927,7 @@ function doRepeatAll(){
 function doRepeatSelected(){
   if(S.isSpeaking)return;
   const idxs=selectedPhraseIdxs.size>0?[...selectedPhraseIdxs].sort():[S.currentExchanges.length-1];
-  const repeatBtn=document.querySelector('.action-btn.orange');
+  const repeatBtn=document.querySelector('[onclick="doRepeatSelected()"]');
   if(repeatBtn){repeatBtn.style.opacity='0.4';repeatBtn.style.pointerEvents='none';}
   S.isSpeaking=true;
   (async()=>{
