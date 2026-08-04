@@ -1019,14 +1019,22 @@ async function submitTextLesson(){
   input.value='';
   if(S.screen===0){S.currentExchanges=[];document.getElementById('tp-text-orig').innerHTML='';document.getElementById('tp-text-trans').innerHTML='';}
   const hgC=document.getElementById('hg-center');if(hgC)hgC.style.opacity='1';
-  // Sablier sur le bouton d'envoi — visible même quand le cercle est masqué (écran 2)
+  // Sablier animé sur le bouton d'envoi — visible même quand le cercle est masqué (écran 2)
   const submitBtn=document.getElementById('btn-submit-text');
-  if(submitBtn){submitBtn.textContent='⏳';submitBtn.style.pointerEvents='none';submitBtn.style.opacity='0.7';}
+  let hgFrame=0;
+  const hgFrames=['⏳','⌛'];
+  let hgInterval;
+  if(submitBtn){
+    submitBtn.style.pointerEvents='none';submitBtn.style.opacity='0.7';
+    submitBtn.textContent=hgFrames[0];
+    hgInterval=setInterval(()=>{hgFrame=(hgFrame+1)%2;submitBtn.textContent=hgFrames[hgFrame];},500);
+  }
   // Découper par point-virgule
   const segments=text.split(';').map(s=>s.trim()).filter(s=>s.length>0);
   for(const seg of segments){
     await translateAndSpeak(seg,S.langFrom,S.langTo);
   }
+  if(hgInterval)clearInterval(hgInterval);
   if(submitBtn){submitBtn.textContent='→';submitBtn.style.pointerEvents='';submitBtn.style.opacity='1';}
 }
 
