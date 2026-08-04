@@ -1150,7 +1150,13 @@ async function translateAndSpeak(text,fromLang,toLang){
     const micC=document.getElementById('mic-center');
     if(micC)micC.style.opacity='1';
   }
+  // Verrouiller "Répéter" pendant la diction initiale automatique
+  S.isSpeaking=true;
+  const initialRepeatBtn=document.querySelector('[onclick="doRepeat()"], [onclick="doRepeatSelected()"]');
+  if(initialRepeatBtn){initialRepeatBtn.style.opacity='0.4';initialRepeatBtn.style.pointerEvents='none';}
   await speakText(translated,toLang);
+  S.isSpeaking=false;
+  if(initialRepeatBtn){initialRepeatBtn.style.opacity='1';initialRepeatBtn.style.pointerEvents='';}
   // En mode DUO, inverser automatiquement la flèche après traduction
   if(!isLearn()){
     S.direction=S.direction==='AB'?'BA':'AB';
