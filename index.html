@@ -1018,7 +1018,10 @@ async function submitTextLesson(){
   if(!text)return;
   input.value='';
   if(S.screen===0){S.currentExchanges=[];document.getElementById('tp-text-orig').innerHTML='';document.getElementById('tp-text-trans').innerHTML='';}
-  const hgC=document.getElementById('hg-center');if(hgC)hgC.style.opacity='1';
+  const micC=document.getElementById('mic-center');
+  const hgC=document.getElementById('hg-center');
+  if(micC)micC.style.opacity='0';
+  if(hgC)hgC.style.opacity='1';
   // Sablier animé sur le bouton d'envoi — visible même quand le cercle est masqué (écran 2)
   const submitBtn=document.getElementById('btn-submit-text');
   let hgFrame=0;
