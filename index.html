@@ -251,7 +251,7 @@ input:focus{border-color:var(--blue)}
     <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:116px;left:8px;right:8px;z-index:20;background:var(--bg);padding:4px 0">
       <div style="display:flex;gap:6px;align-items:center">
         <input type="text" id="text-lesson-input" placeholder="Tapez votre phrase…" style="flex:1">
-        <button onclick="submitTextLesson()" style="background:linear-gradient(135deg,#00C48C,#00A878);border:none;border-radius:10px;color:white;font-weight:700;font-size:15px;padding:10px 14px;cursor:pointer">→</button>
+        <button id="btn-submit-text" onclick="submitTextLesson()" style="background:linear-gradient(135deg,#00C48C,#00A878);border:none;border-radius:10px;color:white;font-weight:700;font-size:15px;padding:10px 14px;cursor:pointer">→</button>
       </div>
     </div>
 
@@ -1019,11 +1019,15 @@ async function submitTextLesson(){
   input.value='';
   if(S.screen===0){S.currentExchanges=[];document.getElementById('tp-text-orig').innerHTML='';document.getElementById('tp-text-trans').innerHTML='';}
   const hgC=document.getElementById('hg-center');if(hgC)hgC.style.opacity='1';
+  // Sablier sur le bouton d'envoi — visible même quand le cercle est masqué (écran 2)
+  const submitBtn=document.getElementById('btn-submit-text');
+  if(submitBtn){submitBtn.textContent='⏳';submitBtn.style.pointerEvents='none';submitBtn.style.opacity='0.7';}
   // Découper par point-virgule
   const segments=text.split(';').map(s=>s.trim()).filter(s=>s.length>0);
   for(const seg of segments){
     await translateAndSpeak(seg,S.langFrom,S.langTo);
   }
+  if(submitBtn){submitBtn.textContent='→';submitBtn.style.pointerEvents='';submitBtn.style.opacity='1';}
 }
 
 // ── Recognition ────────────────────────────────────────────────
