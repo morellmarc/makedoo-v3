@@ -9,7 +9,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
 :root{
-  --bg:#FAFBFF;--surface:#FFFFFF;--border:#EAECF5;--text:#1A2340;--muted:#8A96B4;
+  --bg:#F8F6FF;--surface:#FFFFFF;--border:#EAECF5;--text:#1A2340;--muted:#8A96B4;
   --green:#00C48C;--green-dark:#00A878;--green-light:#D4F5E9;--green-text:#00875A;
   --blue:#4A6CF7;--blue-dark:#6A3DE8;--blue-light:#EEF2FF;--blue-text:#2D4FBF;
   --orange:#FF8C42;--orange-light:#FFF0E6;--orange-text:#C05000;
@@ -17,14 +17,15 @@
   --neutral-light:#F0F2F8;--neutral-text:#6B7A99;
   --line:#EAECF5;
 }
-body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;max-width:480px;margin:0 auto}
+html{background:#EDEEF5}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;max-width:480px;margin:0 auto;border:1px solid #D5D9E8;box-shadow:0 0 0 1px #D5D9E8,0 4px 24px rgba(0,0,0,0.06);box-sizing:border-box}
 
 /* ── LOGO ── */
-.logo-band{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0 10px;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--surface)}
+.logo-band{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0 10px;border-bottom:1px solid var(--line);flex-shrink:0;background:#F5F2FF}
 .logo-text{font-size:22px;font-weight:900;letter-spacing:-0.5px;color:var(--text)}
 
 /* ── TOP BAR ── */
-.top-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;flex-shrink:0;background:#FFF9F0;border-bottom:1px solid var(--line)}
 .conv-btn{background:var(--blue-light);border:none;border-radius:12px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--blue);cursor:pointer;letter-spacing:0.2px}
 .conv-btn.learn-mode{background:#E3F2FD;color:#1565C0}
 .name-btn{background:var(--orange-light);border:none;border-radius:12px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--orange-text);cursor:pointer}
@@ -72,10 +73,10 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 
 /* Centre — cercle absolument positionné */
 .center-zone{flex:1;display:block;position:relative;padding:4px 8px}
-.intervention-zone{position:absolute;top:44px;left:0;right:0;height:68px;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center;overflow:hidden;z-index:20;padding:4px 8px}
-.help-zone-css{position:absolute;top:0;left:0;right:0;height:44px;display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:center;padding:2px 8px;z-index:20;background:var(--bg)}
+.intervention-zone{position:absolute;top:44px;left:0;right:0;height:68px;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:center;overflow:hidden;z-index:20;padding:4px 8px;background:#F0FBFF}
+.help-zone-css{position:absolute;top:0;left:0;right:0;height:44px;display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:center;padding:2px 8px;z-index:20;background:#F0FBFF}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
-.conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:120px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;justify-content:center;background:var(--bg);z-index:25}
+.conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:120px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;justify-content:center;background:#FFF5F8;z-index:25}
 .status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
 .status-tag.active{color:var(--green-text);background:var(--green-light)}
 .status-tag.learn{color:var(--blue-text);background:var(--blue-light)}
@@ -117,7 +118,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .text-input-zone.visible{display:block}
 
 /* ── MODE BAR ── */
-.mode-bar{display:flex;justify-content:center;align-items:center;gap:10px;padding:10px 20px 14px;border-top:1px solid var(--line);flex-shrink:0;background:var(--surface)}
+.mode-bar{display:flex;justify-content:center;align-items:center;gap:10px;padding:10px 20px 14px;border-top:1px solid var(--line);flex-shrink:0;background:#FFF9F0}
 .mode-btn{font-size:12px;font-weight:700;letter-spacing:0.3px;cursor:pointer;padding:10px 22px;border:none;border-radius:14px;transition:all 0.2s;font-family:inherit}
 .mode-btn.active-exchange{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
 .mode-btn.active-learn{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
@@ -248,7 +249,7 @@ input:focus{border-color:var(--blue)}
     </div>
 
     <!-- SAISIE TEXTE SOLO -->
-    <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:116px;left:8px;right:8px;z-index:20;background:var(--bg);padding:4px 0">
+    <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:116px;left:8px;right:8px;z-index:20;background:#F0FBFF;padding:4px 0">
       <div style="display:flex;gap:6px;align-items:center">
         <input type="text" id="text-lesson-input" placeholder="Tapez votre phrase…" style="flex:1">
         <button id="btn-submit-text" onclick="submitTextLesson()" style="background:linear-gradient(135deg,#00C48C,#00A878);border:none;border-radius:10px;color:white;font-weight:700;font-size:15px;padding:10px 14px;cursor:pointer">→</button>
