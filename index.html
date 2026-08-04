@@ -1142,9 +1142,6 @@ async function translateAndSpeak(text,fromLang,toLang){
     },50);
   }
   setScreen(2); // Avant speakText pour éviter les inversions
-  // Cacher la zone de saisie texte
-  const tz=document.getElementById('text-input-zone');
-  if(tz)tz.style.display='none';
   // Afficher le micro en mode DUO sur screen 2
   if(!isLearn()){
     const micC=document.getElementById('mic-center');
