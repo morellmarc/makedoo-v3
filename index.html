@@ -525,6 +525,8 @@ const LANGS=[
   {code:'cy',label:'Cymraeg',flag:'🏴',bcp47:'cy-GB',display:'CY'},
   {code:'ga',label:'Gaeilge',flag:'🇮🇪',bcp47:'ga-IE',display:'GA'},
   {code:'mt',label:'Malti',flag:'🇲🇹',bcp47:'mt-MT',display:'MT'},
+  {code:'zh',label:'中文',flag:'🇨🇳',bcp47:'zh-CN',display:'ZH'},
+  {code:'ja',label:'日本語',flag:'🇯🇵',bcp47:'ja-JP',display:'JA'},
 ];
 
 // ── Init ───────────────────────────────────────────────────────
@@ -1075,7 +1077,7 @@ function startListening(){
   const isB=isLearn()?false:(S.currentSpeaker==='B');
   const fromLang=isB?S.langTo:S.langFrom;
   const toLang=isB?S.langFrom:S.langTo;
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT',zh:'zh-CN',ja:'ja-JP'};
   const recogLang=langMap[fromLang]||'fr-FR';
   S.listening=true;setScreen(1);
   startCloudSTT(fromLang,toLang,recogLang);
@@ -1207,7 +1209,7 @@ async function translateAndSpeak(text,fromLang,toLang){
 }
 
 async function speakText(text,langCode){
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT',zh:'zh-CN',ja:'ja-JP'};
   const lc=langMap[langCode]||'fr-FR';
   try{
     const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:lc,speakingRate:isLearn()?0.85:1.0})});
@@ -1448,7 +1450,7 @@ async function exportEntry(mode=2){
   if(!selectedEntry)return;
   const btn=document.querySelector('[onclick="exportEntry('+mode+')"]');
   if(btn)btn.textContent='⏳…';
-  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT'};
+  const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT',zh:'zh-CN',ja:'ja-JP'};
   const chunks=[];
   const groups=[];
   const activeExE=getActiveExchanges(selectedEntry);
