@@ -1055,18 +1055,17 @@ async function submitTextLesson(){
   const submitBtn=document.getElementById('btn-submit-text');
   let hgFrame=0;
   const hgFrames=['⏳','⌛'];
-  let hgInterval;
   if(submitBtn){
     submitBtn.style.pointerEvents='none';submitBtn.style.opacity='0.7';
     submitBtn.textContent=hgFrames[0];
-    hgInterval=setInterval(()=>{hgFrame=(hgFrame+1)%2;submitBtn.textContent=hgFrames[hgFrame];},500);
+    hourglassInterval=setInterval(()=>{hgFrame=(hgFrame+1)%2;submitBtn.textContent=hgFrames[hgFrame];},500);
   }
   // Découper par point-virgule
   const segments=text.split(';').map(s=>s.trim()).filter(s=>s.length>0);
   for(const seg of segments){
     await translateAndSpeak(seg,S.langFrom,S.langTo);
   }
-  if(hgInterval)clearInterval(hgInterval);
+  if(hourglassInterval){clearInterval(hourglassInterval);hourglassInterval=null;}
   if(submitBtn){submitBtn.textContent='→';submitBtn.style.pointerEvents='';submitBtn.style.opacity='1';}
 }
 
@@ -1146,6 +1145,7 @@ function finishListening(text,fromLang,toLang){
 }
 
 // ── Translate & Speak ──────────────────────────────────────────
+let hourglassInterval=null;
 async function translateAndSpeak(text,fromLang,toLang){
   let translated=text;
   try{
@@ -1195,7 +1195,21 @@ async function translateAndSpeak(text,fromLang,toLang){
   S.isSpeaking=true;
   const initialRepeatBtn=document.querySelector('[onclick="doRepeat()"], [onclick="doRepeatSelected()"]');
   if(initialRepeatBtn){initialRepeatBtn.style.opacity='0.4';initialRepeatBtn.style.pointerEvents='none';}
+  // Le bouton d'envoi devient un bouton Stop pendant la diction (mode SOLO texte)
+  const submitBtn=document.getElementById('btn-submit-text');
+  const prevOnclick=submitBtn?submitBtn.getAttribute('onclick'):null;
+  if(hourglassInterval){clearInterval(hourglassInterval);hourglassInterval=null;}
+  if(submitBtn){
+    submitBtn.textContent='⏹';
+    submitBtn.style.opacity='1';
+    submitBtn.style.pointerEvents='';
+    submitBtn.setAttribute('onclick','stopCurrentSpeech()');
+  }
   await speakText(translated,toLang);
+  if(submitBtn){
+    submitBtn.textContent='→';
+    if(prevOnclick)submitBtn.setAttribute('onclick',prevOnclick);
+  }
   S.isSpeaking=false;
   if(initialRepeatBtn){initialRepeatBtn.style.opacity='1';initialRepeatBtn.style.pointerEvents='';}
   // En mode DUO, inverser automatiquement la flèche après traduction
@@ -1219,10 +1233,26 @@ async function speakText(text,langCode){
   return new Promise(resolve=>{
     const utt=new SpeechSynthesisUtterance(text);utt.lang=lc;utt.rate=0.85;
     if(S.selectedVoiceURI&&langCode===S.langTo){const v=speechSynthesis.getVoices().find(v=>v.voiceURI===S.selectedVoiceURI);if(v){utt.voice=v;utt.lang=S.selectedVoiceLang||lc}}
-    utt.onend=resolve;window.speechSynthesis.cancel();window.speechSynthesis.speak(utt);
+    currentAudioResolve=resolve;
+    utt.onend=()=>{currentAudioResolve=null;resolve()};
+    utt.onerror=()=>{currentAudioResolve=null;resolve()};
+    window.speechSynthesis.cancel();window.speechSynthesis.speak(utt);
   });
 }
-function playAudio(src){return new Promise(resolve=>{const a=new Audio(src);a.onended=resolve;a.onerror=resolve;a.play()})}
+let currentAudioEl=null;
+let currentAudioResolve=null;
+function playAudio(src){return new Promise(resolve=>{
+  const a=new Audio(src);
+  currentAudioEl=a;currentAudioResolve=resolve;
+  a.onended=()=>{currentAudioEl=null;currentAudioResolve=null;resolve()};
+  a.onerror=()=>{currentAudioEl=null;currentAudioResolve=null;resolve()};
+  a.play();
+})}
+function stopCurrentSpeech(){
+  if(currentAudioEl){currentAudioEl.pause();currentAudioEl.currentTime=0;currentAudioEl=null;}
+  if(window.speechSynthesis)window.speechSynthesis.cancel();
+  if(currentAudioResolve){const r=currentAudioResolve;currentAudioResolve=null;r();}
+}
 
 // ── Mic indicators ─────────────────────────────────────────────
 function updateMicIndicators(){
