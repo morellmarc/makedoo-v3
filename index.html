@@ -948,8 +948,8 @@ function doDuoRead(){
   renderScreen();
 }
 function doSoloCopy(){
-  const idxs=selectedPhraseIdxs.size>0?[...selectedPhraseIdxs].sort((a,b)=>a-b):[];
-  if(idxs.length===0){showToast(t('selectFirst')||'Sélectionnez une phrase');return;}
+  const idxs=selectedPhraseIdxs.size>0?[...selectedPhraseIdxs].sort((a,b)=>a-b):(S.currentExchanges.length>0?[S.currentExchanges.length-1]:[]);
+  if(idxs.length===0)return;
   const text=idxs.map(i=>S.currentExchanges[i]).filter(Boolean).map(e=>e.translated).join('\n');
   if(!text)return;
   if(navigator.clipboard&&navigator.clipboard.writeText){
