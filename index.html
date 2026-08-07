@@ -73,7 +73,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 
 /* Centre — cercle absolument positionné */
 .center-zone{flex:1;display:block;position:relative;padding:4px 8px}
-.intervention-zone{position:absolute;top:44px;left:0;right:0;height:68px;display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:center;overflow:hidden;z-index:20;padding:4px 8px;background:#DFF4FF}
+.intervention-zone{position:absolute;top:44px;left:0;right:0;height:68px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;overflow:hidden;z-index:20;padding:2px 8px;background:#DFF4FF}
 .help-zone-css{position:absolute;top:0;left:0;right:0;height:44px;display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:center;padding:2px 8px;z-index:20;background:#DFF4FF}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
 .conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:120px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0;justify-content:center;background:#FFE6EF;z-index:25}
@@ -779,12 +779,12 @@ function renderScreen(){
     if(learn){
       if(finBtn)finBtn.style.display='none';
       intLabel.innerHTML='<div style="display:flex;align-items:center;gap:6px;width:100%;justify-content:center">'
-        +'<span style="background:#E3F2FD;border-radius:14px;padding:3px 10px;font-size:10px;color:var(--learn);font-weight:700">'+t('choosePhrase')+'</span>'
-        +'<button class="action-btn blue" style="padding:3px 9px;font-size:10px" onclick="doRepeatAll()">'+t('all')+'</button>'
+        +'<span style="background:#E3F2FD;border-radius:14px;padding:4px 12px;font-size:12px;color:var(--learn);font-weight:700">'+t('choosePhrase')+'</span>'
+        +'<button class="action-btn blue" style="padding:4px 10px;font-size:11px" onclick="doRepeatAll()">'+t('all')+'</button>'
         +'</div>';
       intLabel.classList.add('visible');
       intLabel.style.cssText='opacity:1;width:100%';
-      intActions.innerHTML='<button class="action-btn orange" style="padding:5px 9px;font-size:10px" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn neutral" style="padding:5px 9px;font-size:10px" onclick="doReplaceSelected()">'+t('replace')+'</button><button class="action-btn blue" style="padding:5px 9px;font-size:10px" onclick="doSoloCopy()">📋 '+t('copy')+'</button>';
+      intActions.innerHTML='<button class="action-btn orange" style="padding:5px 10px;font-size:11px" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn neutral" style="padding:5px 10px;font-size:11px" onclick="doReplaceSelected()">'+t('replace')+'</button><button class="action-btn blue" style="padding:5px 10px;font-size:11px" onclick="doSoloCopy()">📋 '+t('copy')+'</button>';
       // ZONE BASSE : bandeau + boutons
       pill.className=(learn?'status-tag learn':'status-tag active');
       
