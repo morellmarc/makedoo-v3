@@ -2019,6 +2019,23 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
 
 // ── Boot ───────────────────────────────────────────────────────
+// Synchroniser le scroll des deux fenêtres texte (source/cible)
+(function(){
+  const tpTop=document.getElementById('tp-top-wrap');
+  const tpBot=document.getElementById('tp-bot-wrap');
+  let syncing=false;
+  function syncScroll(from,to){
+    if(syncing)return;
+    syncing=true;
+    const ratio=from.scrollHeight>from.clientHeight?from.scrollTop/(from.scrollHeight-from.clientHeight):0;
+    to.scrollTop=ratio*(to.scrollHeight-to.clientHeight);
+    syncing=false;
+  }
+  if(tpTop&&tpBot){
+    tpTop.addEventListener('scroll',()=>syncScroll(tpTop,tpBot));
+    tpBot.addEventListener('scroll',()=>syncScroll(tpBot,tpTop));
+  }
+})();
 updateDisplay();updateUILabels();renderScreen();
 
 // Compteur de visites (discret, silencieux en cas d'échec)
