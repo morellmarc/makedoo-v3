@@ -208,7 +208,10 @@ input:focus{border-color:var(--blue)}
 <!-- TOP BAR -->
 <div class="top-bar" id="top-bar">
   <button class="conv-btn" id="btn-top-center" onclick="showTopCenter()">📋 Conversations</button>
-  <button class="setup-card-top" ontouchstart="startLP('openSetup')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('openSetup')" onmouseup="cancelLP()" onmouseleave="cancelLP()">⚙</button>
+  <div style="display:flex;gap:8px;align-items:center">
+    <a href="https://www.youtube.com/@MakedooApp" target="_blank" rel="noopener" style="width:40px;height:40px;border-radius:12px;background:#FFE0E3;display:flex;align-items:center;justify-content:center;font-size:18px;text-decoration:none;flex-shrink:0" title="Makedoo sur YouTube">▶️</a>
+    <button class="setup-card-top" ontouchstart="startLP('openSetup')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('openSetup')" onmouseup="cancelLP()" onmouseleave="cancelLP()">⚙</button>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -353,6 +356,16 @@ input:focus{border-color:var(--blue)}
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-setup')">×</button>
     <div class="overlay-title" id="settings-title">⚙ Settings</div>
+    <div class="setting-row" style="background:#FFF3E0;border-radius:12px;padding:12px;margin-bottom:16px;text-align:center">
+      <div class="setting-label" id="label-share" style="text-align:center">📣 Partager Makedoo</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://makedoo.net" alt="QR code makedoo.net" style="width:120px;height:120px;border-radius:8px;margin:8px 0;background:white;padding:6px">
+      <button class="setting-btn" id="btn-share" style="background:linear-gradient(135deg,#F5A623,#E65100)" onclick="shareMakedoo()">📣 Partager le lien</button>
+      <div style="margin-top:10px;font-size:12px">
+        <a href="https://makedoo.net" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700;text-decoration:none">🌐 makedoo.net</a>
+        &nbsp;·&nbsp;
+        <a href="https://makedoo.com" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:none">makedoo.com</a>
+      </div>
+    </div>
     <div class="setting-row" style="background:#F0FBFF;border-radius:12px;padding:12px;margin-bottom:16px">
       <div class="setting-label" id="label-mictest">🎤 Microphone test</div>
       <div id="mic-test-status" style="font-size:13px;color:var(--muted);margin-bottom:8px">Tap to check microphone access</div>
@@ -1893,6 +1906,20 @@ function selectContact(name){S.interlocutor=name;updateDisplay();hideOv('ov-cont
 function addNewContact(){const i=document.getElementById('new-contact-input');const name=i.value.trim();if(!name)return;if(!S.contacts.find(c=>c.name===name)){S.contacts.push({id:Date.now(),name,lang:S.langTo});localStorage.setItem('mk_v3_contacts',JSON.stringify(S.contacts))}selectContact(name);i.value=''}
 
 // ── Settings ───────────────────────────────────────────────────
+async function shareMakedoo(){
+  const shareData={
+    title:'Makedoo',
+    text:'Makedoo — Parler et apprendre les langues d\'Europe (et plus !) en un instant.',
+    url:'https://makedoo.net'
+  };
+  if(navigator.share){
+    try{await navigator.share(shareData);}catch(e){}
+  } else {
+    fallbackCopy('Makedoo — https://makedoo.net');
+    showToast('🔗 Lien copié !');
+  }
+}
+
 async function testMicrophone(){
   const statusEl=document.getElementById('mic-test-status');
   const btn=document.getElementById('btn-mictest');
