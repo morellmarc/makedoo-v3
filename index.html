@@ -208,10 +208,7 @@ input:focus{border-color:var(--blue)}
 <!-- TOP BAR -->
 <div class="top-bar" id="top-bar">
   <button class="conv-btn" id="btn-top-center" onclick="showTopCenter()">📋 Conversations</button>
-  <div style="display:flex;gap:8px;align-items:center">
-    <a href="https://www.youtube.com/@MakedooApp" target="_blank" rel="noopener" style="width:40px;height:40px;border-radius:12px;background:#FFE0E3;display:flex;align-items:center;justify-content:center;font-size:18px;text-decoration:none;flex-shrink:0" title="Makedoo sur YouTube">▶️</a>
-    <button class="setup-card-top" ontouchstart="startLP('openSetup')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('openSetup')" onmouseup="cancelLP()" onmouseleave="cancelLP()">⚙</button>
-  </div>
+  <button class="setup-card-top" ontouchstart="startLP('openSetup')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('openSetup')" onmouseup="cancelLP()" onmouseleave="cancelLP()">⚙</button>
 </div>
 
 <!-- MAIN -->
@@ -364,6 +361,40 @@ input:focus{border-color:var(--blue)}
         <a href="https://makedoo.net" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700;text-decoration:none">🌐 makedoo.net</a>
         &nbsp;·&nbsp;
         <a href="https://makedoo.com" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:none">makedoo.com</a>
+      </div>
+    </div>
+    <div class="setting-row" style="background:#E0E9FF;border-radius:12px;padding:12px;margin-bottom:16px;text-align:center">
+      <div class="setting-label" id="label-community" style="text-align:center">💬 Communauté & Contact</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+        <a href="https://www.facebook.com/groups/makedoo/" target="_blank" rel="noopener" style="flex:1;max-width:100px;padding:10px 8px;border-radius:10px;background:white;text-decoration:none;color:var(--text);font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:20px">👥</span>Facebook</a>
+        <a href="https://www.youtube.com/@MakedooApp" target="_blank" rel="noopener" style="flex:1;max-width:100px;padding:10px 8px;border-radius:10px;background:white;text-decoration:none;color:var(--text);font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:20px">▶️</span>YouTube</a>
+        <a href="mailto:marc.morell@gmail.com?subject=Makedoo%20-%20Feedback" style="flex:1;max-width:100px;padding:10px 8px;border-radius:10px;background:white;text-decoration:none;color:var(--text);font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:20px">✉️</span>Email</a>
+      </div>
+    </div>
+    <div class="setting-row" style="background:#F3F0FF;border-radius:12px;padding:12px;margin-bottom:16px">
+      <div class="setting-label" id="label-voices3">🗣️ Voix (FR / EN / MK)</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px">🇫🇷 Français</div>
+          <div style="display:flex;gap:6px">
+            <button class="lang-btn voice-btn" id="voice-fr-female" style="margin-bottom:0;flex:1" onclick="setVoice('fr','fr-FR-DeniseNeural')">👩 Denise</button>
+            <button class="lang-btn voice-btn" id="voice-fr-male" style="margin-bottom:0;flex:1" onclick="setVoice('fr','fr-FR-HenriNeural')">👨 Henri</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px">🇬🇧 English</div>
+          <div style="display:flex;gap:6px">
+            <button class="lang-btn voice-btn" id="voice-en-female" style="margin-bottom:0;flex:1" onclick="setVoice('en','en-US-JennyNeural')">👩 Jenny</button>
+            <button class="lang-btn voice-btn" id="voice-en-male" style="margin-bottom:0;flex:1" onclick="setVoice('en','en-US-GuyNeural')">👨 Guy</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px">🇲🇰 Македонски</div>
+          <div style="display:flex;gap:6px">
+            <button class="lang-btn voice-btn" id="voice-mk-male" style="margin-bottom:0;flex:1" onclick="setVoice('mk','mk-MK-AleksandarNeural')">👨 Aleksandar</button>
+            <button class="lang-btn voice-btn" id="voice-mk-female" style="margin-bottom:0;flex:1" onclick="setVoice('mk','mk-MK-MarijaNeural')">👩 Marija</button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="setting-row" style="background:#F0FBFF;border-radius:12px;padding:12px;margin-bottom:16px">
@@ -1327,8 +1358,9 @@ async function translateAndSpeak(text,fromLang,toLang){
 async function speakText(text,langCode){
   const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT',zh:'zh-CN',ja:'ja-JP',th:'th-TH',km:'km-KH',id:'id-ID',vi:'vi-VN',lo:'lo-LA'};
   const lc=langMap[langCode]||'fr-FR';
+  const preferredVoice=(langCode==='fr'||langCode==='en'||langCode==='mk')?localStorage.getItem('makedoo_v3_voice_'+langCode):null;
   try{
-    const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:lc,speakingRate:isLearn()?0.85:1.0})});
+    const res=await fetch(API_BASE+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,languageCode:lc,speakingRate:isLearn()?0.85:1.0,voice:preferredVoice||undefined})});
     const data=await res.json();
     if(data.audioContent){await playAudio('data:audio/mp3;base64,'+data.audioContent);return}
   }catch(e){}
@@ -1920,6 +1952,26 @@ async function shareMakedoo(){
   }
 }
 
+async function setVoice(lang,voiceName){
+  localStorage.setItem('makedoo_v3_voice_'+lang,voiceName);
+  updateVoiceButtons();
+  showToast('🗣️ '+voiceName.split('-').pop().replace('Neural',''));
+}
+function updateVoiceButtons(){
+  ['fr','en','mk'].forEach(lang=>{
+    const saved=localStorage.getItem('makedoo_v3_voice_'+lang);
+    document.querySelectorAll('.voice-btn').forEach(btn=>{
+      if(btn.id.startsWith('voice-'+lang+'-')){
+        const isFemale=btn.id.endsWith('-female');
+        const defaultVoice={fr:'fr-FR-DeniseNeural',en:'en-US-JennyNeural',mk:'mk-MK-AleksandarNeural'}[lang];
+        const thisVoice=btn.getAttribute('onclick').match(/'([^']+Neural)'/)[1];
+        const active=saved?saved===thisVoice:thisVoice===defaultVoice;
+        btn.classList.toggle('sel',active);
+      }
+    });
+  });
+}
+
 async function testMicrophone(){
   const statusEl=document.getElementById('mic-test-status');
   const btn=document.getElementById('btn-mictest');
@@ -2066,6 +2118,7 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
 
 // ── Boot ───────────────────────────────────────────────────────
+updateVoiceButtons();
 // Synchroniser le scroll des deux fenêtres texte (source/cible)
 (function(){
   const tpTop=document.getElementById('tp-top-wrap');
