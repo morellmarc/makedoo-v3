@@ -72,8 +72,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 
 /* Centre — cercle absolument positionné */
 .center-zone{flex:1;display:block;position:relative;padding:4px 8px}
-.intervention-zone{position:absolute;top:48px;left:0;right:0;height:58px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;overflow:hidden;z-index:20;padding:1px 8px;background:#CFE1FF}
-.help-zone-css{position:absolute;top:0;left:0;right:0;height:48px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;padding:1px 8px;z-index:20;background:#CFE1FF}
+.intervention-zone{position:absolute;top:0;left:0;right:0;height:58px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;overflow:hidden;z-index:20;padding:1px 8px;background:#CFE1FF}
+.help-zone-css{position:absolute;top:0;left:0;right:0;height:58px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;padding:1px 8px;z-index:20;background:#CFE1FF}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
 .conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:96px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0;justify-content:center;background:#B8D4FF;z-index:25}
 .status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
@@ -106,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .fin-btn{display:none;background:var(--red-light);border:none;border-radius:12px;color:var(--red-text);font-size:12px;font-weight:700;padding:7px 16px;cursor:pointer;font-family:inherit}
 
 /* ── TEXT PANEL ── */
-.text-panel{position:absolute;top:156px;left:0;right:0;bottom:101px;z-index:5;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
+.text-panel{position:absolute;top:116px;left:0;right:0;bottom:101px;z-index:5;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
 .text-panel.visible{display:flex}
 .text-panel-top{flex:1;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);line-height:1.5;overflow-y:auto;min-height:0;user-select:text;-webkit-user-select:text}
 .text-panel-bot{flex:1;padding:8px 12px;font-size:13px;color:var(--blue-text);font-weight:600;line-height:1.5;overflow-y:auto;min-height:0;background:#F8F9FF;user-select:text;-webkit-user-select:text}
@@ -250,7 +250,7 @@ input:focus{border-color:var(--blue)}
     </div>
 
     <!-- SAISIE TEXTE SOLO -->
-    <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:106px;left:0;right:0;z-index:20;background:#CFE1FF;padding:2px 8px">
+    <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:60px;left:0;right:0;z-index:20;background:#CFE1FF;padding:2px 8px">
       <div style="display:flex;gap:6px;align-items:center">
         <input type="text" id="text-lesson-input" placeholder="Tapez votre phrase…" style="flex:1">
         <button id="btn-submit-text" onclick="submitTextLesson()" style="background:linear-gradient(135deg,#00C48C,#00A878);border:none;border-radius:10px;color:white;font-weight:700;font-size:15px;padding:10px 14px;cursor:pointer">→</button>
