@@ -318,6 +318,16 @@ input:focus{border-color:var(--blue)}
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-setup')">×</button>
     <div class="overlay-title" id="settings-title">⚙ Settings</div>
+    <div class="setting-row" style="background:#EDE6FF;border-radius:12px;padding:12px;margin-bottom:16px">
+      <div class="setting-label" id="label-infotext">✏️ Message d'accueil (écran de présentation)</div>
+      <textarea id="info-text-1" placeholder="Phrase 1…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+      <textarea id="info-text-2" placeholder="Phrase 2…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+      <textarea id="info-text-3" placeholder="Phrase 3…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+      <input type="password" id="info-text-pin" placeholder="Code PIN" style="margin-bottom:6px">
+      <button class="setting-btn" style="background:linear-gradient(135deg,#7C2DBF,#5A1E8F)" onclick="saveInfoText()">💾 Enregistrer le message</button>
+      <div id="info-text-status" style="font-size:12px;color:var(--muted);margin-top:6px;text-align:center"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;text-align:center">Laissez vide pour revenir au texte par défaut</div>
+    </div>
     <div class="setting-row" style="background:#FFF3E0;border-radius:12px;padding:12px;margin-bottom:16px;text-align:center">
       <div class="setting-label" id="label-share" style="text-align:center">📣 Partager Makedoo</div>
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://makedoo.net" alt="QR code makedoo.net" style="width:120px;height:120px;border-radius:8px;margin:8px 0;background:white;padding:6px">
@@ -754,9 +764,10 @@ function renderScreen(){
         if(welcomeIntro){
           welcomeIntro.style.display='flex';
           const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');
-          if(w1)w1.textContent=t('welcomeText1');
-          if(w2)w2.textContent=t('welcomeTextLangs');
-          if(w3)w3.textContent=t('welcomeText2');
+          const infoLines=getInfoLines();
+          if(w1)w1.textContent=infoLines[0];
+          if(w2)w2.textContent=infoLines[1];
+          if(w3)w3.textContent=infoLines[2];
         }
         intLabel.textContent=t('welcomeTitle');
         intLabel.classList.add('visible');
@@ -766,9 +777,10 @@ function renderScreen(){
         if(welcomeIntro){
           welcomeIntro.style.display='flex';
           const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');
-          if(w1)w1.textContent=t('welcomeText1');
-          if(w2)w2.textContent=t('welcomeTextLangs');
-          if(w3)w3.textContent=t('welcomeText2');
+          const infoLines=getInfoLines();
+          if(w1)w1.textContent=infoLines[0];
+          if(w2)w2.textContent=infoLines[1];
+          if(w3)w3.textContent=infoLines[2];
           welcomeIntro.onclick=function(){S.showInfoScreen0=false;renderScreen();};
           welcomeIntro.style.cursor='pointer';
         }
@@ -791,9 +803,10 @@ function renderScreen(){
         if(welcomeIntro){
           welcomeIntro.style.display='flex';
           const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');
-          if(w1)w1.textContent=t('welcomeText1');
-          if(w2)w2.textContent=t('welcomeTextLangs');
-          if(w3)w3.textContent=t('welcomeText2');
+          const infoLines=getInfoLines();
+          if(w1)w1.textContent=infoLines[0];
+          if(w2)w2.textContent=infoLines[1];
+          if(w3)w3.textContent=infoLines[2];
           welcomeIntro.onclick=function(){S.showInfoScreen0=false;renderScreen();};
           welcomeIntro.style.cursor='pointer';
         }
@@ -1977,6 +1990,49 @@ function selectContact(name){S.interlocutor=name;updateDisplay();hideOv('ov-cont
 function addNewContact(){const i=document.getElementById('new-contact-input');const name=i.value.trim();if(!name)return;if(!S.contacts.find(c=>c.name===name)){S.contacts.push({id:Date.now(),name,lang:S.langTo});localStorage.setItem('mk_v3_contacts',JSON.stringify(S.contacts))}selectContact(name);i.value=''}
 
 // ── Settings ───────────────────────────────────────────────────
+// ── Message d'info éditable (écran d'accueil) ──────────────────
+let customInfoText=null; // null=pas encore chargé, {}=chargé (peut être vide)
+
+async function loadInfoText(){
+  try{
+    const res=await fetch(API_BASE+'/info-text');
+    const data=await res.json();
+    customInfoText=data;
+    // Pré-remplir l'éditeur si les champs existent (Paramètres ouverts)
+    const i1=document.getElementById('info-text-1');const i2=document.getElementById('info-text-2');const i3=document.getElementById('info-text-3');
+    if(i1)i1.value=data.text1||'';
+    if(i2)i2.value=data.text2||'';
+    if(i3)i3.value=data.text3||'';
+  }catch(e){customInfoText={};}
+}
+
+async function saveInfoText(){
+  const text1=document.getElementById('info-text-1').value.trim();
+  const text2=document.getElementById('info-text-2').value.trim();
+  const text3=document.getElementById('info-text-3').value.trim();
+  const pin=document.getElementById('info-text-pin').value.trim();
+  const statusEl=document.getElementById('info-text-status');
+  statusEl.textContent='⏳ Enregistrement…';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/info-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text1,text2,text3,pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    customInfoText=data;
+    document.getElementById('info-text-pin').value='';
+    statusEl.textContent='✅ Message enregistré !';statusEl.style.color='var(--green-text)';
+  }catch(e){
+    statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';
+  }
+}
+
+// Retourne le texte à afficher : personnalisé si présent, sinon traduction par défaut
+function getInfoLines(){
+  if(customInfoText&&(customInfoText.text1||customInfoText.text2||customInfoText.text3)){
+    return [customInfoText.text1||'',customInfoText.text2||'',customInfoText.text3||''];
+  }
+  return [t('welcomeText1'),t('welcomeTextLangs'),t('welcomeText2')];
+}
+
 async function shareMakedoo(){
   const shareData={
     title:'Makedoo',
@@ -2154,6 +2210,7 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
 
 // ── Boot ───────────────────────────────────────────────────────
+loadInfoText().then(()=>{if(S.screen===0)renderScreen();});
 updateVoiceButtons();
 // Synchroniser le scroll des deux fenêtres texte (source/cible)
 (function(){
