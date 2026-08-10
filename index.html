@@ -703,6 +703,8 @@ function renderScreen(){
   intLabel.className='intervention-label';intLabel.textContent='';
   const welcomeIntroReset=document.getElementById('welcome-intro');
   if(welcomeIntroReset)welcomeIntroReset.style.display='none';
+  const infoTriggerReset=document.getElementById('circle-info-trigger');
+  if(infoTriggerReset)infoTriggerReset.style.display='none';
   if(micC)micC.style.opacity='0';
   if(hgC)hgC.style.opacity='0';
   const wt=document.getElementById('welcome-text');
