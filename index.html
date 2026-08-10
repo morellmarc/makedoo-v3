@@ -162,7 +162,7 @@ input:focus{border-color:var(--blue)}
 <!-- TOP BAR -->
 <div class="top-bar" id="top-bar">
   <button class="conv-btn" id="btn-top-center" onclick="showTopCenter()">📋 Conversations</button>
-  <button class="setup-card-top" ontouchstart="startLP('openSetup')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('openSetup')" onmouseup="cancelLP()" onmouseleave="cancelLP()">⚙</button>
+  <button class="setup-card-top" onclick="showOv('ov-setup')">⚙</button>
 </div>
 
 <!-- MAIN -->
@@ -233,6 +233,10 @@ input:focus{border-color:var(--blue)}
           <text id="welcome-text" x="95" y="78" text-anchor="middle" font-size="13" font-weight="700" fill="#1A2340" style="opacity:0;transition:opacity 0.5s"></text>
           </svg>
           <div class="tap-zone" onclick="handleTap()"></div>
+          <div id="circle-info-trigger" onclick="event.stopPropagation();toggleInfoScreen0()" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;cursor:pointer;z-index:10;line-height:1.4">
+            <div style="font-size:12px;font-weight:800;color:var(--text)">Makedoo infos</div>
+            <div style="font-size:11px;font-weight:600;color:var(--blue)">cliquez ici</div>
+          </div>
         </div>
       </div>
       <div class="center-status" id="center-status"></div>
@@ -240,9 +244,9 @@ input:focus{border-color:var(--blue)}
 
     <!-- ACCUEIL INITIAL (sans cadre, remplace le cercle 12s) -->
     <div id="welcome-intro" style="position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);padding:0 20px;text-align:center;display:none;flex-direction:column;gap:14px;z-index:15">
-      <div id="welcome-intro-1" style="font-size:14px;line-height:1.6;color:var(--text)"></div>
-      <div id="welcome-intro-2" style="font-size:14px;line-height:1.6;color:var(--text)"></div>
-      <div id="welcome-intro-3" style="font-size:14px;line-height:1.6;color:var(--text)"></div>
+      <div id="welcome-intro-1" style="font-size:14px;line-height:1.3;color:var(--text)"></div>
+      <div id="welcome-intro-2" style="font-size:14px;line-height:1.3;color:var(--text)"></div>
+      <div id="welcome-intro-3" style="font-size:14px;line-height:1.3;color:var(--text)"></div>
     </div>
 
     <!-- PANNEAU TEXTE -->
@@ -270,7 +274,7 @@ input:focus{border-color:var(--blue)}
 
   <!-- RIGHT COL -->
   <div class="right-col">
-    <button class="setup-card" style="display:none" ontouchstart="startLP('openSetup')" ontouchend="cancelLP()" ontouchcancel="cancelLP()" onmousedown="startLP('openSetup')" onmouseup="cancelLP()" onmouseleave="cancelLP()">⚙</button>
+    <button class="setup-card" style="display:none" onclick="showOv('ov-setup')">⚙</button>
   </div>
 
 </div>
@@ -476,7 +480,7 @@ const S={
   journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
   lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
   contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
-  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,
+  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,showInfoScreen0:false,
   selectedVoiceURI:localStorage.getItem('makedoo_v3_voice_uri')||null,
   selectedVoiceLang:localStorage.getItem('makedoo_v3_voice_lang')||null,
 };
@@ -583,6 +587,7 @@ function execLP(a){
 function setMode(mode){
   if(S.screen!==0)return;
   S.mode=mode;
+  S.showInfoScreen0=false;
   const learn=mode==='learn';
   if(learn)S.duoWelcomeShown=true;
   if(learn){S.direction='AB';S.currentSpeaker='A';document.getElementById('left-arrow').classList.add('reversed')}
@@ -739,6 +744,8 @@ function renderScreen(){
     status.textContent='';
     pill.style.display='none';
     const welcomeIntro=document.getElementById('welcome-intro');
+    const infoTrigger=document.getElementById('circle-info-trigger');
+    if(infoTrigger)infoTrigger.style.display='none';
 
     if(!learn){
       // DUO — accueil : "Bienvenue" au tout premier démarrage, puis bannière permanente
@@ -754,9 +761,24 @@ function renderScreen(){
         intLabel.textContent=t('welcomeTitle');
         intLabel.classList.add('visible');
         intLabel.style.cssText='opacity:1;background:#CFE1FF;border-radius:14px;padding:8px 14px;font-size:19px;color:var(--text);font-weight:900;width:100%;text-align:center;letter-spacing:0.3px';
+      } else if(S.showInfoScreen0){
+        if(circleContainer)circleContainer.style.visibility='hidden';
+        if(welcomeIntro){
+          welcomeIntro.style.display='flex';
+          const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');
+          if(w1)w1.textContent=t('welcomeText1');
+          if(w2)w2.textContent=t('welcomeTextLangs');
+          if(w3)w3.textContent=t('welcomeText2');
+          welcomeIntro.onclick=function(){S.showInfoScreen0=false;renderScreen();};
+          welcomeIntro.style.cursor='pointer';
+        }
+        intLabel.textContent=t('duoIntro');
+        intLabel.classList.add('visible');
+        intLabel.style.cssText='opacity:1;background:#CFE1FF;border-radius:14px;padding:6px 14px;font-size:13px;color:var(--text);font-weight:800;width:100%;text-align:center';
       } else {
         if(circleContainer)circleContainer.style.visibility='visible';
         if(welcomeIntro)welcomeIntro.style.display='none';
+        if(infoTrigger)infoTrigger.style.display='block';
         intLabel.textContent=t('duoIntro');
         intLabel.classList.add('visible');
         intLabel.style.cssText='opacity:1;background:#CFE1FF;border-radius:14px;padding:6px 14px;font-size:13px;color:var(--text);font-weight:800;width:100%;text-align:center';
@@ -764,8 +786,22 @@ function renderScreen(){
       convActions.innerHTML='<button class="action-btn green solid" onclick="startSession()">▶ '+t('startConv')+'</button>';
     } else {
       // SOLO — message dans la zone bleue
-      if(welcomeIntro)welcomeIntro.style.display='none';
-      if(circleContainer)circleContainer.style.visibility='visible';
+      if(S.showInfoScreen0){
+        if(circleContainer)circleContainer.style.visibility='hidden';
+        if(welcomeIntro){
+          welcomeIntro.style.display='flex';
+          const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');
+          if(w1)w1.textContent=t('welcomeText1');
+          if(w2)w2.textContent=t('welcomeTextLangs');
+          if(w3)w3.textContent=t('welcomeText2');
+          welcomeIntro.onclick=function(){S.showInfoScreen0=false;renderScreen();};
+          welcomeIntro.style.cursor='pointer';
+        }
+      } else {
+        if(welcomeIntro)welcomeIntro.style.display='none';
+        if(circleContainer)circleContainer.style.visibility='visible';
+        if(infoTrigger)infoTrigger.style.display='block';
+      }
       intLabel.textContent=t('soloIntro');
       intLabel.classList.add('visible');
       intLabel.style.cssText='opacity:1;background:#CFE1FF;border-radius:14px;padding:6px 14px;font-size:12px;color:var(--learn);font-weight:700;width:100%;text-align:center';
@@ -868,9 +904,15 @@ function renderScreen(){
 }
 
 // ── Session ────────────────────────────────────────────────────
+function toggleInfoScreen0(){
+  S.showInfoScreen0=true;
+  renderScreen();
+}
+
 function startSession(){
   S.welcomeShown=true;
   S.duoWelcomeShown=true;
+  S.showInfoScreen0=false;
   S.currentExchanges=[];
   selectedPhraseIdx=-1;selectedPhraseIdxs.clear();
   document.getElementById('tp-text-orig').innerHTML='';
