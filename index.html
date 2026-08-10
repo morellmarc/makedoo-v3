@@ -1429,14 +1429,6 @@ async function translateAndSpeak(text,fromLang,toLang){
   S.isSpeaking=false;
   if(initialRepeatBtn){initialRepeatBtn.style.opacity='1';initialRepeatBtn.style.pointerEvents='';}
   if(initialReadBtn){initialReadBtn.style.opacity='1';initialReadBtn.style.pointerEvents='';}
-  // En mode DUO, inverser automatiquement la flèche après traduction
-  if(!isLearn()){
-    S.direction=S.direction==='AB'?'BA':'AB';
-    S.currentSpeaker=S.direction==='AB'?'A':'B';
-    const arrow=document.getElementById('left-arrow');
-    if(arrow)arrow.classList.toggle('reversed',S.direction==='BA');
-    updateMicIndicators();
-  }
 }
 
 async function speakText(text,langCode){
