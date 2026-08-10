@@ -406,6 +406,7 @@ input:focus{border-color:var(--blue)}
     </div>
     <div class="setting-row" style="background:#EDE6FF;border-radius:12px;padding:12px;margin-top:14px">
       <div class="setting-label" id="label-infotext">✏️ Message d'accueil (écran de présentation)</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Écrivez en français — traduit automatiquement dans les 17 langues d'interface</div>
       <div id="info-text-restore-note" style="display:none;background:#FFE8D4;color:#C05000;font-size:12px;font-weight:700;padding:8px 10px;border-radius:8px;margin-bottom:8px">⚠️ Le serveur a été réinitialisé. Le texte ci-dessous vient de votre sauvegarde locale — cliquez "Enregistrer" pour le republier.</div>
       <textarea id="info-text-1" placeholder="Phrase 1…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
       <textarea id="info-text-2" placeholder="Phrase 2…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
@@ -2025,9 +2026,10 @@ async function loadInfoText(){
     const res=await fetch(API_BASE+'/info-text');
     const data=await res.json();
     customInfoText=data;
-    const serverEmpty=!(data.text1||data.text2||data.text3||data.text4||data.text5);
+    const frData=data.byLang&&data.byLang.fr;
+    const serverEmpty=!frData||!(frData.text1||frData.text2||frData.text3||frData.text4||frData.text5);
     const backupRaw=localStorage.getItem('makedoo_v3_infotext_backup');
-    let displayData=data;
+    let displayData=frData||{};
     if(serverEmpty&&backupRaw){
       // Le serveur a été vidé (redéploiement) mais une sauvegarde locale existe : on la propose
       try{
@@ -2037,7 +2039,7 @@ async function loadInfoText(){
         if(restoreNote)restoreNote.style.display='block';
       }catch(e){}
     }
-    // Pré-remplir l'éditeur si les champs existent (Paramètres ouverts)
+    // Pré-remplir l'éditeur (toujours en français, langue de saisie) si les champs existent
     const i1=document.getElementById('info-text-1');const i2=document.getElementById('info-text-2');const i3=document.getElementById('info-text-3');const i4=document.getElementById('info-text-4');const i5=document.getElementById('info-text-5');
     if(i1)i1.value=displayData.text1||'';
     if(i2)i2.value=displayData.text2||'';
@@ -2055,9 +2057,9 @@ async function saveInfoText(){
   const text5=document.getElementById('info-text-5').value.trim();
   const pin=document.getElementById('info-text-pin').value.trim();
   const statusEl=document.getElementById('info-text-status');
-  statusEl.textContent='⏳ Enregistrement…';statusEl.style.color='var(--muted)';
+  statusEl.textContent='⏳ Traduction dans 17 langues…';statusEl.style.color='var(--muted)';
   try{
-    const res=await fetch(API_BASE+'/info-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text1,text2,text3,text4,text5,pin})});
+    const res=await fetch(API_BASE+'/info-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text1,text2,text3,text4,text5,pin,sourceLang:'fr'})});
     const data=await res.json();
     if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
     customInfoText=data;
@@ -2066,7 +2068,8 @@ async function saveInfoText(){
     const restoreNote=document.getElementById('info-text-restore-note');
     if(restoreNote)restoreNote.style.display='none';
     document.getElementById('info-text-pin').value='';
-    statusEl.textContent='✅ Message enregistré !';statusEl.style.color='var(--green-text)';
+    statusEl.textContent='✅ Message enregistré et traduit dans 17 langues !';statusEl.style.color='var(--green-text)';
+    renderScreen();
   }catch(e){
     statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';
   }
@@ -2074,8 +2077,14 @@ async function saveInfoText(){
 
 // Retourne le texte à afficher : personnalisé si présent, sinon traduction par défaut
 function getInfoLines(){
-  if(customInfoText&&(customInfoText.text1||customInfoText.text2||customInfoText.text3||customInfoText.text4||customInfoText.text5)){
-    return [customInfoText.text1||'',customInfoText.text2||'',customInfoText.text3||'',customInfoText.text4||'',customInfoText.text5||''];
+  const langData=customInfoText&&customInfoText.byLang&&customInfoText.byLang[S.uiLang];
+  if(langData&&(langData.text1||langData.text2||langData.text3||langData.text4||langData.text5)){
+    return [langData.text1||'',langData.text2||'',langData.text3||'',langData.text4||'',langData.text5||''];
+  }
+  // Repli sur le français si la langue d'interface n'a pas encore de traduction
+  const frData=customInfoText&&customInfoText.byLang&&customInfoText.byLang.fr;
+  if(frData&&(frData.text1||frData.text2||frData.text3||frData.text4||frData.text5)){
+    return [frData.text1||'',frData.text2||'',frData.text3||'',frData.text4||'',frData.text5||''];
   }
   const base=t('welcomeText1');
   return [base,t('welcomeTextLangs'),t('welcomeText2'),base,base];
