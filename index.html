@@ -630,7 +630,7 @@ function handleArrowClick(){
     localStorage.setItem('makedoo_v3_langFrom',S.langFrom);
     localStorage.setItem('makedoo_v3_langTo',S.langTo);
     const supported=['fr','en','mk','es','de','it','tr'];
-    if(supported.includes(S.langFrom)){
+    if(supported.includes(S.langFrom)&&!localStorage.getItem('makedoo_v3_uilang_manual')){
       S.uiLang=S.langFrom;
       localStorage.setItem('makedoo_v3_uilang',S.langFrom);
     }
@@ -1975,11 +1975,13 @@ function selectLang(code){
   if(S.langPickerTarget==='from'){
     S.langFrom=code;
     localStorage.setItem('makedoo_v3_langFrom',code);
-    // UI suit la langue utilisateur si supportée, sinon anglais
-    const supported=['fr','en','mk','es','de','it','tr'];
-    const uiLang=supported.includes(code)?code:'en';
-    S.uiLang=uiLang;
-    localStorage.setItem('makedoo_v3_uilang',uiLang);
+    // UI suit la langue source uniquement si l'utilisateur n'a pas fait de choix manuel en Paramètres
+    if(!localStorage.getItem('makedoo_v3_uilang_manual')){
+      const supported=['fr','en','mk','es','de','it','tr'];
+      const uiLang=supported.includes(code)?code:'en';
+      S.uiLang=uiLang;
+      localStorage.setItem('makedoo_v3_uilang',uiLang);
+    }
     updateUILabels();
     renderScreen();
   } else {
@@ -2115,6 +2117,7 @@ function saveApiKey(){const key=document.getElementById('api-key-input').value.t
 
 function setUILang(lang){
   S.uiLang=lang;localStorage.setItem('makedoo_v3_uilang',lang);
+  localStorage.setItem('makedoo_v3_uilang_manual','true');
   ['fr','en','mk','es','de'].forEach(l=>{const b=document.getElementById('ulang-'+l);if(b)b.classList.toggle('sel',l===lang)});
   updateUILabels();
   renderScreen();
