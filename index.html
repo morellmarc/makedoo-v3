@@ -247,6 +247,8 @@ input:focus{border-color:var(--blue)}
       <div id="welcome-intro-1" style="font-size:14px;line-height:1.3;color:var(--text)"></div>
       <div id="welcome-intro-2" style="font-size:14px;line-height:1.3;color:var(--text)"></div>
       <div id="welcome-intro-3" style="font-size:14px;line-height:1.3;color:var(--text)"></div>
+      <div id="welcome-intro-4" style="font-size:14px;line-height:1.3;color:var(--text)"></div>
+      <div id="welcome-intro-5" style="font-size:14px;line-height:1.3;color:var(--text)"></div>
     </div>
 
     <!-- PANNEAU TEXTE -->
@@ -323,6 +325,8 @@ input:focus{border-color:var(--blue)}
       <textarea id="info-text-1" placeholder="Phrase 1…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
       <textarea id="info-text-2" placeholder="Phrase 2…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
       <textarea id="info-text-3" placeholder="Phrase 3…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+      <textarea id="info-text-4" placeholder="Phrase 4…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+      <textarea id="info-text-5" placeholder="Phrase 5…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
       <input type="password" id="info-text-pin" placeholder="Code PIN" style="margin-bottom:6px">
       <button class="setting-btn" style="background:linear-gradient(135deg,#7C2DBF,#5A1E8F)" onclick="saveInfoText()">💾 Enregistrer le message</button>
       <div id="info-text-status" style="font-size:12px;color:var(--muted);margin-top:6px;text-align:center"></div>
@@ -765,11 +769,13 @@ function renderScreen(){
         if(circleContainer)circleContainer.style.visibility='hidden';
         if(welcomeIntro){
           welcomeIntro.style.display='flex';
-          const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');
+          const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');const w4=document.getElementById('welcome-intro-4');const w5=document.getElementById('welcome-intro-5');
           const infoLines=getInfoLines();
           if(w1)w1.textContent=infoLines[0];
           if(w2)w2.textContent=infoLines[1];
           if(w3)w3.textContent=infoLines[2];
+          if(w4)w4.textContent=infoLines[3];
+          if(w5)w5.textContent=infoLines[4];
         }
         intLabel.textContent=t('welcomeTitle');
         intLabel.classList.add('visible');
@@ -778,11 +784,13 @@ function renderScreen(){
         if(circleContainer)circleContainer.style.visibility='hidden';
         if(welcomeIntro){
           welcomeIntro.style.display='flex';
-          const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');
+          const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');const w4=document.getElementById('welcome-intro-4');const w5=document.getElementById('welcome-intro-5');
           const infoLines=getInfoLines();
           if(w1)w1.textContent=infoLines[0];
           if(w2)w2.textContent=infoLines[1];
           if(w3)w3.textContent=infoLines[2];
+          if(w4)w4.textContent=infoLines[3];
+          if(w5)w5.textContent=infoLines[4];
           welcomeIntro.onclick=function(){S.showInfoScreen0=false;renderScreen();};
           welcomeIntro.style.cursor='pointer';
         }
@@ -804,11 +812,13 @@ function renderScreen(){
         if(circleContainer)circleContainer.style.visibility='hidden';
         if(welcomeIntro){
           welcomeIntro.style.display='flex';
-          const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');
+          const w1=document.getElementById('welcome-intro-1');const w2=document.getElementById('welcome-intro-2');const w3=document.getElementById('welcome-intro-3');const w4=document.getElementById('welcome-intro-4');const w5=document.getElementById('welcome-intro-5');
           const infoLines=getInfoLines();
           if(w1)w1.textContent=infoLines[0];
           if(w2)w2.textContent=infoLines[1];
           if(w3)w3.textContent=infoLines[2];
+          if(w4)w4.textContent=infoLines[3];
+          if(w5)w5.textContent=infoLines[4];
           welcomeIntro.onclick=function(){S.showInfoScreen0=false;renderScreen();};
           welcomeIntro.style.cursor='pointer';
         }
@@ -2001,10 +2011,12 @@ async function loadInfoText(){
     const data=await res.json();
     customInfoText=data;
     // Pré-remplir l'éditeur si les champs existent (Paramètres ouverts)
-    const i1=document.getElementById('info-text-1');const i2=document.getElementById('info-text-2');const i3=document.getElementById('info-text-3');
+    const i1=document.getElementById('info-text-1');const i2=document.getElementById('info-text-2');const i3=document.getElementById('info-text-3');const i4=document.getElementById('info-text-4');const i5=document.getElementById('info-text-5');
     if(i1)i1.value=data.text1||'';
     if(i2)i2.value=data.text2||'';
     if(i3)i3.value=data.text3||'';
+    if(i4)i4.value=data.text4||'';
+    if(i5)i5.value=data.text5||'';
   }catch(e){customInfoText={};}
 }
 
@@ -2012,11 +2024,13 @@ async function saveInfoText(){
   const text1=document.getElementById('info-text-1').value.trim();
   const text2=document.getElementById('info-text-2').value.trim();
   const text3=document.getElementById('info-text-3').value.trim();
+  const text4=document.getElementById('info-text-4').value.trim();
+  const text5=document.getElementById('info-text-5').value.trim();
   const pin=document.getElementById('info-text-pin').value.trim();
   const statusEl=document.getElementById('info-text-status');
   statusEl.textContent='⏳ Enregistrement…';statusEl.style.color='var(--muted)';
   try{
-    const res=await fetch(API_BASE+'/info-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text1,text2,text3,pin})});
+    const res=await fetch(API_BASE+'/info-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text1,text2,text3,text4,text5,pin})});
     const data=await res.json();
     if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
     customInfoText=data;
@@ -2029,10 +2043,11 @@ async function saveInfoText(){
 
 // Retourne le texte à afficher : personnalisé si présent, sinon traduction par défaut
 function getInfoLines(){
-  if(customInfoText&&(customInfoText.text1||customInfoText.text2||customInfoText.text3)){
-    return [customInfoText.text1||'',customInfoText.text2||'',customInfoText.text3||''];
+  if(customInfoText&&(customInfoText.text1||customInfoText.text2||customInfoText.text3||customInfoText.text4||customInfoText.text5)){
+    return [customInfoText.text1||'',customInfoText.text2||'',customInfoText.text3||'',customInfoText.text4||'',customInfoText.text5||''];
   }
-  return [t('welcomeText1'),t('welcomeTextLangs'),t('welcomeText2')];
+  const base=t('welcomeText1');
+  return [base,t('welcomeTextLangs'),t('welcomeText2'),base,base];
 }
 
 async function shareMakedoo(){
