@@ -285,7 +285,6 @@ input:focus{border-color:var(--blue)}
         <button class="fin-btn" id="fin-btn" onclick="confirmEnd()"><span id="fin-btn-label">Exit</span></button>
       </div>
       <div class="action-row" id="conv-action-row" style="flex-shrink:0"></div>
-      <div id="solo-engine-indicator" style="text-align:center;font-size:10px;color:var(--muted);opacity:0.6"></div>
     </div>
 
   </div>
@@ -343,7 +342,6 @@ input:focus{border-color:var(--blue)}
   </div>
   <div style="position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;padding:8px 0 4px;background:#CFE1FF">
     <div id="plus-status" style="text-align:center;font-size:15px;color:var(--muted);font-weight:600">Maintenez un drapeau enfoncé pour parler</div>
-    <div id="plus-engine-indicator" style="text-align:center;font-size:10px;color:var(--muted);opacity:0.6"></div>
     <div id="plus-save-row" style="display:none;justify-content:center;gap:10px">
       <button class="action-btn orange" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
       <button class="action-btn primary" id="plus-repeat-btn" onclick="plusDoRepeat()">🔁 <span id="plus-repeat-label">Répéter</span></button>
@@ -2504,8 +2502,6 @@ function plusStartRecord(side){
           const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,languageCode:recogLang,mimeType})});
           const data=await res.json();
           const text=data.transcript||'';
-          const engineEl=document.getElementById('plus-engine-indicator');
-          if(engineEl)engineEl.textContent=data.engine?('🔧 '+data.engine+(data.azureError?' ('+data.azureError.slice(0,300)+')':'')):'';
           if(text){await plusTranslateAndSpeak(text,fromLang,toLang);}
           else{if(statusEl2)statusEl2.textContent='😕 …';}
         }catch(e){
@@ -2579,8 +2575,6 @@ function soloStartRecord(side){
           const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,languageCode:recogLang,mimeType})});
           const data=await res.json();
           const text=data.transcript||'';
-          const engineEl=document.getElementById('solo-engine-indicator');
-          if(engineEl)engineEl.textContent=data.engine?('🔧 '+data.engine+(data.azureError?' ('+data.azureError.slice(0,300)+')':'')):'';
           soloResetFlags();
           if(text){await translateAndSpeak(text,fromLang,toLang);}
           else{showToast(t('sttError'));}
