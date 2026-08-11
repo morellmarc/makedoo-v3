@@ -342,7 +342,6 @@ input:focus{border-color:var(--blue)}
   </div>
   <div style="position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;padding:8px 0 4px;background:#CFE1FF">
     <div id="plus-status" style="text-align:center;font-size:15px;color:var(--muted);font-weight:600">Maintenez un drapeau enfoncé pour parler</div>
-    <div id="plus-engine-indicator" style="text-align:center;font-size:10px;color:var(--muted);opacity:0.6"></div>
     <div id="plus-save-row" style="display:none;justify-content:center;gap:10px">
       <button class="action-btn orange" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
       <button class="action-btn primary" id="plus-repeat-btn" onclick="plusDoRepeat()">🔁 <span id="plus-repeat-label">Répéter</span></button>
@@ -2428,6 +2427,19 @@ function togglePlusPresentation(){
   }
 }
 
+// ── Flux micro persistant : évite le délai de getUserMedia() à chaque pression ──
+let sharedMicStream=null,sharedMicStreamPromise=null;
+function ensureMicStream(){
+  if(sharedMicStream)return Promise.resolve(sharedMicStream);
+  if(sharedMicStreamPromise)return sharedMicStreamPromise;
+  sharedMicStreamPromise=navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}).then(stream=>{
+    sharedMicStream=stream;
+    sharedMicStreamPromise=null;
+    return stream;
+  }).catch(e=>{sharedMicStreamPromise=null;throw e;});
+  return sharedMicStreamPromise;
+}
+
 function showPlusScreen(markActive){
   if(markActive===undefined)markActive=true;
   const ml=document.querySelector('.main-layout');
@@ -2480,14 +2492,13 @@ function plusStartRecord(side){
   if(btn)btn.style.opacity='0.5';
   const statusEl=document.getElementById('plus-status');
   if(statusEl)statusEl.textContent='🔴 …';
-  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}).then(stream=>{
-    if(plusRecordingSide!==side){stream.getTracks().forEach(t=>t.stop());return}
+  ensureMicStream().then(stream=>{
+    if(plusRecordingSide!==side)return;
     plusAudioChunks=[];
     const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
     plusMediaRecorder=new MediaRecorder(stream,{mimeType});
     plusMediaRecorder.ondataavailable=e=>{if(e.data.size>0)plusAudioChunks.push(e.data)};
     plusMediaRecorder.onstop=async()=>{
-      stream.getTracks().forEach(t=>t.stop());
       if(!plusAudioChunks.length){plusResetFlags();return}
       const fromLang=side==='A'?S.langFrom:S.langTo;
       const toLang=side==='A'?S.langTo:S.langFrom;
@@ -2503,8 +2514,6 @@ function plusStartRecord(side){
           const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,languageCode:recogLang,mimeType})});
           const data=await res.json();
           const text=data.transcript||'';
-          const engineEl=document.getElementById('plus-engine-indicator');
-          if(engineEl)engineEl.textContent=data.engine?('🔧 '+data.engine+(data.azureError?' ('+data.azureError.slice(0,300)+')':'')):'';
           if(text){await plusTranslateAndSpeak(text,fromLang,toLang);}
           else{if(statusEl2)statusEl2.textContent='😕 …';}
         }catch(e){
@@ -2555,14 +2564,13 @@ function soloStartRecord(side){
   if(btn)btn.style.opacity='0.5';
   const statusEl=document.getElementById('solo-flags-status');
   if(statusEl)statusEl.textContent='🔴 …';
-  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}).then(stream=>{
-    if(soloRecordingSide!==side){stream.getTracks().forEach(t=>t.stop());return}
+  ensureMicStream().then(stream=>{
+    if(soloRecordingSide!==side)return;
     soloAudioChunks=[];
     const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
     soloMediaRecorder=new MediaRecorder(stream,{mimeType});
     soloMediaRecorder.ondataavailable=e=>{if(e.data.size>0)soloAudioChunks.push(e.data)};
     soloMediaRecorder.onstop=async()=>{
-      stream.getTracks().forEach(t=>t.stop());
       if(!soloAudioChunks.length){soloResetFlags();return}
       const fromLang=side==='A'?S.langFrom:S.langTo;
       const toLang=side==='A'?S.langTo:S.langFrom;
