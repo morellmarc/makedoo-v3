@@ -285,6 +285,7 @@ input:focus{border-color:var(--blue)}
         <button class="fin-btn" id="fin-btn" onclick="confirmEnd()"><span id="fin-btn-label">Exit</span></button>
       </div>
       <div class="action-row" id="conv-action-row" style="flex-shrink:0"></div>
+      <button id="solo-playback-btn" onclick="playLastRecording()" style="display:none;background:none;border:1.5px solid var(--muted);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted);cursor:pointer;margin:0 auto">🔊 Réécouter mon enregistrement</button>
     </div>
 
   </div>
@@ -342,6 +343,7 @@ input:focus{border-color:var(--blue)}
   </div>
   <div style="position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;padding:8px 0 4px;background:#CFE1FF">
     <div id="plus-status" style="text-align:center;font-size:15px;color:var(--muted);font-weight:600">Maintenez un drapeau enfoncé pour parler</div>
+    <button id="plus-playback-btn" onclick="playLastRecording()" style="display:none;background:none;border:1.5px solid var(--muted);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted);cursor:pointer">🔊 Réécouter mon enregistrement</button>
     <div id="plus-save-row" style="display:none;justify-content:center;gap:10px">
       <button class="action-btn orange" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
       <button class="action-btn primary" id="plus-repeat-btn" onclick="plusDoRepeat()">🔁 <span id="plus-repeat-label">Répéter</span></button>
@@ -2429,6 +2431,14 @@ function togglePlusPresentation(){
 
 // ── Flux micro persistant : évite le délai de getUserMedia() à chaque pression ──
 let sharedMicStream=null,sharedMicStreamPromise=null;
+let lastRecordedBlob=null;
+function playLastRecording(){
+  if(!lastRecordedBlob)return;
+  const url=URL.createObjectURL(lastRecordedBlob);
+  const audio=new Audio(url);
+  audio.play();
+  audio.onended=()=>URL.revokeObjectURL(url);
+}
 function ensureMicStream(){
   if(sharedMicStream)return Promise.resolve(sharedMicStream);
   if(sharedMicStreamPromise)return sharedMicStreamPromise;
@@ -2511,6 +2521,9 @@ function plusStartRecord(side){
       const statusEl2=document.getElementById('plus-status');
       if(statusEl2)statusEl2.textContent='⏳ …';
       const blob=new Blob(plusAudioChunks,{type:mimeType});
+      lastRecordedBlob=blob;
+      const playBtn=document.getElementById('plus-playback-btn');
+      if(playBtn)playBtn.style.display='inline-flex';
       const reader=new FileReader();
       reader.onloadend=async()=>{
         const base64=reader.result.split(',')[1];
@@ -2587,6 +2600,9 @@ function soloStartRecord(side){
       const statusEl2=document.getElementById('solo-flags-status');
       if(statusEl2)statusEl2.textContent='⏳ …';
       const blob=new Blob(soloAudioChunks,{type:mimeType});
+      lastRecordedBlob=blob;
+      const playBtn=document.getElementById('solo-playback-btn');
+      if(playBtn)playBtn.style.display='inline-flex';
       const reader=new FileReader();
       reader.onloadend=async()=>{
         const base64=reader.result.split(',')[1];
