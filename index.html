@@ -75,7 +75,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .intervention-zone{position:absolute;top:0;left:0;right:0;height:58px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;overflow:hidden;z-index:20;padding:1px 8px;background:#CFE1FF}
 .help-zone-css{position:absolute;top:0;left:0;right:0;height:58px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;padding:1px 8px;z-index:20;background:#CFE1FF}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
-.conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0;justify-content:center;background:#CFE1FF;z-index:25}
+.conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 4px;justify-content:space-between;background:#CFE1FF;z-index:25}
 .status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
 .status-tag.active{color:var(--green-text);background:var(--green-light)}
 .status-tag.learn{color:var(--blue-text);background:var(--blue-light)}
@@ -120,7 +120,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 
 /* ── MODE BAR ── */
 .mode-bar{display:flex;justify-content:center;align-items:center;gap:10px;padding:6px 20px 26px;border-top:1px solid var(--line);flex-shrink:0;background:#D9E7FF}
-.mode-btn{font-size:12px;font-weight:700;letter-spacing:0.3px;cursor:pointer;padding:10px 22px;border:none;border-radius:14px;transition:all 0.2s;font-family:inherit;background:#D4F5E4;color:var(--text)}
+.mode-btn{font-size:12px;font-weight:700;letter-spacing:0.3px;cursor:pointer;padding:10px 22px;border:none;border-radius:14px;transition:all 0.2s;font-family:inherit;background:#7ED9A8;color:#0D5C33}
 .mode-btn.active-exchange{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
 .mode-btn.active-learn{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
 .mode-btn.active-plus{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
@@ -340,11 +340,11 @@ input:focus{border-color:var(--blue)}
     <button id="plus-flag-a-btn" ontouchstart="plusStartRecord('A')" ontouchend="plusStopRecord('A')" ontouchcancel="plusStopRecord('A')" onmousedown="plusStartRecord('A')" onmouseup="plusStopRecord('A')" onmouseleave="plusStopRecord('A')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
     <button id="plus-flag-b-btn" ontouchstart="plusStartRecord('B')" ontouchend="plusStopRecord('B')" ontouchcancel="plusStopRecord('B')" onmousedown="plusStartRecord('B')" onmouseup="plusStopRecord('B')" onmouseleave="plusStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
   </div>
-  <div style="position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 0;background:#CFE1FF">
+  <div style="position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;padding:8px 0 4px;background:#CFE1FF">
     <div id="plus-status" style="text-align:center;font-size:15px;color:var(--muted);font-weight:600">Maintenez un drapeau enfoncé pour parler</div>
     <div id="plus-save-row" style="display:none;justify-content:center;gap:10px">
-      <button class="action-btn orange" id="plus-repeat-btn" onclick="plusDoRepeat()">🔁 <span id="plus-repeat-label">Répéter</span></button>
-      <button class="action-btn primary" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
+      <button class="action-btn orange" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
+      <button class="action-btn primary" id="plus-repeat-btn" onclick="plusDoRepeat()">🔁 <span id="plus-repeat-label">Répéter</span></button>
       <button class="action-btn red" onclick="plusDoExit()"><span id="plus-exit-label">Sortir</span></button>
     </div>
   </div>
@@ -931,10 +931,15 @@ function renderScreen(){
     status.textContent=t('clickTalk');
     const soloFresh=learn&&S.currentExchanges.length===0;
     if(soloFresh){
-      pill.style.display='none';
-      convActions.innerHTML='<div style="text-align:center;font-size:15px;color:var(--muted);font-weight:600">'+t('plusPressToTalk')+'</div>';
+      pill.style.display='block';
+      pill.className='';
+      pill.style.cssText='display:block;text-align:center;font-size:15px;color:var(--muted);font-weight:600;background:none;padding:0';
+      pill.textContent=t('plusPressToTalk');
+      convActions.innerHTML='';
     } else {
+      pill.style.display='';
       pill.className=(learn?'status-tag learn':'status-tag active');
+      pill.style.cssText='';
       pill.textContent='💬 '+inProgress;
     }
     if(!learn){
@@ -988,7 +993,7 @@ function renderScreen(){
       if(textPanelEl)textPanelEl.style.top='98px';
       // ZONE BASSE : boutons (pas de bandeau de statut)
       pill.style.display='none';
-      convActions.innerHTML='<button class="action-btn green solid" style="padding:6px 12px;font-size:12px" onclick="doResume()">'+t('resume')+'</button><button class="action-btn learn" style="padding:6px 12px;font-size:12px" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn red" style="padding:6px 12px;font-size:12px" onclick="confirmEnd()">'+t('exit')+'</button>';
+      convActions.innerHTML='<button class="action-btn orange" style="padding:6px 12px;font-size:12px" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn green solid" style="padding:6px 12px;font-size:12px" onclick="doResume()">'+t('resume')+'</button><button class="action-btn red" style="padding:6px 12px;font-size:12px" onclick="confirmEnd()">'+t('exit')+'</button>';
       const convZone=document.getElementById('conversation-zone-el');
       if(convZone)convZone.style.minHeight='76px';
       if(textPanelEl)textPanelEl.style.bottom='76px';
@@ -1017,7 +1022,7 @@ function renderScreen(){
     // Screen 3 only used for learn save dialog now
     if(learn){
       pill.className='status-tag warning';pill.textContent=t('lessonEnded');
-      convActions.innerHTML='<button class="action-btn learn" onclick="doResume()">'+t('resume')+'</button><button class="action-btn learn primary" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn red" onclick="confirmEnd()">'+t('exit')+'</button>';
+      convActions.innerHTML='<button class="action-btn orange" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn green solid" onclick="doResume()">'+t('resume')+'</button><button class="action-btn red" onclick="confirmEnd()">'+t('exit')+'</button>';
     }
   }
   updateUILabels();
