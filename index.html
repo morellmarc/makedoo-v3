@@ -163,6 +163,10 @@ input:focus{border-color:var(--blue)}
 <!-- TOP BAR -->
 <div class="top-bar" id="top-bar">
   <button class="conv-btn" id="btn-top-center" onclick="showTopCenter()">📋 Conversations</button>
+  <div id="solo-top-flags" style="display:none;gap:6px;align-items:center">
+    <button id="solo-flag-a-small" onclick="openLangPicker('from')" style="background:none;border:none;font-size:26px;cursor:pointer;padding:2px 4px;line-height:1">🏳️</button>
+    <button id="solo-flag-b-small" onclick="openLangPicker('to')" style="background:none;border:none;font-size:26px;cursor:pointer;padding:2px 4px;line-height:1">🏳️</button>
+  </div>
   <button class="setup-card-top" onclick="showOv('ov-setup')">⚙</button>
 </div>
 
@@ -241,6 +245,15 @@ input:focus{border-color:var(--blue)}
         </div>
       </div>
       <div class="center-status" id="center-status"></div>
+    </div>
+
+    <!-- DRAPEAUX SOLO (remplace le cercle) -->
+    <div class="circle-area" id="solo-flags-area" style="display:none">
+      <div style="display:flex;width:100%;max-width:280px;gap:12px">
+        <button id="solo-flag-a-btn" ontouchstart="soloStartRecord('A')" ontouchend="soloStopRecord('A')" ontouchcancel="soloStopRecord('A')" onmousedown="soloStartRecord('A')" onmouseup="soloStopRecord('A')" onmouseleave="soloStopRecord('A')" style="flex:1;aspect-ratio:1;border-radius:24px;border:1.5px solid var(--border);background:var(--surface);box-shadow:0 8px 32px rgba(74,108,247,0.1),0 2px 8px rgba(0,0,0,0.05);font-size:68px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
+        <button id="solo-flag-b-btn" ontouchstart="soloStartRecord('B')" ontouchend="soloStopRecord('B')" ontouchcancel="soloStopRecord('B')" onmousedown="soloStartRecord('B')" onmouseup="soloStopRecord('B')" onmouseleave="soloStopRecord('B')" style="flex:1;aspect-ratio:1;border-radius:24px;border:1.5px solid var(--border);background:var(--surface);box-shadow:0 8px 32px rgba(74,108,247,0.1),0 2px 8px rgba(0,0,0,0.05);font-size:68px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
+      </div>
+      <div id="solo-flags-status" style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px"></div>
     </div>
 
     <!-- ACCUEIL INITIAL (sans cadre, remplace le cercle 12s) -->
@@ -770,11 +783,21 @@ function renderScreen(){
   const inProgress=learn?t('lessonProgress'):t('inProgress');
   // Flèche active en SOLO à l'écran 0 et à l'écran de révision (2), désactivée pendant l'enregistrement (1)
   const leftArrow=document.getElementById('left-arrow');
+  if(leftArrow)leftArrow.style.display=learn?'none':'';
   if(leftArrow)leftArrow.classList.toggle('disabled',learn&&S.screen===1);
 
-  // Cercle ou panneau texte
+  // Cercle (DUO, obsolète), drapeaux (SOLO), ou panneau texte
   const showPanel=(learn&&(S.screen===2||S.screen===3))||(!learn&&S.screen===2&&S.duoReadMode);
-  if(circleContainer)circleContainer.style.visibility=showPanel?'hidden':'visible';
+  const soloFlagsArea=document.getElementById('solo-flags-area');
+  if(learn){
+    if(circleContainer)circleContainer.style.visibility='hidden';
+    if(soloFlagsArea)soloFlagsArea.style.display=showPanel?'none':'flex';
+  } else {
+    if(circleContainer)circleContainer.style.visibility=showPanel?'hidden':'visible';
+    if(soloFlagsArea)soloFlagsArea.style.display='none';
+  }
+  const soloTopFlags=document.getElementById('solo-top-flags');
+  if(soloTopFlags)soloTopFlags.style.display=learn?'flex':'none';
   if(showPanel&&textPanel)textPanel.classList.add('visible');
   else if(textPanel)textPanel.classList.remove('visible');
 
@@ -2180,6 +2203,76 @@ function plusResetFlags(){
   if(statusEl)statusEl.textContent=t('plusPressToTalk');
 }
 
+// ── Drapeaux SOLO (remplace le cercle/micro) ─────────────────────
+let soloMediaRecorder=null,soloAudioChunks=[],soloRecordingSide=null;
+
+function soloStartRecord(side){
+  if(soloRecordingSide)return;
+  soloRecordingSide=side;
+  const btn=document.getElementById(side==='A'?'solo-flag-a-btn':'solo-flag-b-btn');
+  if(btn)btn.style.opacity='0.5';
+  const statusEl=document.getElementById('solo-flags-status');
+  if(statusEl)statusEl.textContent='🔴 …';
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}).then(stream=>{
+    if(soloRecordingSide!==side){stream.getTracks().forEach(t=>t.stop());return}
+    soloAudioChunks=[];
+    const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+    soloMediaRecorder=new MediaRecorder(stream,{mimeType});
+    soloMediaRecorder.ondataavailable=e=>{if(e.data.size>0)soloAudioChunks.push(e.data)};
+    soloMediaRecorder.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      if(!soloAudioChunks.length){soloResetFlags();return}
+      const fromLang=side==='A'?S.langFrom:S.langTo;
+      const toLang=side==='A'?S.langTo:S.langFrom;
+      const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT',zh:'zh-CN',ja:'ja-JP',th:'th-TH',km:'km-KH',id:'id-ID',vi:'vi-VN',lo:'lo-LA'};
+      const recogLang=langMap[fromLang]||'fr-FR';
+      const statusEl2=document.getElementById('solo-flags-status');
+      if(statusEl2)statusEl2.textContent='⏳ …';
+      const blob=new Blob(soloAudioChunks,{type:mimeType});
+      const reader=new FileReader();
+      reader.onloadend=async()=>{
+        const base64=reader.result.split(',')[1];
+        try{
+          const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,languageCode:recogLang,mimeType})});
+          const data=await res.json();
+          const text=data.transcript||'';
+          soloResetFlags();
+          if(text){await translateAndSpeak(text,fromLang,toLang);}
+          else{showToast(t('sttError'));}
+        }catch(e){
+          soloResetFlags();
+          showToast(t('sttFail'));
+        }
+      };
+      reader.readAsDataURL(blob);
+    };
+    soloMediaRecorder.start();
+  }).catch(e=>{
+    showToast(t('micError'));
+    soloRecordingSide=null;
+    soloResetFlags();
+  });
+}
+
+function soloStopRecord(side){
+  if(soloRecordingSide!==side)return;
+  if(soloMediaRecorder&&soloMediaRecorder.state==='recording'){
+    soloMediaRecorder.stop();
+  } else {
+    soloRecordingSide=null;
+    soloResetFlags();
+  }
+}
+
+function soloResetFlags(){
+  soloRecordingSide=null;
+  const ba=document.getElementById('solo-flag-a-btn');const bb=document.getElementById('solo-flag-b-btn');
+  if(ba)ba.style.opacity='1';
+  if(bb)bb.style.opacity='1';
+  const statusEl=document.getElementById('solo-flags-status');
+  if(statusEl)statusEl.textContent='';
+}
+
 async function plusTranslateAndSpeak(text,fromLang,toLang){
   S.plusBusy=true;
   let translated=text;
@@ -2390,6 +2483,17 @@ function updateDisplay(){
     document.getElementById('lang-top').textContent=lt?lt.display:S.langTo.toUpperCase();
     document.getElementById('lang-bottom').textContent=lf?lf.display:S.langFrom.toUpperCase();
   }
+  updateSoloFlagsDisplay();
+}
+
+function updateSoloFlagsDisplay(){
+  const lf=LANGS.find(l=>l.code===S.langFrom);const lt=LANGS.find(l=>l.code===S.langTo);
+  const sa=document.getElementById('solo-flag-a-small');const sb=document.getElementById('solo-flag-b-small');
+  const ba=document.getElementById('solo-flag-a-btn');const bb=document.getElementById('solo-flag-b-btn');
+  if(sa)sa.textContent=lf?lf.flag:'🏳️';
+  if(sb)sb.textContent=lt?lt.flag:'🏳️';
+  if(ba)ba.textContent=lf?lf.flag:'🏳️';
+  if(bb)bb.textContent=lt?lt.flag:'🏳️';
 }
 
 function updateUILabels(){
