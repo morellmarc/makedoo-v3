@@ -2503,9 +2503,9 @@ function plusStartRecord(side){
   if(S.plusBusy||plusRecordingSide)return;
   plusRecordingSide=side;
   const btn=document.getElementById(side==='A'?'plus-flag-a-btn':'plus-flag-b-btn');
-  if(btn)btn.style.opacity='0.5';
+  if(btn)btn.style.opacity='0.85';
   const statusEl=document.getElementById('plus-status');
-  if(statusEl)statusEl.textContent='🔴 …';
+  if(statusEl)statusEl.textContent='…';
   ensureMicStream().then(stream=>{
     if(plusRecordingSide!==side)return;
     plusAudioChunks=[];
@@ -2541,6 +2541,12 @@ function plusStartRecord(side){
       reader.readAsDataURL(blob);
     };
     plusMediaRecorder.start();
+    setTimeout(()=>{
+      if(plusRecordingSide===side){
+        if(statusEl)statusEl.textContent='🔴 …';
+        if(btn)btn.style.opacity='0.5';
+      }
+    },250);
   }).catch(e=>{
     showToast(t('micError'));
     plusRecordingSide=null;
@@ -2582,9 +2588,9 @@ function soloStartRecord(side){
   if(soloRecordingSide)return;
   soloRecordingSide=side;
   const btn=document.getElementById(side==='A'?'solo-flag-a-btn':'solo-flag-b-btn');
-  if(btn)btn.style.opacity='0.5';
+  if(btn)btn.style.opacity='0.85';
   const statusEl=document.getElementById('solo-flags-status');
-  if(statusEl)statusEl.textContent='🔴 …';
+  if(statusEl)statusEl.textContent='…';
   ensureMicStream().then(stream=>{
     if(soloRecordingSide!==side)return;
     soloAudioChunks=[];
@@ -2621,6 +2627,12 @@ function soloStartRecord(side){
       reader.readAsDataURL(blob);
     };
     soloMediaRecorder.start();
+    setTimeout(()=>{
+      if(soloRecordingSide===side){
+        if(statusEl)statusEl.textContent='🔴 …';
+        if(btn)btn.style.opacity='0.5';
+      }
+    },250);
   }).catch(e=>{
     showToast(t('micError'));
     soloRecordingSide=null;
