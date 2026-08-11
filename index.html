@@ -985,7 +985,7 @@ function renderScreen(){
     if(learn){
       if(finBtn)finBtn.style.display='none';
       intLabel.style.display='none';
-      intActions.innerHTML='<button class="action-btn orange" style="padding:5px 8px;font-size:11px" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn blue" style="padding:5px 8px;font-size:11px" onclick="doRepeatAll()">'+t('all')+'</button><button class="action-btn neutral" style="padding:5px 8px;font-size:11px" onclick="doReplaceSelected()">'+t('replace')+'</button><button class="action-btn blue" style="padding:5px 8px;font-size:11px" onclick="doSoloCopy()">📋 '+t('copy')+'</button>';
+      intActions.innerHTML='<button class="action-btn primary" style="padding:5px 8px;font-size:11px" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn blue" style="padding:5px 8px;font-size:11px" onclick="doRepeatAll()">'+t('all')+'</button><button class="action-btn neutral" style="padding:5px 8px;font-size:11px" onclick="doReplaceSelected()">'+t('replace')+'</button><button class="action-btn blue" style="padding:5px 8px;font-size:11px" onclick="doSoloCopy()">📋 '+t('copy')+'</button>';
       // Une seule ligne de boutons désormais : on réduit la hauteur réservée
       const intZone=document.getElementById('intervention-zone');
       const textPanelEl=document.getElementById('text-panel');
@@ -1052,7 +1052,7 @@ function endSession(){
 function confirmEnd(){
   if(S.currentExchanges.length===0){
     if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
-    setScreen(0);
+    setScreen(isLearn()?1:0);
   } else {
     document.getElementById('confirm-exit-msg').textContent=t('exitNoSave');
     document.getElementById('btn-confirm-exit').textContent=t('exit');
@@ -1074,7 +1074,7 @@ function doConfirmedExit(){
   if(cc)cc.style.visibility='visible';
   document.getElementById('tp-text-orig').innerHTML='';
   document.getElementById('tp-text-trans').innerHTML='';
-  setScreen(0);
+  setScreen(isLearn()?1:0);
 }
 function cancelExit(){hideOv('ov-confirm-exit');}
 function doExitLesson(){
@@ -1092,7 +1092,7 @@ function doExitLesson(){
   const cc=document.getElementById('circle-container');
   if(textPanel)textPanel.classList.remove('visible');
   if(cc)cc.style.visibility='visible';
-  setScreen(0);
+  setScreen(isLearn()?1:0);
 }
 function doExitConv(){
   if(S.currentExchanges.length===0){
@@ -1359,7 +1359,7 @@ function confirmSaveLesson(){
   S.lessons.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
   localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons));
   hideOv('ov-save-lesson');
-  S.currentExchanges=[];setScreen(0);showToast('💾 '+name);
+  S.currentExchanges=[];setScreen(isLearn()?1:0);showToast('💾 '+name);
 }
 function doExit(){S.currentExchanges=[];setScreen(0)}
 
