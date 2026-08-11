@@ -248,12 +248,9 @@ input:focus{border-color:var(--blue)}
     </div>
 
     <!-- DRAPEAUX SOLO (remplace le cercle) -->
-    <div class="circle-area" id="solo-flags-area" style="display:none">
-      <div style="display:flex;width:100%;max-width:280px;gap:12px">
-        <button id="solo-flag-a-btn" ontouchstart="soloStartRecord('A')" ontouchend="soloStopRecord('A')" ontouchcancel="soloStopRecord('A')" onmousedown="soloStartRecord('A')" onmouseup="soloStopRecord('A')" onmouseleave="soloStopRecord('A')" style="flex:1;aspect-ratio:1;border-radius:24px;border:1.5px solid var(--border);background:var(--surface);box-shadow:0 8px 32px rgba(74,108,247,0.1),0 2px 8px rgba(0,0,0,0.05);font-size:68px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
-        <button id="solo-flag-b-btn" ontouchstart="soloStartRecord('B')" ontouchend="soloStopRecord('B')" ontouchcancel="soloStopRecord('B')" onmousedown="soloStartRecord('B')" onmouseup="soloStopRecord('B')" onmouseleave="soloStopRecord('B')" style="flex:1;aspect-ratio:1;border-radius:24px;border:1.5px solid var(--border);background:var(--surface);box-shadow:0 8px 32px rgba(74,108,247,0.1),0 2px 8px rgba(0,0,0,0.05);font-size:68px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
-      </div>
-      <div id="solo-flags-status" style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px"></div>
+    <div id="solo-flags-area" style="display:none;position:absolute;top:116px;left:0;right:0;bottom:101px;z-index:5;background:#CFE1FF;flex-direction:row">
+      <button id="solo-flag-a-btn" ontouchstart="soloStartRecord('A')" ontouchend="soloStopRecord('A')" ontouchcancel="soloStopRecord('A')" onmousedown="soloStartRecord('A')" onmouseup="soloStopRecord('A')" onmouseleave="soloStopRecord('A')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
+      <button id="solo-flag-b-btn" ontouchstart="soloStartRecord('B')" ontouchend="soloStopRecord('B')" ontouchcancel="soloStopRecord('B')" onmousedown="soloStartRecord('B')" onmouseup="soloStopRecord('B')" onmouseleave="soloStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
     </div>
 
     <!-- ACCUEIL INITIAL (sans cadre, remplace le cercle 12s) -->
@@ -323,21 +320,11 @@ input:focus{border-color:var(--blue)}
 
 <!-- ÉCRAN + (échanges simplifiés) -->
 <div id="plus-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0">
-  <div id="plus-choose-hint" style="text-align:center;padding:6px 0 2px;font-size:12px;color:var(--muted);flex-shrink:0;background:#CFE1FF"></div>
-  <div id="plus-lang-zone" style="flex:1;display:flex;background:#CFE1FF;min-height:0">
-    <div class="plus-lang-select" id="plus-lang-a" onclick="openPlusLangPicker('A')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border-right:1px solid rgba(0,0,0,0.08)">
-      <div id="plus-flag-a-small" style="font-size:34px"></div>
-      <div id="plus-code-a" style="font-size:13px;font-weight:800;color:var(--text);margin-top:4px"></div>
-    </div>
-    <div class="plus-lang-select" id="plus-lang-b" onclick="openPlusLangPicker('B')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
-      <div id="plus-flag-b-small" style="font-size:34px"></div>
-      <div id="plus-code-b" style="font-size:13px;font-weight:800;color:var(--text);margin-top:4px"></div>
-    </div>
-  </div>
-  <div id="plus-press-zone" style="flex:1;display:flex;background:#CFE1FF;border-top:2px solid rgba(0,0,0,0.1);min-height:0">
+  <div id="plus-press-zone" style="flex:1;display:flex;background:#CFE1FF;min-height:0">
     <button id="plus-flag-a-btn" ontouchstart="plusStartRecord('A')" ontouchend="plusStopRecord('A')" ontouchcancel="plusStopRecord('A')" onmousedown="plusStartRecord('A')" onmouseup="plusStopRecord('A')" onmouseleave="plusStopRecord('A')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
     <button id="plus-flag-b-btn" ontouchstart="plusStartRecord('B')" ontouchend="plusStopRecord('B')" ontouchcancel="plusStopRecord('B')" onmousedown="plusStartRecord('B')" onmouseup="plusStopRecord('B')" onmouseleave="plusStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
   </div>
+
   <div id="plus-status" style="text-align:center;padding:8px;font-size:12px;color:var(--muted);flex-shrink:0;background:#CFE1FF">Maintenez un drapeau enfoncé pour parler</div>
   <div style="display:flex;justify-content:center;padding:8px 0 24px;background:#CFE1FF;flex-shrink:0">
     <button class="action-btn primary" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
@@ -543,7 +530,7 @@ const S={
   journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
   lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
   contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
-  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,showInfoScreen0:false,plusScreenActive:false,plusLangA:'fr',plusLangB:'mk',plusBusy:false,savingFromPlus:false,
+  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,showInfoScreen0:false,plusScreenActive:false,plusBusy:false,savingFromPlus:false,
   selectedVoiceURI:localStorage.getItem('makedoo_v3_voice_uri')||null,
   selectedVoiceLang:localStorage.getItem('makedoo_v3_voice_lang')||null,
 };
@@ -797,7 +784,7 @@ function renderScreen(){
     if(soloFlagsArea)soloFlagsArea.style.display='none';
   }
   const soloTopFlags=document.getElementById('solo-top-flags');
-  if(soloTopFlags)soloTopFlags.style.display=learn?'flex':'none';
+  if(soloTopFlags)soloTopFlags.style.display='flex';
   const leftColEl=document.getElementById('left-col');const rightColEl=document.getElementById('right-col');
   if(leftColEl)leftColEl.style.display=learn?'none':'flex';
   if(rightColEl)rightColEl.style.display=learn?'none':'flex';
@@ -900,9 +887,6 @@ function renderScreen(){
         if(circleContainer)circleContainer.style.visibility='visible';
         if(infoTrigger)infoTrigger.style.display='block';
       }
-      intLabel.textContent=t('soloIntro');
-      intLabel.classList.add('visible');
-      intLabel.style.cssText='opacity:1;background:#CFE1FF;border-radius:14px;padding:6px 14px;font-size:12px;color:var(--learn);font-weight:700;width:100%;text-align:center';
       convActions.innerHTML='<button class="action-btn green solid" onclick="startSession()">▶ '+t('startLesson')+'</button>';
     }
 
@@ -915,11 +899,6 @@ function renderScreen(){
       intLabel.innerHTML=t('micStart')+'<br>'+t('micStop');
       intLabel.classList.add('visible');
       intLabel.style.cssText='opacity:1;background:#CFE1FF;border-radius:14px;padding:4px 12px;font-size:11px;color:var(--text);font-weight:700;width:100%;text-align:center;line-height:1.5';
-    }
-    if(learn){
-      intLabel.textContent='⌨️🎤 '+t('useInputOrMic');
-      intLabel.classList.add('visible');
-      intLabel.style.cssText='opacity:1;background:#E3F2FD;border-radius:14px;padding:4px 12px;font-size:11px;color:var(--learn);font-weight:700;width:100%;text-align:center';
     }
     if(!learn){
       convActions.innerHTML=(S.currentExchanges.length>0?'<button class="action-btn blue solid" onclick="doSave()">'+t('save')+'</button>':'')+'<button class="action-btn red" onclick="doExitConv()">'+t('exit')+'</button>';
@@ -958,16 +937,13 @@ function renderScreen(){
     if(learn){
       if(finBtn)finBtn.style.display='none';
       intLabel.innerHTML='<div style="display:flex;align-items:center;gap:6px;width:100%;justify-content:center">'
-        +'<span style="background:#E3F2FD;border-radius:14px;padding:4px 12px;font-size:12px;color:var(--learn);font-weight:700">'+t('choosePhrase')+'</span>'
         +'<button class="action-btn blue" style="padding:4px 10px;font-size:11px" onclick="doRepeatAll()">'+t('all')+'</button>'
         +'</div>';
       intLabel.classList.add('visible');
       intLabel.style.cssText='opacity:1;width:100%';
       intActions.innerHTML='<button class="action-btn orange" style="padding:5px 10px;font-size:11px" onclick="doRepeatSelected()">'+t('repeat')+'</button><button class="action-btn neutral" style="padding:5px 10px;font-size:11px" onclick="doReplaceSelected()">'+t('replace')+'</button><button class="action-btn blue" style="padding:5px 10px;font-size:11px" onclick="doSoloCopy()">📋 '+t('copy')+'</button>';
-      // ZONE BASSE : bandeau + boutons
-      pill.className=(learn?'status-tag learn':'status-tag active');
-      
-      pill.textContent='💬 '+inProgress;
+      // ZONE BASSE : boutons (pas de bandeau de statut)
+      pill.style.display='none';
       convActions.innerHTML='<button class="action-btn green solid" onclick="doResume()">'+t('resume')+'</button><button class="action-btn learn" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn red" onclick="confirmEnd()">'+t('exit')+'</button>';
     }else{
       if(S.duoReadMode){
@@ -1293,9 +1269,7 @@ function plusDoSave(){
 }
 function confirmSaveConv(){
   const name=document.getElementById('conv-name-input').value.trim()||('Conv. '+new Date().toLocaleDateString());
-  const lf=S.savingFromPlus?S.plusLangA:S.langFrom;
-  const lt=S.savingFromPlus?S.plusLangB:S.langTo;
-  S.journal.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],location:S.location,langFrom:lf,langTo:lt,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
+  S.journal.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],location:S.location,langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
   localStorage.setItem('mk_v3_journal',JSON.stringify(S.journal));
   hideOv('ov-save-conv');
   S.currentExchanges=[];
@@ -2056,9 +2030,8 @@ function importSession(){
 
 function openLangPicker(target){
   S.langPickerTarget=target;
-  const label=(target==='from')?t('myLang'):(target==='to')?t('transLang'):(target==='plusA'?t('myLang'):t('transLang'));
-  document.getElementById('t-langpicker').textContent=label;
-  const curCode=target==='from'?S.langFrom:target==='to'?S.langTo:target==='plusA'?S.plusLangA:S.plusLangB;
+  document.getElementById('t-langpicker').textContent=target==='from'?t('myLang'):t('transLang');
+  const curCode=target==='from'?S.langFrom:S.langTo;
   document.getElementById('lang-list').innerHTML=LANGS.map(l=>'<div class="list-item'+(l.code===curCode?' selected':'')+'" onclick="selectLang(\''+l.code+'\')">'+l.flag+' '+l.label+'</div>').join('');
   showOv('ov-lang');
 }
@@ -2078,36 +2051,12 @@ function selectLang(code){
   } else if(S.langPickerTarget==='to'){
     S.langTo=code;
     localStorage.setItem('makedoo_v3_langTo',code);
-  } else if(S.langPickerTarget==='plusA'){
-    S.plusLangA=code;
-    localStorage.setItem('makedoo_v3_plusLangA',code);
-    updatePlusDisplay();
-  } else if(S.langPickerTarget==='plusB'){
-    S.plusLangB=code;
-    localStorage.setItem('makedoo_v3_plusLangB',code);
-    updatePlusDisplay();
   }
   updateDisplay();
   hideOv('ov-lang');
 }
 
 // ── Écran "+" (échanges simplifiés à deux drapeaux) ─────────────
-function openPlusLangPicker(side){ openLangPicker(side==='A'?'plusA':'plusB'); }
-
-function updatePlusDisplay(){
-  const la=LANGS.find(l=>l.code===S.plusLangA);
-  const lb=LANGS.find(l=>l.code===S.plusLangB);
-  const fa=document.getElementById('plus-flag-a-small');const ca=document.getElementById('plus-code-a');
-  const fb=document.getElementById('plus-flag-b-small');const cb=document.getElementById('plus-code-b');
-  const ba=document.getElementById('plus-flag-a-btn');const bb=document.getElementById('plus-flag-b-btn');
-  if(fa)fa.textContent=la?la.flag:'🏳️';
-  if(ca)ca.textContent=la?la.display:S.plusLangA.toUpperCase();
-  if(fb)fb.textContent=lb?lb.flag:'🏳️';
-  if(cb)cb.textContent=lb?lb.display:S.plusLangB.toUpperCase();
-  if(ba)ba.textContent=la?la.flag:'🏳️';
-  if(bb)bb.textContent=lb?lb.flag:'🏳️';
-}
-
 function showPlusScreen(){
   const ml=document.querySelector('.main-layout');
   const ps=document.getElementById('plus-screen');
@@ -2117,13 +2066,13 @@ function showPlusScreen(){
   S.mode='exchange';
   document.getElementById('btn-exchange').className='mode-btn active-exchange';
   document.getElementById('btn-learn').className='mode-btn';
-  const chooseHint=document.getElementById('plus-choose-hint');
-  if(chooseHint)chooseHint.textContent=t('plusChooseLang');
+  const soloTopFlags=document.getElementById('solo-top-flags');
+  if(soloTopFlags)soloTopFlags.style.display='flex';
   const statusEl=document.getElementById('plus-status');
   if(statusEl&&!plusRecordingSide&&!S.plusBusy)statusEl.textContent=t('plusPressToTalk');
   const saveLabel=document.getElementById('plus-save-label');
   if(saveLabel)saveLabel.textContent=t('save');
-  updatePlusDisplay();
+  updateSoloFlagsDisplay();
   updateUILabels();
 }
 function hidePlusScreen(){
@@ -2155,8 +2104,8 @@ function plusStartRecord(side){
     plusMediaRecorder.onstop=async()=>{
       stream.getTracks().forEach(t=>t.stop());
       if(!plusAudioChunks.length){plusResetFlags();return}
-      const fromLang=side==='A'?S.plusLangA:S.plusLangB;
-      const toLang=side==='A'?S.plusLangB:S.plusLangA;
+      const fromLang=side==='A'?S.langFrom:S.langTo;
+      const toLang=side==='A'?S.langTo:S.langFrom;
       const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT',zh:'zh-CN',ja:'ja-JP',th:'th-TH',km:'km-KH',id:'id-ID',vi:'vi-VN',lo:'lo-LA'};
       const recogLang=langMap[fromLang]||'fr-FR';
       const statusEl2=document.getElementById('plus-status');
@@ -2493,10 +2442,13 @@ function updateSoloFlagsDisplay(){
   const lf=LANGS.find(l=>l.code===S.langFrom);const lt=LANGS.find(l=>l.code===S.langTo);
   const sa=document.getElementById('solo-flag-a-small');const sb=document.getElementById('solo-flag-b-small');
   const ba=document.getElementById('solo-flag-a-btn');const bb=document.getElementById('solo-flag-b-btn');
+  const pa=document.getElementById('plus-flag-a-btn');const pb=document.getElementById('plus-flag-b-btn');
   if(sa)sa.textContent=lf?lf.flag:'🏳️';
   if(sb)sb.textContent=lt?lt.flag:'🏳️';
   if(ba)ba.textContent=lf?lf.flag:'🏳️';
   if(bb)bb.textContent=lt?lt.flag:'🏳️';
+  if(pa)pa.textContent=lf?lf.flag:'🏳️';
+  if(pb)pb.textContent=lt?lt.flag:'🏳️';
 }
 
 function updateUILabels(){
@@ -2565,12 +2517,6 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
 
 // ── Boot ───────────────────────────────────────────────────────
-{
-  const savedA=localStorage.getItem('makedoo_v3_plusLangA');
-  const savedB=localStorage.getItem('makedoo_v3_plusLangB');
-  if(savedA)S.plusLangA=savedA;
-  if(savedB)S.plusLangB=savedB;
-}
 loadInfoText().then(()=>{if(S.screen===0)renderScreen();});
 updateVoiceButtons();
 // Synchroniser le scroll des deux fenêtres texte (source/cible)
