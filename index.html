@@ -122,6 +122,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .mode-btn{font-size:12px;font-weight:700;letter-spacing:0.3px;cursor:pointer;padding:10px 22px;border:none;border-radius:14px;transition:all 0.2s;font-family:inherit}
 .mode-btn.active-exchange{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
 .mode-btn.active-learn{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
+.mode-btn.active-plus{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
 .mode-btn:not(.active-exchange):not(.active-learn){background:var(--neutral-light);color:var(--muted)}
 .nav-spacer{height:44px;flex-shrink:0;background:var(--surface)}
 
@@ -307,8 +308,28 @@ input:focus{border-color:var(--blue)}
   <div id="cs-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>
 </div>
 
+<!-- ÉCRAN + (échanges simplifiés) -->
+<div id="plus-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0">
+  <div id="plus-lang-zone" style="flex:1;display:flex;background:#CFE1FF;min-height:0">
+    <div class="plus-lang-select" id="plus-lang-a" onclick="openPlusLangPicker('A')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border-right:1px solid rgba(0,0,0,0.08)">
+      <div id="plus-flag-a-small" style="font-size:34px"></div>
+      <div id="plus-code-a" style="font-size:13px;font-weight:800;color:var(--text);margin-top:4px"></div>
+    </div>
+    <div class="plus-lang-select" id="plus-lang-b" onclick="openPlusLangPicker('B')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+      <div id="plus-flag-b-small" style="font-size:34px"></div>
+      <div id="plus-code-b" style="font-size:13px;font-weight:800;color:var(--text);margin-top:4px"></div>
+    </div>
+  </div>
+  <div id="plus-press-zone" style="flex:1;display:flex;background:#CFE1FF;border-top:2px solid rgba(0,0,0,0.1);min-height:0">
+    <button id="plus-flag-a-btn" ontouchstart="plusStartRecord('A')" ontouchend="plusStopRecord('A')" ontouchcancel="plusStopRecord('A')" onmousedown="plusStartRecord('A')" onmouseup="plusStopRecord('A')" onmouseleave="plusStopRecord('A')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
+    <button id="plus-flag-b-btn" ontouchstart="plusStartRecord('B')" ontouchend="plusStopRecord('B')" ontouchcancel="plusStopRecord('B')" onmousedown="plusStartRecord('B')" onmouseup="plusStopRecord('B')" onmouseleave="plusStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
+  </div>
+  <div id="plus-status" style="text-align:center;padding:8px;font-size:12px;color:var(--muted);flex-shrink:0;background:#CFE1FF">Maintenez un drapeau enfoncé pour parler</div>
+</div>
+
 <!-- MODE BAR -->
 <div class="mode-bar" id="mode-bar">
+  <button class="mode-btn" id="btn-plus" onclick="showPlusScreen()" style="min-width:44px;padding-left:14px;padding-right:14px">+</button>
   <button class="mode-btn active-exchange" id="btn-exchange" onclick="setMode('exchange')">DUO</button>
   <button class="mode-btn" id="btn-learn" onclick="setMode('learn')">SOLO</button>
 </div>
@@ -506,15 +527,15 @@ const S={
   journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
   lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
   contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
-  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,showInfoScreen0:false,
+  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,showInfoScreen0:false,plusScreenActive:false,plusLangA:'fr',plusLangB:'mk',plusBusy:false,
   selectedVoiceURI:localStorage.getItem('makedoo_v3_voice_uri')||null,
   selectedVoiceLang:localStorage.getItem('makedoo_v3_voice_lang')||null,
 };
 
 // ── i18n ───────────────────────────────────────────────────────
 const I18N={
-  fr:{conv:'Conversations',lessons:'Sessions',waiting:'En attente de conversation',waitingLesson:'En attente de session',startConv:'Démarrer la conversation',startLesson:'Démarrer la session',inProgress:'Conversation en cours',lessonProgress:'Session en cours',ended:'Conversation terminée',lessonEnded:'Session terminée',clickStop:'Clic pour arrêter',repeat:'Répéter',resume:'Poursuivre',save:'Sauvegarder',exit:'Sortir',welcome:'Bienvenue\ndans\nMakedoo',back:'← Retour',longPressLang:'Cliquez sur la langue pour la changer',clickArrow:'Cliquez sur la flèche pour changer d\'interlocuteur',swapLangs:'Cliquez sur la flèche pour permuter les langues source et cible',replace:'Remplacer',insert:'Insérer',all:'Tous',oralTrans:'Traduction orale',writtenTrans:'Traduction écrite',read:'Lire',copy:'Copier',copied:'Copié !',selectFirst:'Sélectionnez une phrase',useInputOrMic:'Utilisez la zone de saisie ou le micro',welcomeTitle:'Bienvenue dans Makedoo',welcomeText1:'Makedoo est une application de traduction vocale et textuelle, conçue pour faciliter la communication entre personnes de langues différentes et l\'apprentissage.',welcomeText2:'L\'utilisation de Makedoo est gratuite et ne nécessite aucun chargement',welcomeTextLangs:'Makedoo est l\'application des 40 langues européennes, plus l\'arabe et les langues asiatiques',soloIntro:'SOLO est le mode d\'apprentissage',duoIntro:'DUO est le mode de conversation',micStart:'Un clic sur le micro pour démarrer',micStop:'Un clic sur le micro pour arrêter',clickTalk:'Clic pour parler',youFirst:'Vous parlez en premier',theyFirst:' parle en premier',keyOk:'✓ Clé enregistrée',learnSoon:'Mode Apprentissage bientôt !',myLang:'Ma langue',transLang:'Langue de traduction',exchanges:'échange(s)',noConv:'Aucune conversation',noLesson:'Aucune session',selectConv:'Sélectionner une conversation',selectLesson:'Sélectionner une session',review:'Réviser',rename:'Renommer',export:'Exporter MP3',delete:'Supprimer',listen:'Écouter',stop:'Arrêter',unknown:'Inconnu',choosePhrase:'Choisir une phrase',target:'Cible',source:'Source',settings:'⚙ Paramètres',apiKeyLabel:'Clé API Google',uiLangLabel:"Langue de l'interface",saveKey:'Enregistrer la clé',voicesLabel:'Voix MK disponibles',scanVoices:'🔍 Scanner les voix MK',scanPrompt:'Appuyez pour scanner…',noVoices:'Aucune voix MK trouvée',newContact:'Nouveau nom…',exitNoSave:'Sortir sans sauvegarder ?',deleteConfirm:'Supprimer ?',sttError:'Parole non reconnue',sttFail:'Erreur STT',micError:'Microphone non accessible',micTestChecking:'Vérification…',micTestOk:'Microphone accessible !',micTestDenied:'Accès refusé.',micTestLabel:'🎤 Test du microphone',micTestBtn:'🎤 Tester le microphone',micTestHint:'Appuyez pour vérifier l\'accès au micro',tagline:'Parler et apprendre\nles 40 langues\nd\'Europe',skip:'Skip ›',exitBtn:'✕ Exit',lesonTitle:'💾 Save lesson',lessonName:'Lesson name',lessonPlaceholder:'My lesson…',contactTitle:'Contact',convTitle:'Conversations',lessonTitle2:'Sessions',saveConvTitle:'💾 Sauvegarder la conversation',convNameLabel:'Nom de la conversation',convPlaceholder:'Ma conversation…',saveConvBtn:'💾 Sauvegarder'},
-  en:{conv:'Conversations',lessons:'Sessions',waiting:'Waiting for conversation',waitingLesson:'Waiting for session',startConv:'Start conversation',startLesson:'Start session',inProgress:'Conversation in progress',lessonProgress:'Session in progress',ended:'Conversation ended',lessonEnded:'Session ended',clickStop:'Click to stop',repeat:'Repeat',resume:'Continue',save:'Save',exit:'Exit',welcome:'Welcome\nto\nMakedoo',back:'← Back',longPressLang:'Click the language to change it',clickArrow:'Click the arrow to change the speaker',swapLangs:'Click the arrow to swap source and target languages',replace:'Replace',insert:'Insert',all:'All',oralTrans:'Oral translation',writtenTrans:'Written translation',read:'Read',copy:'Copy',copied:'Copied!',selectFirst:'Select a phrase first',useInputOrMic:'Use the text field or the microphone',welcomeTitle:'Welcome to Makedoo',welcomeText1:'Makedoo is a voice and text translation app, designed to facilitate communication between people of different languages and learning.',welcomeText2:'Makedoo is free to use and requires no download',welcomeTextLangs:'Makedoo is the app for 40 European languages, plus Arabic and Asian languages',soloIntro:'SOLO is the learning mode',duoIntro:'DUO is the conversation mode',micStart:'Tap the microphone to start',micStop:'Tap the microphone to stop',clickTalk:'Click to speak',youFirst:'You speak first',theyFirst:' speaks first',keyOk:'✓ Key saved',learnSoon:'Learning mode soon!',myLang:'My language',transLang:'Translation language',exchanges:'exchange(s)',noConv:'No conversations',noLesson:'No sessions',selectConv:'Select a conversation',selectLesson:'Select a session',review:'Review',rename:'Rename',export:'Export MP3',delete:'Delete',listen:'Listen',stop:'Stop',unknown:'Unknown',startLesson2:'Start lesson',target:'Target',source:'Source',settings:'⚙ Settings',apiKeyLabel:'Google API Key',uiLangLabel:'Interface language',saveKey:'Save key',voicesLabel:'Available MK voices',scanVoices:'🔍 Scan MK voices',scanPrompt:'Tap to scan…',noVoices:'No MK voice found',newContact:'New name…',exitNoSave:'Exit without saving?',deleteConfirm:'Delete?',sttError:'Speech not recognized',sttFail:'STT Error',micError:'Microphone not accessible',micTestChecking:'Checking…',micTestOk:'Microphone accessible!',micTestDenied:'Access denied.',micTestLabel:'🎤 Microphone test',micTestBtn:'🎤 Test microphone',micTestHint:'Tap to check microphone access',tagline:'Speak and learn\nthe 40 languages\nof Europe',skip:'Skip ›',exitBtn:'✕ Exit',lessonTitle:'💾 Save session',lessonName:'Lesson name',lessonPlaceholder:'My lesson…',contactTitle:'Contact',convTitle:'Conversations',lessonTitle2:'Sessions',saveConvTitle:'💾 Save conversation',convNameLabel:'Conversation name',convPlaceholder:'My conversation…',saveConvBtn:'💾 Save'},
+  fr:{conv:'Conversations',lessons:'Sessions',waiting:'En attente de conversation',waitingLesson:'En attente de session',startConv:'Démarrer la conversation',startLesson:'Démarrer la session',inProgress:'Conversation en cours',lessonProgress:'Session en cours',ended:'Conversation terminée',lessonEnded:'Session terminée',clickStop:'Clic pour arrêter',repeat:'Répéter',resume:'Poursuivre',save:'Sauvegarder',exit:'Sortir',welcome:'Bienvenue\ndans\nMakedoo',back:'← Retour',longPressLang:'Cliquez sur la langue pour la changer',clickArrow:'Cliquez sur la flèche pour changer d\'interlocuteur',swapLangs:'Cliquez sur la flèche pour permuter les langues source et cible',replace:'Remplacer',insert:'Insérer',all:'Tous',oralTrans:'Traduction orale',writtenTrans:'Traduction écrite',read:'Lire',copy:'Copier',copied:'Copié !',selectFirst:'Sélectionnez une phrase',useInputOrMic:'Utilisez la zone de saisie ou le micro',welcomeTitle:'Bienvenue dans Makedoo',welcomeText1:'Makedoo est une application de traduction vocale et textuelle, conçue pour faciliter la communication entre personnes de langues différentes et l\'apprentissage.',welcomeText2:'L\'utilisation de Makedoo est gratuite et ne nécessite aucun chargement',welcomeTextLangs:'Makedoo est l\'application des 40 langues européennes, plus l\'arabe et les langues asiatiques',soloIntro:'SOLO est le mode d\'apprentissage',duoIntro:'DUO est le mode de conversation',exchangesLabel:'Échanges',micStart:'Un clic sur le micro pour démarrer',micStop:'Un clic sur le micro pour arrêter',clickTalk:'Clic pour parler',youFirst:'Vous parlez en premier',theyFirst:' parle en premier',keyOk:'✓ Clé enregistrée',learnSoon:'Mode Apprentissage bientôt !',myLang:'Ma langue',transLang:'Langue de traduction',exchanges:'échange(s)',noConv:'Aucune conversation',noLesson:'Aucune session',selectConv:'Sélectionner une conversation',selectLesson:'Sélectionner une session',review:'Réviser',rename:'Renommer',export:'Exporter MP3',delete:'Supprimer',listen:'Écouter',stop:'Arrêter',unknown:'Inconnu',choosePhrase:'Choisir une phrase',target:'Cible',source:'Source',settings:'⚙ Paramètres',apiKeyLabel:'Clé API Google',uiLangLabel:"Langue de l'interface",saveKey:'Enregistrer la clé',voicesLabel:'Voix MK disponibles',scanVoices:'🔍 Scanner les voix MK',scanPrompt:'Appuyez pour scanner…',noVoices:'Aucune voix MK trouvée',newContact:'Nouveau nom…',exitNoSave:'Sortir sans sauvegarder ?',deleteConfirm:'Supprimer ?',sttError:'Parole non reconnue',sttFail:'Erreur STT',micError:'Microphone non accessible',micTestChecking:'Vérification…',micTestOk:'Microphone accessible !',micTestDenied:'Accès refusé.',micTestLabel:'🎤 Test du microphone',micTestBtn:'🎤 Tester le microphone',micTestHint:'Appuyez pour vérifier l\'accès au micro',tagline:'Parler et apprendre\nles 40 langues\nd\'Europe',skip:'Skip ›',exitBtn:'✕ Exit',lesonTitle:'💾 Save lesson',lessonName:'Lesson name',lessonPlaceholder:'My lesson…',contactTitle:'Contact',convTitle:'Conversations',lessonTitle2:'Sessions',saveConvTitle:'💾 Sauvegarder la conversation',convNameLabel:'Nom de la conversation',convPlaceholder:'Ma conversation…',saveConvBtn:'💾 Sauvegarder'},
+  en:{conv:'Conversations',lessons:'Sessions',waiting:'Waiting for conversation',waitingLesson:'Waiting for session',startConv:'Start conversation',startLesson:'Start session',inProgress:'Conversation in progress',lessonProgress:'Session in progress',ended:'Conversation ended',lessonEnded:'Session ended',clickStop:'Click to stop',repeat:'Repeat',resume:'Continue',save:'Save',exit:'Exit',welcome:'Welcome\nto\nMakedoo',back:'← Back',longPressLang:'Click the language to change it',clickArrow:'Click the arrow to change the speaker',swapLangs:'Click the arrow to swap source and target languages',replace:'Replace',insert:'Insert',all:'All',oralTrans:'Oral translation',writtenTrans:'Written translation',read:'Read',copy:'Copy',copied:'Copied!',selectFirst:'Select a phrase first',useInputOrMic:'Use the text field or the microphone',welcomeTitle:'Welcome to Makedoo',welcomeText1:'Makedoo is a voice and text translation app, designed to facilitate communication between people of different languages and learning.',welcomeText2:'Makedoo is free to use and requires no download',welcomeTextLangs:'Makedoo is the app for 40 European languages, plus Arabic and Asian languages',soloIntro:'SOLO is the learning mode',duoIntro:'DUO is the conversation mode',exchangesLabel:'Exchanges',micStart:'Tap the microphone to start',micStop:'Tap the microphone to stop',clickTalk:'Click to speak',youFirst:'You speak first',theyFirst:' speaks first',keyOk:'✓ Key saved',learnSoon:'Learning mode soon!',myLang:'My language',transLang:'Translation language',exchanges:'exchange(s)',noConv:'No conversations',noLesson:'No sessions',selectConv:'Select a conversation',selectLesson:'Select a session',review:'Review',rename:'Rename',export:'Export MP3',delete:'Delete',listen:'Listen',stop:'Stop',unknown:'Unknown',startLesson2:'Start lesson',target:'Target',source:'Source',settings:'⚙ Settings',apiKeyLabel:'Google API Key',uiLangLabel:'Interface language',saveKey:'Save key',voicesLabel:'Available MK voices',scanVoices:'🔍 Scan MK voices',scanPrompt:'Tap to scan…',noVoices:'No MK voice found',newContact:'New name…',exitNoSave:'Exit without saving?',deleteConfirm:'Delete?',sttError:'Speech not recognized',sttFail:'STT Error',micError:'Microphone not accessible',micTestChecking:'Checking…',micTestOk:'Microphone accessible!',micTestDenied:'Access denied.',micTestLabel:'🎤 Microphone test',micTestBtn:'🎤 Test microphone',micTestHint:'Tap to check microphone access',tagline:'Speak and learn\nthe 40 languages\nof Europe',skip:'Skip ›',exitBtn:'✕ Exit',lessonTitle:'💾 Save session',lessonName:'Lesson name',lessonPlaceholder:'My lesson…',contactTitle:'Contact',convTitle:'Conversations',lessonTitle2:'Sessions',saveConvTitle:'💾 Save conversation',convNameLabel:'Conversation name',convPlaceholder:'My conversation…',saveConvBtn:'💾 Save'},
   mk:{conv:'Разговори',lessons:'Sessions',waiting:'Чекање разговор',waitingLesson:'Чекање session',startConv:'Започни разговор',startLesson:'Започни session',inProgress:'Разговор во тек',lessonProgress:'Session во тек',ended:'Разговорот завршен',lessonEnded:'Session завршена',clickStop:'Клик за стопирање',repeat:'Повтори',resume:'Продолжи',save:'Зачувај',exit:'Излез',welcome:'Добредојдовте\nво\nMakedoo',back:'← Назад',longPressLang:'Кликнете на јазикот за да го промените',clickArrow:'Кликнете на стрелката за промена на соговорник',swapLangs:'Кликнете на стрелката за замена на изворниот и целниот јазик',replace:'Замени',insert:'Вметни',all:'Сите',oralTrans:'Устен превод',writtenTrans:'Писмен превод',read:'Читај',copy:'Копирај',copied:'Копирано!',selectFirst:'Изберете фраза',useInputOrMic:'Користете го полето или микрофонот',welcomeTitle:'Добредојдовте во Makedoo',welcomeText1:'Makedoo е апликација за гласовен и текстуален превод, дизајнирана да ја олесни комуникацијата меѓу луѓе од различни јазици и учењето.',welcomeText2:'Употребата на Makedoo е бесплатна и не бара преземање',welcomeTextLangs:'Makedoo е апликацијата за 40 европски јазици, плус арапски и азиски јазици',soloIntro:'SOLO е режим за учење',duoIntro:'Режимот DUO е режим за разговор',micStart:'Кликнете на микрофонот за да започнете',micStop:'Кликнете на микрофонот за да запрете',clickTalk:'Клик за зборување',youFirst:'Вие зборувате прво',theyFirst:' зборува прво',keyOk:'✓ Зачувано',learnSoon:'Режим учење наскоро!',myLang:'Мојот јазик',transLang:'Јазик на превод',exchanges:'размена(и)',noConv:'Нема разговори',noLesson:'Нема sessions',selectConv:'Изберете разговор',selectLesson:'Изберете session',review:'Прегледај',rename:'Преименувај',export:'Извоз MP3',delete:'Избриши',listen:'Слушај',stop:'Стопирај',unknown:'Непознат',startLesson2:'Започни лекција',target:'Цел',source:'Извор',settings:'⚙ Поставки',apiKeyLabel:'Google API Клуч',uiLangLabel:'Јазик на интерфејс',saveKey:'Зачувај',voicesLabel:'МК гласови',scanVoices:'🔍 Скенирај гласови',scanPrompt:'Притиснете за скенирање…',noVoices:'Нема МК глас',newContact:'Ново ime…',exitNoSave:'Излез без зачувување?',deleteConfirm:'Избриши?',sttError:'Говорот не е препознаен',sttFail:'Грешка STT',micError:'Микрофонот не е достапен',micTestChecking:'Проверка…',micTestOk:'Микрофонот е достапен!',micTestDenied:'Пристапот е одбиен.',micTestLabel:'🎤 Тест на микрофон',micTestBtn:'🎤 Тестирај микрофон',micTestHint:'Допри за да провериш пристап',tagline:'Зборувајте и учете\n40 европски\nјазици',skip:'Прескокни ›',exitBtn:'✕ Излез',lessonTitle:'💾 Зачувај лекција',lessonName:'Ime на лекцијата',lessonPlaceholder:'Моја лекција…',contactTitle:'Соговорник',convTitle:'Разговори',lessonTitle2:'Sessions',saveConvTitle:'💾 Зачувај разговор',convNameLabel:'Ime на разговорот',convPlaceholder:'Мојот разговор…',saveConvBtn:'💾 Зачувај'},
   es:{conv:'Conversaciones',lessons:'Sessions',waiting:'Esperando',waitingLesson:'Esperando session',startConv:'Iniciar conversación',startLesson:'Iniciar session',inProgress:'En curso',lessonProgress:'Session en curso',ended:'Terminada',lessonEnded:'Session terminada',clickStop:'Clic para detener',repeat:'Repetir',resume:'Continuar',save:'Guardar',exit:'Salir',welcome:'Bienvenido\na\nMakedoo',back:'← Volver',longPressLang:'Haz clic en el idioma para cambiarlo',clickArrow:'Pulsa la flecha para cambiar interlocutor',swapLangs:'Pulsa la flecha para intercambiar idioma origen y destino',replace:'Reemplazar',insert:'Insertar',all:'Todo',oralTrans:'Traducción oral',writtenTrans:'Traducción escrita',read:'Leer',copy:'Copiar',copied:'¡Copiado!',selectFirst:'Selecciona una frase',useInputOrMic:'Usa el campo de texto o el micrófono',welcomeTitle:'Bienvenido a Makedoo',welcomeText1:'Makedoo es una aplicación de traducción de voz y texto, diseñada para facilitar la comunicación entre personas de diferentes idiomas y el aprendizaje.',welcomeText2:'El uso de Makedoo es gratuito y no requiere descarga',welcomeTextLangs:'Makedoo es la aplicación de los 40 idiomas europeos, más el árabe y los idiomas asiáticos',soloIntro:'SOLO es el modo de aprendizaje',duoIntro:'El modo DUO es el modo de conversación',micStart:'Toca el micrófono para empezar',micStop:'Toca el micrófono para detener',clickTalk:'Clic para hablar',youFirst:'Usted habla primero',theyFirst:' habla primero',keyOk:'✓ Guardado',learnSoon:'¡Modo aprendizaje pronto!',myLang:'Mi idioma',transLang:'Idioma traducción',exchanges:'intercambio(s)',noConv:'Sin conversaciones',noLesson:'Sin sessions',selectConv:'Seleccionar conversación',selectLesson:'Seleccionar session',review:'Revisar',rename:'Renombrar',export:'Exportar MP3',delete:'Eliminar',listen:'Escuchar',stop:'Parar',unknown:'Desconocido',startLesson2:'Iniciar lección',target:'Destino',source:'Origen',settings:'⚙ Ajustes',apiKeyLabel:'Clave API Google',uiLangLabel:'Idioma interfaz',saveKey:'Guardar clave',voicesLabel:'Voces MK disponibles',scanVoices:'🔍 Buscar voces MK',scanPrompt:'Toca para buscar…',noVoices:'Sin voz MK',newContact:'Nuevo nombre…',exitNoSave:'¿Salir sin guardar?',deleteConfirm:'¿Eliminar?',sttError:'Voz no reconocida',sttFail:'Error STT',micError:'Micrófono no accesible',micTestChecking:'Comprobando…',micTestOk:'¡Micrófono accesible!',micTestDenied:'Acceso denegado.',micTestLabel:'🎤 Prueba de micrófono',micTestBtn:'🎤 Probar micrófono',micTestHint:'Toca para verificar acceso',tagline:'Habla y aprende\nlos 40 idiomas\nde Europa',skip:'Omitir ›',exitBtn:'✕ Salir',lessonTitle:'💾 Guardar lección',lessonName:'Nombre de lección',lessonPlaceholder:'Mi lección…',contactTitle:'Interlocutor',convTitle:'Conversaciones',lessonTitle2:'Sessions',saveConvTitle:'💾 Guardar conversación',convNameLabel:'Nombre conversación',convPlaceholder:'Mi conversación…',saveConvBtn:'💾 Guardar'},
   de:{conv:'Gespräche',lessons:'Sessions',waiting:'Warte',waitingLesson:'Warte auf Session',startConv:'Gespräch starten',startLesson:'Session starten',inProgress:'Läuft',lessonProgress:'Session läuft',ended:'Beendet',lessonEnded:'Session beendet',clickStop:'Klick zum Stoppen',repeat:'Wiederholen',resume:'Fortfahren',save:'Speichern',exit:'Beenden',welcome:'Willkommen\nbei\nMakedoo',back:'← Zurück',longPressLang:'Klicken Sie auf die Sprache, um sie zu ändern',clickArrow:'Pfeil klicken zum Partnerwechsel',swapLangs:'Pfeil klicken zum Tauschen von Quell- und Zielsprache',replace:'Ersetzen',insert:'Einfügen',all:'Alle',oralTrans:'Mündliche Übersetzung',writtenTrans:'Schriftliche Übersetzung',read:'Lesen',copy:'Kopieren',copied:'Kopiert!',selectFirst:'Wähle einen Satz aus',useInputOrMic:'Nutze das Textfeld oder das Mikrofon',welcomeTitle:'Willkommen bei Makedoo',welcomeText1:'Makedoo ist eine App für Sprach- und Textübersetzung, die die Kommunikation zwischen Menschen verschiedener Sprachen sowie das Lernen erleichtert.',welcomeText2:'Die Nutzung von Makedoo ist kostenlos und erfordert keinen Download',welcomeTextLangs:'Makedoo ist die App für 40 europäische Sprachen, plus Arabisch und asiatische Sprachen',soloIntro:'SOLO ist der Lernmodus',duoIntro:'Der DUO-Modus ist der Gesprächsmodus',micStart:'Mikrofon antippen zum Starten',micStop:'Mikrofon antippen zum Stoppen',clickTalk:'Klick zum Sprechen',youFirst:'Sie sprechen zuerst',theyFirst:' spricht zuerst',keyOk:'✓ Gespeichert',learnSoon:'Lernmodus bald!',myLang:'Meine Sprache',transLang:'Übersetzungssprache',exchanges:'Austausch',noConv:'Keine Gespräche',noLesson:'Keine Sessions',selectConv:'Gespräch auswählen',selectLesson:'Session auswählen',review:'Überprüfen',rename:'Umbenennen',export:'MP3 Export',delete:'Löschen',listen:'Anhören',stop:'Stoppen',unknown:'Unbekannt',startLesson2:'Lektion starten',target:'Ziel',source:'Quelle',settings:'⚙ Einstellungen',apiKeyLabel:'Google API-Schlüssel',uiLangLabel:'Oberflächensprache',saveKey:'Schlüssel speichern',voicesLabel:'MK-Stimmen verfügbar',scanVoices:'🔍 MK-Stimmen suchen',scanPrompt:'Zum Scannen tippen…',noVoices:'Keine MK-Stimme gefunden',newContact:'Neuer Name…',exitNoSave:'Ohne Speichern beenden?',deleteConfirm:'Löschen?',sttError:'Sprache nicht erkannt',sttFail:'STT-Fehler',micError:'Mikrofon nicht zugänglich',micTestChecking:'Überprüfung…',micTestOk:'Mikrofon zugänglich!',micTestDenied:'Zugriff verweigert.',micTestLabel:'🎤 Mikrofontest',micTestBtn:'🎤 Mikrofon testen',micTestHint:'Tippen zum Prüfen des Zugriffs',tagline:'Sprechen und lernen\nSie die 40 Sprachen\nEuropas',skip:'Überspringen ›',exitBtn:'✕ Beenden',lessonTitle:'💾 Lektion speichern',lessonName:'Lektionsname',lessonPlaceholder:'Meine Lektion…',contactTitle:'Gesprächspartner',convTitle:'Gespräche',lessonTitle2:'Sessions',saveConvTitle:'💾 Gespräch speichern',convNameLabel:'Gesprächsname',convPlaceholder:'Mein Gespräch…',saveConvBtn:'💾 Speichern'},
@@ -621,6 +642,7 @@ function execLP(a){
 
 // ── Mode ───────────────────────────────────────────────────────
 function setMode(mode){
+  if(S.plusScreenActive){hidePlusScreen();S.screen=0;}
   if(S.screen!==0)return;
   S.mode=mode;
   S.showInfoScreen0=false;
@@ -703,7 +725,7 @@ function handleTap(){
   }
 }
 
-function showTopCenter(){isLearn()?showLessons():showConversations()}
+function showTopCenter(){if(S.plusScreenActive)return;isLearn()?showLessons():showConversations()}
 
 // ── Screen ─────────────────────────────────────────────────────
 function setScreen(n){S.screen=n;S.isSpeaking=false;if(n===0)S.duoReadMode=false;renderScreen()}
@@ -1981,8 +2003,10 @@ function importSession(){
 
 function openLangPicker(target){
   S.langPickerTarget=target;
-  document.getElementById('t-langpicker').textContent=target==='from'?t('myLang'):t('transLang');
-  document.getElementById('lang-list').innerHTML=LANGS.map(l=>'<div class="list-item'+(( target==='from'&&l.code===S.langFrom)||(target==='to'&&l.code===S.langTo)?' selected':'')+'" onclick="selectLang(\''+l.code+'\')">'+l.flag+' '+l.label+'</div>').join('');
+  const label=(target==='from')?t('myLang'):(target==='to')?t('transLang'):(target==='plusA'?t('myLang'):t('transLang'));
+  document.getElementById('t-langpicker').textContent=label;
+  const curCode=target==='from'?S.langFrom:target==='to'?S.langTo:target==='plusA'?S.plusLangA:S.plusLangB;
+  document.getElementById('lang-list').innerHTML=LANGS.map(l=>'<div class="list-item'+(l.code===curCode?' selected':'')+'" onclick="selectLang(\''+l.code+'\')">'+l.flag+' '+l.label+'</div>').join('');
   showOv('ov-lang');
 }
 function selectLang(code){
@@ -1998,12 +2022,143 @@ function selectLang(code){
     }
     updateUILabels();
     renderScreen();
-  } else {
+  } else if(S.langPickerTarget==='to'){
     S.langTo=code;
     localStorage.setItem('makedoo_v3_langTo',code);
+  } else if(S.langPickerTarget==='plusA'){
+    S.plusLangA=code;
+    localStorage.setItem('makedoo_v3_plusLangA',code);
+    updatePlusDisplay();
+  } else if(S.langPickerTarget==='plusB'){
+    S.plusLangB=code;
+    localStorage.setItem('makedoo_v3_plusLangB',code);
+    updatePlusDisplay();
   }
   updateDisplay();
   hideOv('ov-lang');
+}
+
+// ── Écran "+" (échanges simplifiés à deux drapeaux) ─────────────
+function openPlusLangPicker(side){ openLangPicker(side==='A'?'plusA':'plusB'); }
+
+function updatePlusDisplay(){
+  const la=LANGS.find(l=>l.code===S.plusLangA);
+  const lb=LANGS.find(l=>l.code===S.plusLangB);
+  const fa=document.getElementById('plus-flag-a-small');const ca=document.getElementById('plus-code-a');
+  const fb=document.getElementById('plus-flag-b-small');const cb=document.getElementById('plus-code-b');
+  const ba=document.getElementById('plus-flag-a-btn');const bb=document.getElementById('plus-flag-b-btn');
+  if(fa)fa.textContent=la?la.flag:'🏳️';
+  if(ca)ca.textContent=la?la.display:S.plusLangA.toUpperCase();
+  if(fb)fb.textContent=lb?lb.flag:'🏳️';
+  if(cb)cb.textContent=lb?lb.display:S.plusLangB.toUpperCase();
+  if(ba)ba.textContent=la?la.flag:'🏳️';
+  if(bb)bb.textContent=lb?lb.flag:'🏳️';
+}
+
+function showPlusScreen(){
+  const ml=document.querySelector('.main-layout');
+  const ps=document.getElementById('plus-screen');
+  if(ml)ml.style.display='none';
+  if(ps)ps.style.display='flex';
+  S.plusScreenActive=true;
+  document.getElementById('btn-plus').classList.add('active-plus');
+  document.getElementById('btn-exchange').classList.remove('active-exchange');
+  document.getElementById('btn-learn').classList.remove('active-learn');
+  updatePlusDisplay();
+  updateUILabels();
+}
+function hidePlusScreen(){
+  const ml=document.querySelector('.main-layout');
+  const ps=document.getElementById('plus-screen');
+  if(ps)ps.style.display='none';
+  if(ml)ml.style.display='flex';
+  S.plusScreenActive=false;
+  document.getElementById('btn-plus').classList.remove('active-plus');
+  document.getElementById('btn-exchange').className='mode-btn'+(S.mode==='exchange'?' active-exchange':'');
+  document.getElementById('btn-learn').className='mode-btn'+(S.mode==='learn'?' active-learn':'');
+  updateUILabels();
+}
+
+let plusMediaRecorder=null,plusAudioChunks=[],plusRecordingSide=null;
+
+function plusStartRecord(side){
+  if(S.plusBusy||plusRecordingSide)return;
+  plusRecordingSide=side;
+  const btn=document.getElementById(side==='A'?'plus-flag-a-btn':'plus-flag-b-btn');
+  if(btn)btn.style.opacity='0.5';
+  const statusEl=document.getElementById('plus-status');
+  if(statusEl)statusEl.textContent='🔴 …';
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}).then(stream=>{
+    if(plusRecordingSide!==side){stream.getTracks().forEach(t=>t.stop());return}
+    plusAudioChunks=[];
+    const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+    plusMediaRecorder=new MediaRecorder(stream,{mimeType});
+    plusMediaRecorder.ondataavailable=e=>{if(e.data.size>0)plusAudioChunks.push(e.data)};
+    plusMediaRecorder.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      if(!plusAudioChunks.length){plusResetFlags();return}
+      const fromLang=side==='A'?S.plusLangA:S.plusLangB;
+      const toLang=side==='A'?S.plusLangB:S.plusLangA;
+      const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT',zh:'zh-CN',ja:'ja-JP',th:'th-TH',km:'km-KH',id:'id-ID',vi:'vi-VN',lo:'lo-LA'};
+      const recogLang=langMap[fromLang]||'fr-FR';
+      const statusEl2=document.getElementById('plus-status');
+      if(statusEl2)statusEl2.textContent='⏳ …';
+      const blob=new Blob(plusAudioChunks,{type:mimeType});
+      const reader=new FileReader();
+      reader.onloadend=async()=>{
+        const base64=reader.result.split(',')[1];
+        try{
+          const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,languageCode:recogLang,mimeType})});
+          const data=await res.json();
+          const text=data.transcript||'';
+          if(text){await plusTranslateAndSpeak(text,fromLang,toLang);}
+          else{if(statusEl2)statusEl2.textContent='😕 …';}
+        }catch(e){
+          if(statusEl2)statusEl2.textContent='❌ '+t('sttFail');
+        }
+        plusResetFlags();
+      };
+      reader.readAsDataURL(blob);
+    };
+    plusMediaRecorder.start();
+  }).catch(e=>{
+    showToast(t('micError'));
+    plusRecordingSide=null;
+    plusResetFlags();
+  });
+}
+
+function plusStopRecord(side){
+  if(plusRecordingSide!==side)return;
+  if(plusMediaRecorder&&plusMediaRecorder.state==='recording'){
+    plusMediaRecorder.stop();
+  } else {
+    plusRecordingSide=null;
+    plusResetFlags();
+  }
+}
+
+function plusResetFlags(){
+  plusRecordingSide=null;
+  S.plusBusy=false;
+  const ba=document.getElementById('plus-flag-a-btn');const bb=document.getElementById('plus-flag-b-btn');
+  if(ba)ba.style.opacity='1';
+  if(bb)bb.style.opacity='1';
+  const statusEl=document.getElementById('plus-status');
+  if(statusEl)statusEl.textContent='Maintenez un drapeau enfoncé pour parler';
+}
+
+async function plusTranslateAndSpeak(text,fromLang,toLang){
+  S.plusBusy=true;
+  let translated=text;
+  try{
+    const res=await fetch(API_BASE+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:fromLang,target:toLang})});
+    const data=await res.json();
+    if(data.translated)translated=data.translated;
+  }catch(e){}
+  const statusEl=document.getElementById('plus-status');
+  if(statusEl)statusEl.textContent=translated;
+  await speakText(translated,toLang);
 }
 
 // ── Contact picker ─────────────────────────────────────────────
@@ -2206,7 +2361,9 @@ function updateDisplay(){
 
 function updateUILabels(){
   // Mode buttons — toujours DUO/SOLO
-  document.getElementById('btn-top-center').textContent=isLearn()?t('lessons'):t('conv');
+  document.getElementById('btn-top-center').textContent=S.plusScreenActive?t('exchangesLabel'):(isLearn()?t('lessons'):t('conv'));
+  document.getElementById('btn-top-center').style.opacity=S.plusScreenActive?'0.55':'1';
+  document.getElementById('btn-top-center').style.cursor=S.plusScreenActive?'default':'pointer';
   document.getElementById('btn-exchange').textContent='DUO';
   document.getElementById('btn-learn').textContent='SOLO';
   // Test microphone
@@ -2268,6 +2425,12 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
 
 // ── Boot ───────────────────────────────────────────────────────
+{
+  const savedA=localStorage.getItem('makedoo_v3_plusLangA');
+  const savedB=localStorage.getItem('makedoo_v3_plusLangB');
+  if(savedA)S.plusLangA=savedA;
+  if(savedB)S.plusLangB=savedB;
+}
 loadInfoText().then(()=>{if(S.screen===0)renderScreen();});
 updateVoiceButtons();
 // Synchroniser le scroll des deux fenêtres texte (source/cible)
