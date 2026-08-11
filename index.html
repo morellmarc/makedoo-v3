@@ -523,16 +523,32 @@ input:focus{border-color:var(--blue)}
     <button class="overlay-close" onclick="hideOv('ov-publish-library')">×</button>
     <div class="overlay-title">📚 Publier dans la bibliothèque</div>
     <div class="setting-row">
-      <div class="setting-label">Catégorie</div>
-      <select id="publish-tier" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
-        <option value="gratuit">Gratuit</option>
-        <option value="abonnes">Abonnés</option>
-        <option value="professionnel">Professionnel</option>
+      <div class="setting-label">Pack de destination</div>
+      <select id="publish-pack-select" onchange="onPublishPackChange()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+        <option value="">Chargement des packs…</option>
       </select>
     </div>
-    <div class="setting-row">
-      <div class="setting-label">Dossier (ex: tourisme-ohrid-fr-mk)</div>
-      <input type="text" id="publish-folder" placeholder="nom-du-pack-fr-mk">
+    <div id="publish-new-pack-fields" style="display:none">
+      <div class="setting-row">
+        <div class="setting-label">Catégorie</div>
+        <select id="publish-tier" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+          <option value="gratuit">Gratuit</option>
+          <option value="abonnes">Abonnés</option>
+          <option value="professionnel">Professionnel</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Identifiant du pack (ex: tourisme-ohrid-fr-mk)</div>
+        <input type="text" id="publish-folder" placeholder="nom-du-pack-fr-mk">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Nom affiché du pack</div>
+        <input type="text" id="publish-pack-name" placeholder="Tourisme à Ohrid">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Description</div>
+        <input type="text" id="publish-pack-desc" placeholder="Description courte du pack">
+      </div>
     </div>
     <div class="setting-row">
       <div class="setting-label">Nom du fichier</div>
@@ -2012,27 +2028,73 @@ function exportSessionJson(){
   showToast('📤 JSON');
 }
 
-function openPublishLibrary(){
+let publishPacksCache=null;
+
+async function openPublishLibrary(){
   if(!selectedEntry)return;
   document.getElementById('publish-folder').value='';
+  document.getElementById('publish-pack-name').value='';
+  document.getElementById('publish-pack-desc').value='';
   const suggestedName=(selectedEntry.name||'session').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
   document.getElementById('publish-filename').value=suggestedName;
   document.getElementById('publish-pin').value='';
   document.getElementById('publish-status').textContent='';
   showOv('ov-publish-library');
+  const sel=document.getElementById('publish-pack-select');
+  sel.innerHTML='<option value="">Chargement des packs…</option>';
+  try{
+    const res=await fetch(API_BASE+'/library-manifest');
+    const data=await res.json();
+    publishPacksCache=data.packs||[];
+    const tierLabels={gratuit:'Gratuit',abonnes:'Abonnés',professionnel:'Professionnel'};
+    let html='';
+    ['gratuit','abonnes','professionnel'].forEach(tier=>{
+      const packs=publishPacksCache.filter(p=>p.tier===tier);
+      if(packs.length){
+        html+='<optgroup label="'+tierLabels[tier]+'">';
+        packs.forEach(p=>{html+='<option value="'+p.id+'">'+p.name+'</option>';});
+        html+='</optgroup>';
+      }
+    });
+    html+='<option value="__new__">➕ Nouveau pack…</option>';
+    sel.innerHTML=html;
+    onPublishPackChange();
+  }catch(e){
+    sel.innerHTML='<option value="__new__">➕ Nouveau pack…</option>';
+    onPublishPackChange();
+  }
+}
+
+function onPublishPackChange(){
+  const sel=document.getElementById('publish-pack-select');
+  const newFields=document.getElementById('publish-new-pack-fields');
+  newFields.style.display=sel.value==='__new__'?'block':'none';
 }
 
 async function confirmPublishLibrary(){
   if(!selectedEntry)return;
-  const tier=document.getElementById('publish-tier').value;
-  const folder=document.getElementById('publish-folder').value.trim();
+  const sel=document.getElementById('publish-pack-select');
   const filename=document.getElementById('publish-filename').value.trim();
   const pin=document.getElementById('publish-pin').value.trim();
   const statusEl=document.getElementById('publish-status');
-  if(!folder||!filename){statusEl.textContent='❌ Dossier et nom de fichier requis';statusEl.style.color='var(--red-text)';return;}
+  let tier,folder,newPack=null;
+  if(sel.value==='__new__'){
+    tier=document.getElementById('publish-tier').value;
+    folder=document.getElementById('publish-folder').value.trim();
+    const packName=document.getElementById('publish-pack-name').value.trim();
+    const packDesc=document.getElementById('publish-pack-desc').value.trim();
+    if(!folder||!packName){statusEl.textContent='❌ Identifiant et nom du pack requis';statusEl.style.color='var(--red-text)';return;}
+    newPack={name:packName,description:packDesc,langPair:S.langFrom+'-'+S.langTo};
+  } else {
+    if(!sel.value){statusEl.textContent='❌ Choisissez un pack';statusEl.style.color='var(--red-text)';return;}
+    const pack=publishPacksCache.find(p=>p.id===sel.value);
+    if(!pack){statusEl.textContent='❌ Pack introuvable';statusEl.style.color='var(--red-text)';return;}
+    tier=pack.tier;folder=pack.id;
+  }
+  if(!filename){statusEl.textContent='❌ Nom de fichier requis';statusEl.style.color='var(--red-text)';return;}
   statusEl.textContent='⏳ Publication…';statusEl.style.color='var(--muted)';
   try{
-    const res=await fetch(API_BASE+'/publish-library',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tier,folder,filename,session:selectedEntry,pin})});
+    const res=await fetch(API_BASE+'/publish-library',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tier,folder,filename,session:selectedEntry,pin,newPack})});
     const data=await res.json();
     if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
     statusEl.textContent='✅ Publié !';statusEl.style.color='var(--green-text)';
