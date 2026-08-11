@@ -120,7 +120,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 
 /* ── MODE BAR ── */
 .mode-bar{display:flex;justify-content:center;align-items:center;gap:10px;padding:6px 20px 26px;border-top:1px solid var(--line);flex-shrink:0;background:#D9E7FF}
-.mode-btn{font-size:12px;font-weight:700;letter-spacing:0.3px;cursor:pointer;padding:10px 22px;border:none;border-radius:14px;transition:all 0.2s;font-family:inherit}
+.mode-btn{font-size:12px;font-weight:700;letter-spacing:0.3px;cursor:pointer;padding:10px 22px;border:none;border-radius:14px;transition:all 0.2s;font-family:inherit;background:#D4F5E4;color:var(--text)}
 .mode-btn.active-exchange{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
 .mode-btn.active-learn{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
 .mode-btn.active-plus{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:white;box-shadow:0 4px 14px rgba(74,108,247,0.3)}
@@ -332,7 +332,7 @@ input:focus{border-color:var(--blue)}
 </div>
 
 <!-- ÉCRAN + (échanges simplifiés) -->
-<div id="plus-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative">
+<div id="plus-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#CFE1FF">
   <div id="plus-press-zone" style="position:absolute;top:116px;left:0;right:0;bottom:101px;display:flex;background:#CFE1FF">
     <button id="plus-flag-a-btn" ontouchstart="plusStartRecord('A')" ontouchend="plusStopRecord('A')" ontouchcancel="plusStopRecord('A')" onmousedown="plusStartRecord('A')" onmouseup="plusStopRecord('A')" onmouseleave="plusStopRecord('A')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
     <button id="plus-flag-b-btn" ontouchstart="plusStartRecord('B')" ontouchend="plusStopRecord('B')" ontouchcancel="plusStopRecord('B')" onmousedown="plusStartRecord('B')" onmouseup="plusStopRecord('B')" onmouseleave="plusStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
@@ -926,6 +926,7 @@ function renderScreen(){
     const soloFresh=learn&&S.currentExchanges.length===0;
     if(soloFresh){
       pill.style.display='none';
+      convActions.innerHTML='<div style="text-align:center;font-size:12px;color:var(--muted)">'+t('plusPressToTalk')+'</div>';
     } else {
       pill.className=(learn?'status-tag learn':'status-tag active');
       pill.textContent='💬 '+inProgress;
