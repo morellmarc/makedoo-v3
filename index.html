@@ -545,6 +545,7 @@ const S={
   screen:0,listening:false,
   lastTranslation:null,lastTranslationLang:null,lastOriginal:null,
   currentExchanges:[],
+  plusExchanges:[],
   journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
   lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
   contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
@@ -1306,7 +1307,7 @@ function doSave(){
   showOv('ov-save-conv');
 }
 function plusDoSave(){
-  if(S.currentExchanges.length===0){showToast(t('noConv'));return;}
+  if(S.plusExchanges.length===0){showToast(t('noConv'));return;}
   S.savingFromPlus=true;
   document.getElementById('conv-name-input').value='';
   document.getElementById('conv-date').textContent=new Date().toLocaleDateString()+' · '+S.location;
@@ -1314,16 +1315,18 @@ function plusDoSave(){
 }
 function confirmSaveConv(){
   const name=document.getElementById('conv-name-input').value.trim()||('Conv. '+new Date().toLocaleDateString());
-  S.journal.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],location:S.location,langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
+  const exchanges=S.savingFromPlus?S.plusExchanges:S.currentExchanges;
+  S.journal.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],location:S.location,langFrom:S.langFrom,langTo:S.langTo,count:exchanges.length,exchanges:[...exchanges]});
   localStorage.setItem('mk_v3_journal',JSON.stringify(S.journal));
   hideOv('ov-save-conv');
-  S.currentExchanges=[];
   if(S.savingFromPlus){
+    S.plusExchanges=[];
     const statusEl=document.getElementById('plus-status');
     if(statusEl)statusEl.textContent=t('plusPressToTalk');
     const saveRow=document.getElementById('plus-save-row');
     if(saveRow)saveRow.style.display='none';
   } else {
+    S.currentExchanges=[];
     setScreen(0);
   }
   S.savingFromPlus=false;
@@ -2144,7 +2147,7 @@ function showPlusScreen(markActive){
   const hintFlags=document.getElementById('plus-hint-flags');
   if(hintFlags)hintFlags.textContent=t('clickFlagsToChange');
   const saveRow=document.getElementById('plus-save-row');
-  if(saveRow)saveRow.style.display=S.currentExchanges.length>0?'flex':'none';
+  if(saveRow)saveRow.style.display=S.plusExchanges.length>0?'flex':'none';
   const saveLabel=document.getElementById('plus-save-label');
   if(saveLabel)saveLabel.textContent=t('save');
   updateSoloFlagsDisplay();
@@ -2308,7 +2311,7 @@ async function plusTranslateAndSpeak(text,fromLang,toLang){
     const data=await res.json();
     if(data.translated)translated=data.translated;
   }catch(e){}
-  S.currentExchanges.push({original:text,translated,langFrom:fromLang,langTo:toLang});
+  S.plusExchanges.push({original:text,translated,langFrom:fromLang,langTo:toLang});
   S.lastPlusOriginal=text;
   S.lastPlusOriginalLang=fromLang;
   const saveRow=document.getElementById('plus-save-row');
