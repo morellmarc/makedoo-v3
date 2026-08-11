@@ -324,7 +324,7 @@ input:focus{border-color:var(--blue)}
 
 <!-- ÉCRAN + (échanges simplifiés) -->
 <div id="plus-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative">
-  <div id="plus-presentation" onclick="togglePlusPresentation()" style="display:none;position:absolute;inset:0;z-index:30;background:#CFE1FF;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;text-align:center;gap:12px;cursor:pointer">
+  <div id="plus-presentation" style="display:none;position:absolute;inset:0;z-index:30;background:#CFE1FF;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;text-align:center;gap:12px">
     <div id="plus-pres-1" style="font-size:14px;line-height:1.4;color:var(--text)"></div>
     <div id="plus-pres-2" style="font-size:14px;line-height:1.4;color:var(--text)"></div>
     <div id="plus-pres-3" style="font-size:14px;line-height:1.4;color:var(--text)"></div>
@@ -657,6 +657,8 @@ function execLP(a){
 // ── Mode ───────────────────────────────────────────────────────
 function setMode(mode){
   if(S.plusScreenActive){hidePlusScreen();S.screen=0;}
+  const pres=document.getElementById('plus-presentation');
+  if(pres&&pres.style.display==='flex')pres.style.display='none';
   if(S.screen!==0)return;
   S.mode=mode;
   S.showInfoScreen0=false;
@@ -918,8 +920,13 @@ function renderScreen(){
   }else if(S.screen===1&&!S.listening){
     if(micC)micC.style.opacity='1';
     status.textContent=t('clickTalk');
-    pill.className=(learn?'status-tag learn':'status-tag active');
-    pill.textContent='💬 '+inProgress;
+    const soloFresh=learn&&S.currentExchanges.length===0;
+    if(soloFresh){
+      pill.style.display='none';
+    } else {
+      pill.className=(learn?'status-tag learn':'status-tag active');
+      pill.textContent='💬 '+inProgress;
+    }
     if(!learn){
       intLabel.innerHTML=t('micStart')+'<br>'+t('micStop');
       intLabel.classList.add('visible');
@@ -928,16 +935,12 @@ function renderScreen(){
     if(!learn){
       convActions.innerHTML=(S.currentExchanges.length>0?'<button class="action-btn blue solid" onclick="doSave()">'+t('save')+'</button>':'')+'<button class="action-btn red" onclick="doExitConv()">'+t('exit')+'</button>';
     }
-    // SOLO screen 1 : bouton Retour si session en cours, Sortir si démarrage
+    // SOLO screen 1 : bouton Retour si session en cours, rien au tout premier écran
     if(finBtn){
       if(learn&&S.currentExchanges.length>0){
         finBtn.style.display='inline-flex';
         document.getElementById('fin-btn-label').textContent=t('back');
         finBtn.onclick=function(){S.insertMode=false;S.insertBeforeIdx=undefined;setScreen(2);};
-      } else if(learn){
-        finBtn.style.display='inline-flex';
-        document.getElementById('fin-btn-label').textContent=t('exit');
-        finBtn.onclick=function(){confirmEnd();};
       } else {
         finBtn.style.display='none';
       }
@@ -2102,15 +2105,23 @@ function togglePlusPresentation(){
   }
 }
 
-function showPlusScreen(){
+function showPlusScreen(markActive){
+  if(markActive===undefined)markActive=true;
   const ml=document.querySelector('.main-layout');
   const ps=document.getElementById('plus-screen');
   if(ml)ml.style.display='none';
   if(ps)ps.style.display='flex';
   S.plusScreenActive=true;
   S.mode='exchange';
-  document.getElementById('btn-exchange').className='mode-btn active-exchange';
-  document.getElementById('btn-learn').className='mode-btn';
+  if(markActive){
+    document.getElementById('btn-exchange').className='mode-btn active-exchange';
+    document.getElementById('btn-learn').className='mode-btn';
+  } else {
+    document.getElementById('btn-exchange').className='mode-btn';
+    document.getElementById('btn-learn').className='mode-btn';
+  }
+  const pres=document.getElementById('plus-presentation');
+  if(pres&&pres.style.display==='flex')pres.style.display='none';
   const soloTopFlags=document.getElementById('solo-top-flags');
   if(soloTopFlags)soloTopFlags.style.display='flex';
   const statusEl=document.getElementById('plus-status');
@@ -2582,7 +2593,7 @@ updateVoiceButtons();
   }
 })();
 updateDisplay();updateUILabels();renderScreen();
-showPlusScreen();
+showPlusScreen(false);
 
 // Compteur de visites (discret, silencieux en cas d'échec)
 fetch(API_BASE+'/visit').catch(()=>{});
