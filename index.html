@@ -286,6 +286,7 @@ input:focus{border-color:var(--blue)}
       </div>
       <div class="action-row" id="conv-action-row" style="flex-shrink:0"></div>
       <button id="solo-playback-btn" onclick="playLastRecording()" style="display:none;background:none;border:1.5px solid var(--muted);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted);cursor:pointer;margin:0 auto">🔊 Réécouter mon enregistrement</button>
+      <button id="solo-download-btn" onclick="downloadLastRecording()" style="display:none;background:none;border:1.5px solid var(--muted);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted);cursor:pointer;margin:4px auto 0">💾 Télécharger l'enregistrement</button>
     </div>
 
   </div>
@@ -344,6 +345,7 @@ input:focus{border-color:var(--blue)}
   <div style="position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;padding:8px 0 4px;background:#CFE1FF">
     <div id="plus-status" style="text-align:center;font-size:15px;color:var(--muted);font-weight:600">Maintenez un drapeau enfoncé pour parler</div>
     <button id="plus-playback-btn" onclick="playLastRecording()" style="display:none;background:none;border:1.5px solid var(--muted);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted);cursor:pointer">🔊 Réécouter mon enregistrement</button>
+    <button id="plus-download-btn" onclick="downloadLastRecording()" style="display:none;background:none;border:1.5px solid var(--muted);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted);cursor:pointer;margin-top:4px">💾 Télécharger l'enregistrement</button>
     <div id="plus-save-row" style="display:none;justify-content:center;gap:10px">
       <button class="action-btn orange" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
       <button class="action-btn primary" id="plus-repeat-btn" onclick="plusDoRepeat()">🔁 <span id="plus-repeat-label">Répéter</span></button>
@@ -2439,6 +2441,15 @@ function playLastRecording(){
   audio.play();
   audio.onended=()=>URL.revokeObjectURL(url);
 }
+function downloadLastRecording(){
+  if(!lastRecordedBlob)return;
+  const url=URL.createObjectURL(lastRecordedBlob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='makedoo_test_'+Date.now()+'.webm';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 function ensureMicStream(){
   if(sharedMicStream)return Promise.resolve(sharedMicStream);
   if(sharedMicStreamPromise)return sharedMicStreamPromise;
@@ -2524,6 +2535,8 @@ function plusStartRecord(side){
       lastRecordedBlob=blob;
       const playBtn=document.getElementById('plus-playback-btn');
       if(playBtn)playBtn.style.display='inline-flex';
+      const dlBtn=document.getElementById('plus-download-btn');
+      if(dlBtn)dlBtn.style.display='inline-flex';
       const reader=new FileReader();
       reader.onloadend=async()=>{
         const base64=reader.result.split(',')[1];
@@ -2609,6 +2622,8 @@ function soloStartRecord(side){
       lastRecordedBlob=blob;
       const playBtn=document.getElementById('solo-playback-btn');
       if(playBtn)playBtn.style.display='inline-flex';
+      const dlBtn=document.getElementById('solo-download-btn');
+      if(dlBtn)dlBtn.style.display='inline-flex';
       const reader=new FileReader();
       reader.onloadend=async()=>{
         const base64=reader.result.split(',')[1];
