@@ -2505,7 +2505,7 @@ function plusStartRecord(side){
           const data=await res.json();
           const text=data.transcript||'';
           const engineEl=document.getElementById('plus-engine-indicator');
-          if(engineEl)engineEl.textContent=data.engine?('🔧 '+data.engine+(data.azureError?' ('+data.azureError.slice(0,80)+')':'')):'';
+          if(engineEl)engineEl.textContent=data.engine?('🔧 '+data.engine+(data.azureError?' ('+data.azureError.slice(0,300)+')':'')):'';
           if(text){await plusTranslateAndSpeak(text,fromLang,toLang);}
           else{if(statusEl2)statusEl2.textContent='😕 …';}
         }catch(e){
@@ -2580,7 +2580,7 @@ function soloStartRecord(side){
           const data=await res.json();
           const text=data.transcript||'';
           const engineEl=document.getElementById('solo-engine-indicator');
-          if(engineEl)engineEl.textContent=data.engine?('🔧 '+data.engine+(data.azureError?' ('+data.azureError.slice(0,80)+')':'')):'';
+          if(engineEl)engineEl.textContent=data.engine?('🔧 '+data.engine+(data.azureError?' ('+data.azureError.slice(0,300)+')':'')):'';
           soloResetFlags();
           if(text){await translateAndSpeak(text,fromLang,toLang);}
           else{showToast(t('sttError'));}
