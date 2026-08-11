@@ -518,6 +518,35 @@ input:focus{border-color:var(--blue)}
   </div>
 </div>
 
+<div class="overlay" id="ov-publish-library" style="display:none">
+  <div class="overlay-card">
+    <button class="overlay-close" onclick="hideOv('ov-publish-library')">×</button>
+    <div class="overlay-title">📚 Publier dans la bibliothèque</div>
+    <div class="setting-row">
+      <div class="setting-label">Catégorie</div>
+      <select id="publish-tier" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+        <option value="gratuit">Gratuit</option>
+        <option value="abonnes">Abonnés</option>
+        <option value="professionnel">Professionnel</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Dossier (ex: tourisme-ohrid-fr-mk)</div>
+      <input type="text" id="publish-folder" placeholder="nom-du-pack-fr-mk">
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Nom du fichier</div>
+      <input type="text" id="publish-filename" placeholder="session-1">
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Code PIN</div>
+      <input type="password" id="publish-pin" placeholder="Code PIN">
+    </div>
+    <button class="setting-btn" onclick="confirmPublishLibrary()">📚 Publier</button>
+    <div id="publish-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
+  </div>
+</div>
+
 <div class="overlay" id="ov-save-lesson" style="display:none">
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-save-lesson')">×</button>
@@ -1641,6 +1670,7 @@ function renderConvScreen(){
         +'<button class="cs-btn" onclick="resumeLesson()" style="border-color:'+color+';color:'+color+'">📖 '+t('review')+'</button>'
         +'<button class="cs-btn" onclick="renameLesson()" style="border-color:'+color+';color:'+color+'">✏️ '+t('rename')+'</button>'
         +'<button class="cs-btn" onclick="exportSessionJson()" style="border-color:'+color+';color:'+color+'">📤 JSON</button>'
+        +'<button class="cs-btn" onclick="openPublishLibrary()" style="background:var(--green-light);color:var(--green-text)">📚 Publier</button>'
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>'
         +'</div>'
         +'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">'
@@ -1980,6 +2010,37 @@ function exportSessionJson(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast('📤 JSON');
+}
+
+function openPublishLibrary(){
+  if(!selectedEntry)return;
+  document.getElementById('publish-folder').value='';
+  const suggestedName=(selectedEntry.name||'session').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  document.getElementById('publish-filename').value=suggestedName;
+  document.getElementById('publish-pin').value='';
+  document.getElementById('publish-status').textContent='';
+  showOv('ov-publish-library');
+}
+
+async function confirmPublishLibrary(){
+  if(!selectedEntry)return;
+  const tier=document.getElementById('publish-tier').value;
+  const folder=document.getElementById('publish-folder').value.trim();
+  const filename=document.getElementById('publish-filename').value.trim();
+  const pin=document.getElementById('publish-pin').value.trim();
+  const statusEl=document.getElementById('publish-status');
+  if(!folder||!filename){statusEl.textContent='❌ Dossier et nom de fichier requis';statusEl.style.color='var(--red-text)';return;}
+  statusEl.textContent='⏳ Publication…';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/publish-library',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tier,folder,filename,session:selectedEntry,pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Publié !';statusEl.style.color='var(--green-text)';
+    showToast('📚 Publié dans la bibliothèque');
+    setTimeout(()=>hideOv('ov-publish-library'),1200);
+  }catch(e){
+    statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';
+  }
 }
 
 // ── Bibliothèque Makedoo ──────────────────────────────────────
