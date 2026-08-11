@@ -339,7 +339,8 @@ input:focus{border-color:var(--blue)}
   </div>
   <div style="position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 0;background:#CFE1FF">
     <div id="plus-status" style="text-align:center;font-size:12px;color:var(--muted)">Maintenez un drapeau enfoncé pour parler</div>
-    <div id="plus-save-row" style="display:none;justify-content:center">
+    <div id="plus-save-row" style="display:none;justify-content:center;gap:10px">
+      <button class="action-btn orange" id="plus-repeat-btn" onclick="plusDoRepeat()">🔁 <span id="plus-repeat-label">Répéter</span></button>
       <button class="action-btn primary" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
     </div>
   </div>
@@ -544,7 +545,7 @@ const S={
   journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
   lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
   contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
-  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,showInfoScreen0:false,plusScreenActive:false,plusBusy:false,savingFromPlus:false,
+  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,showInfoScreen0:false,plusScreenActive:false,plusBusy:false,savingFromPlus:false,lastPlusOriginal:null,lastPlusOriginalLang:null,
   selectedVoiceURI:localStorage.getItem('makedoo_v3_voice_uri')||null,
   selectedVoiceLang:localStorage.getItem('makedoo_v3_voice_lang')||null,
 };
@@ -1570,7 +1571,7 @@ function showConvScreen(){
   if(ml)ml.style.display='none';
   if(mb)mb.style.display='none';
   if(ns)ns.style.display='none';
-  if(cs){cs.style.display='flex';cs.style.position='fixed';cs.style.inset='0';cs.style.zIndex='50';cs.style.background='var(--bg)';}
+  if(cs){cs.style.display='flex';cs.style.position='fixed';cs.style.inset='0';cs.style.zIndex='70';cs.style.background='var(--bg)';}
   renderConvScreen();
 }
 function hideConvScreen(){
@@ -2298,11 +2299,21 @@ async function plusTranslateAndSpeak(text,fromLang,toLang){
     if(data.translated)translated=data.translated;
   }catch(e){}
   S.currentExchanges.push({original:text,translated,langFrom:fromLang,langTo:toLang});
+  S.lastPlusOriginal=text;
+  S.lastPlusOriginalLang=fromLang;
   const saveRow=document.getElementById('plus-save-row');
   if(saveRow)saveRow.style.display='flex';
+  const repeatBtn=document.getElementById('plus-repeat-btn');
+  if(repeatBtn)repeatBtn.style.display='inline-flex';
   const statusEl=document.getElementById('plus-status');
   if(statusEl)statusEl.textContent=translated;
   await speakText(translated,toLang);
+}
+
+async function plusDoRepeat(){
+  if(!S.lastPlusOriginal||S.plusBusy||plusRecordingSide)return;
+  const target=(S.lastPlusOriginalLang===S.langFrom)?S.langTo:S.langFrom;
+  await plusTranslateAndSpeak(S.lastPlusOriginal,S.lastPlusOriginalLang,target);
 }
 
 // ── Contact picker ─────────────────────────────────────────────
