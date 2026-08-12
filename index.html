@@ -72,7 +72,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 
 /* Centre — cercle absolument positionné */
 .center-zone{flex:1;display:block;position:relative;padding:4px 8px}
-.intervention-zone{position:absolute;top:0;left:0;right:0;height:58px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;overflow:hidden;z-index:20;padding:1px 8px;background:#CFE1FF}
+.intervention-zone{position:absolute;top:0;left:0;right:0;height:52px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;overflow:hidden;z-index:20;padding:1px 8px;background:#CFE1FF}
 .help-zone-css{position:absolute;top:0;left:0;right:0;height:58px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;padding:1px 8px;z-index:20;background:#CFE1FF}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
 .conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:80px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 4px;justify-content:flex-start;background:#CFE1FF;z-index:25}
@@ -107,7 +107,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .fin-btn{display:none;background:var(--red-light);border:none;border-radius:12px;color:var(--red-text);font-size:12px;font-weight:700;padding:7px 16px;cursor:pointer;font-family:inherit}
 
 /* ── TEXT PANEL ── */
-.text-panel{position:absolute;top:116px;left:0;right:0;bottom:80px;z-index:5;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
+.text-panel{position:absolute;top:100px;left:0;right:0;bottom:80px;z-index:5;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
 .text-panel.visible{display:flex}
 .text-panel-top{flex:1;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);line-height:1.5;overflow-y:auto;min-height:0;user-select:text;-webkit-user-select:text}
 .text-panel-bot{flex:1;padding:8px 12px;font-size:13px;color:var(--blue-text);font-weight:600;line-height:1.5;overflow-y:auto;min-height:0;background:#F8F9FF;user-select:text;-webkit-user-select:text}
@@ -216,7 +216,7 @@ input:focus{border-color:var(--blue)}
     </div>
 
     <!-- SAISIE TEXTE SOLO -->
-    <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:60px;left:0;right:0;height:56px;box-sizing:border-box;z-index:20;background:#CFE1FF;padding:2px 8px;display:flex;align-items:center">
+    <div class="text-input-zone" id="text-input-zone" style="position:absolute;top:52px;left:0;right:0;height:48px;box-sizing:border-box;z-index:20;background:#CFE1FF;padding:2px 8px;display:flex;align-items:center">
       <div style="display:flex;gap:6px;align-items:center;width:100%">
         <input type="text" id="text-lesson-input" placeholder="Tapez votre phrase…" style="flex:1">
         <button id="btn-submit-text" onclick="submitTextLesson()" style="background:linear-gradient(135deg,#00C48C,#00A878);border:none;border-radius:10px;color:white;font-weight:700;font-size:15px;padding:10px 14px;cursor:pointer">→</button>
@@ -254,7 +254,7 @@ input:focus{border-color:var(--blue)}
     </div>
 
     <!-- DRAPEAUX SOLO (remplace le cercle) -->
-    <div id="solo-flags-area" style="display:none;position:absolute;top:116px;left:0;right:0;bottom:80px;z-index:5;background:#CFE1FF;flex-direction:row">
+    <div id="solo-flags-area" style="display:none;position:absolute;top:100px;left:0;right:0;bottom:80px;z-index:5;background:#CFE1FF;flex-direction:row">
       <button id="solo-flag-a-btn" ontouchstart="soloStartRecord('A')" ontouchend="soloStopRecord('A')" ontouchcancel="soloStopRecord('A')" onmousedown="soloStartRecord('A')" onmouseup="soloStopRecord('A')" onmouseleave="soloStopRecord('A')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
       <button id="solo-flag-b-btn" ontouchstart="soloStartRecord('B')" ontouchend="soloStopRecord('B')" ontouchcancel="soloStopRecord('B')" onmousedown="soloStartRecord('B')" onmouseup="soloStopRecord('B')" onmouseleave="soloStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
     </div>
@@ -335,10 +335,10 @@ input:focus{border-color:var(--blue)}
 
 <!-- ÉCRAN + (échanges simplifiés) -->
 <div id="plus-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#CFE1FF">
-  <div style="position:absolute;top:0;left:0;right:0;height:116px;display:flex;align-items:center;justify-content:center;padding:0 20px;text-align:center">
+  <div style="position:absolute;top:0;left:0;right:0;height:100px;display:flex;align-items:center;justify-content:center;padding:0 20px;text-align:center">
     <div id="plus-hint-flags" style="font-size:12px;color:var(--muted);font-weight:600"></div>
   </div>
-  <div id="plus-press-zone" style="position:absolute;top:116px;left:0;right:0;bottom:80px;display:flex;background:#CFE1FF">
+  <div id="plus-press-zone" style="position:absolute;top:100px;left:0;right:0;bottom:80px;display:flex;background:#CFE1FF">
     <button id="plus-flag-a-btn" ontouchstart="plusStartRecord('A')" ontouchend="plusStopRecord('A')" ontouchcancel="plusStopRecord('A')" onmousedown="plusStartRecord('A')" onmouseup="plusStopRecord('A')" onmouseleave="plusStopRecord('A')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
     <button id="plus-flag-b-btn" ontouchstart="plusStartRecord('B')" ontouchend="plusStopRecord('B')" ontouchcancel="plusStopRecord('B')" onmousedown="plusStartRecord('B')" onmouseup="plusStopRecord('B')" onmouseleave="plusStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
   </div>
@@ -1063,8 +1063,8 @@ function renderScreen(){
   const textPanelReset=document.getElementById('text-panel');
   const soloFlagsReset=document.getElementById('solo-flags-area');
   if(intZoneReset)intZoneReset.style.height='58px';
-  if(textPanelReset)textPanelReset.style.top='116px';
-  if(soloFlagsReset)soloFlagsReset.style.top='116px';
+  if(textPanelReset)textPanelReset.style.top='100px';
+  if(soloFlagsReset)soloFlagsReset.style.top='100px';
   const convZoneReset=document.getElementById('conversation-zone-el');
   if(convZoneReset)convZoneReset.style.minHeight='130px';
   if(textPanelReset)textPanelReset.style.bottom='130px';
