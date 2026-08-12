@@ -596,8 +596,24 @@ input:focus{border-color:var(--blue)}
   <div class="overlay-card" style="max-height:80vh;overflow-y:auto">
     <button class="overlay-close" onclick="hideOv('ov-audio-library');stopAudioPlayback()">×</button>
     <div class="overlay-title">🎧 Audiothèque Makedoo</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <select id="audio-lib-filter-lang" onchange="renderAudioLibraryList()" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit">
+        <option value="">Toutes langues</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="mk">🇲🇰 Македонски</option>
+      </select>
+      <select id="audio-lib-filter-cat" onchange="renderAudioLibraryList()" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit">
+        <option value="">Toutes catégories</option>
+      </select>
+    </div>
     <div id="audio-lib-list" style="display:flex;flex-direction:column;gap:8px"></div>
     <audio id="audio-lib-player" controls style="width:100%;margin-top:14px;display:none"></audio>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="setting-label">Code PIN (pour supprimer/renommer)</div>
+      <input type="password" id="audio-lib-pin" placeholder="Code PIN" style="margin-bottom:6px">
+      <div id="audio-lib-status" style="font-size:12px;color:var(--muted);text-align:center"></div>
+    </div>
   </div>
 </div>
 
@@ -623,8 +639,11 @@ input:focus{border-color:var(--blue)}
       </select>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Catégorie (ex: ohrid, environnement, histoire)</div>
-      <input type="text" id="publish-audio-category" placeholder="ohrid">
+      <div class="setting-label">Catégorie</div>
+      <select id="publish-audio-category-select" onchange="onPublishAudioCategoryChange()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+        <option value="">Chargement…</option>
+      </select>
+      <input type="text" id="publish-audio-category" placeholder="Nouvelle catégorie (ex: ohrid)" style="margin-top:6px;display:none">
     </div>
     <div class="setting-row">
       <div class="setting-label">Code PIN</div>
@@ -2318,29 +2337,50 @@ async function confirmDeleteFile(path){
 }
 
 // ── Audiothèque Makedoo (écoute + publication de MP3, hébergés sur pCloud) ──
+let audioLibTracksCache=[];
+
 async function openAudioLibrary(){
   showOv('ov-audio-library');
+  document.getElementById('audio-lib-player').style.display='none';
+  document.getElementById('audio-lib-status').textContent='';
+  document.getElementById('audio-lib-filter-lang').value='';
   const listEl=document.getElementById('audio-lib-list');
   listEl.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px">Chargement…</div>';
-  document.getElementById('audio-lib-player').style.display='none';
   try{
     const res=await fetch(API_BASE+'/audio-manifest');
     const data=await res.json();
-    const tracks=data.tracks||[];
-    const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
-    const byCategory={};
-    tracks.forEach(tr=>{(byCategory[tr.category]=byCategory[tr.category]||[]).push(tr);});
-    listEl.innerHTML=Object.keys(byCategory).map(cat=>
-      '<div style="font-weight:800;font-size:13px;margin-top:8px;text-transform:capitalize">'+cat+'</div>'
-      +byCategory[cat].map(tr=>
-        '<button class="cs-btn" style="width:100%;text-align:left;display:flex;align-items:center;gap:8px" onclick="playAudioTrack(\''+tr.url.replace(/'/g,"\\'")+'\',\''+tr.title.replace(/'/g,"\\'")+'\')">'
-        +'<span>'+(langFlags[tr.lang]||'🏳️')+'</span><span>'+tr.title+'</span>'
-        +'</button>'
-      ).join('')
-    ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun audio disponible</div>';
+    audioLibTracksCache=data.tracks||[];
+    const cats=[...new Set(audioLibTracksCache.map(t=>t.category))].sort();
+    const catSel=document.getElementById('audio-lib-filter-cat');
+    catSel.innerHTML='<option value="">Toutes catégories</option>'+cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+    renderAudioLibraryList();
   }catch(e){
     listEl.innerHTML='<div style="text-align:center;color:var(--red-text);font-size:13px">Erreur de chargement</div>';
   }
+}
+
+function renderAudioLibraryList(){
+  const listEl=document.getElementById('audio-lib-list');
+  const langFilter=document.getElementById('audio-lib-filter-lang').value;
+  const catFilter=document.getElementById('audio-lib-filter-cat').value;
+  const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+  let tracks=audioLibTracksCache;
+  if(langFilter)tracks=tracks.filter(t=>t.lang===langFilter);
+  if(catFilter)tracks=tracks.filter(t=>t.category===catFilter);
+  const byCategory={};
+  tracks.forEach(tr=>{(byCategory[tr.category]=byCategory[tr.category]||[]).push(tr);});
+  listEl.innerHTML=Object.keys(byCategory).map(cat=>
+    '<div style="font-weight:800;font-size:13px;margin-top:8px;text-transform:capitalize">'+cat+'</div>'
+    +byCategory[cat].map(tr=>
+      '<div style="display:flex;align-items:center;gap:6px">'
+      +'<button class="cs-btn" style="flex:1;text-align:left;display:flex;align-items:center;gap:8px" onclick="playAudioTrack(\''+tr.url.replace(/'/g,"\\'")+'\',\''+tr.title.replace(/'/g,"\\'")+'\')">'
+      +'<span>'+(langFlags[tr.lang]||'🏳️')+'</span><span>'+tr.title+'</span>'
+      +'</button>'
+      +'<button class="cs-btn" style="padding:4px 8px;font-size:11px" onclick="promptRenameAudio(\''+tr.id+'\')">✏️</button>'
+      +'<button class="cs-btn" style="padding:4px 8px;font-size:11px;background:#FFE0E3;color:#C0002A" onclick="confirmDeleteAudio(\''+tr.id+'\')">🗑</button>'
+      +'</div>'
+    ).join('')
+  ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun audio disponible</div>';
 }
 
 function playAudioTrack(url,title){
@@ -2356,20 +2396,81 @@ function stopAudioPlayback(){
   if(player){player.pause();player.src='';}
 }
 
-function openPublishAudio(){
+function getAudioLibPin(){
+  const pin=document.getElementById('audio-lib-pin').value.trim();
+  const statusEl=document.getElementById('audio-lib-status');
+  if(!pin){statusEl.textContent='❌ Code PIN requis';statusEl.style.color='var(--red-text)';return null;}
+  return pin;
+}
+
+async function promptRenameAudio(trackId){
+  const track=audioLibTracksCache.find(t=>t.id===trackId);
+  if(!track)return;
+  const newTitle=prompt('Nouveau titre :',track.title);
+  if(newTitle===null||!newTitle.trim())return;
+  const pin=getAudioLibPin();if(!pin)return;
+  const statusEl=document.getElementById('audio-lib-status');
+  statusEl.textContent='⏳ …';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/audio-rename',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trackId,title:newTitle.trim(),pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Renommé';statusEl.style.color='var(--green-text)';
+    await openAudioLibrary();
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
+}
+
+async function confirmDeleteAudio(trackId){
+  const track=audioLibTracksCache.find(t=>t.id===trackId);
+  if(!track)return;
+  if(!confirm('Supprimer "'+track.title+'" du catalogue ?\n(le fichier reste sur pCloud, seule l\'entrée Makedoo est retirée)'))return;
+  const pin=getAudioLibPin();if(!pin)return;
+  const statusEl=document.getElementById('audio-lib-status');
+  statusEl.textContent='⏳ Suppression…';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/audio-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trackId,pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Supprimé';statusEl.style.color='var(--green-text)';
+    await openAudioLibrary();
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
+}
+
+async function openPublishAudio(){
   document.getElementById('publish-audio-url').value='';
   document.getElementById('publish-audio-title').value='';
   document.getElementById('publish-audio-category').value='';
+  document.getElementById('publish-audio-category').style.display='none';
   document.getElementById('publish-audio-pin').value='';
   document.getElementById('publish-audio-status').textContent='';
   showOv('ov-publish-audio');
+  const sel=document.getElementById('publish-audio-category-select');
+  sel.innerHTML='<option value="">Chargement…</option>';
+  try{
+    const res=await fetch(API_BASE+'/audio-categories');
+    const data=await res.json();
+    const cats=data.categories||[];
+    sel.innerHTML=cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'<option value="__new__">➕ Nouvelle catégorie…</option>';
+    if(!cats.length)sel.value='__new__';
+    onPublishAudioCategoryChange();
+  }catch(e){
+    sel.innerHTML='<option value="__new__">➕ Nouvelle catégorie…</option>';
+    onPublishAudioCategoryChange();
+  }
+}
+
+function onPublishAudioCategoryChange(){
+  const sel=document.getElementById('publish-audio-category-select');
+  const newInput=document.getElementById('publish-audio-category');
+  newInput.style.display=sel.value==='__new__'?'block':'none';
 }
 
 async function confirmPublishAudio(){
   const url=document.getElementById('publish-audio-url').value.trim();
   const title=document.getElementById('publish-audio-title').value.trim();
   const lang=document.getElementById('publish-audio-lang').value;
-  const category=document.getElementById('publish-audio-category').value.trim();
+  const sel=document.getElementById('publish-audio-category-select');
+  const category=sel.value==='__new__'?document.getElementById('publish-audio-category').value.trim():sel.value;
   const pin=document.getElementById('publish-audio-pin').value.trim();
   const statusEl=document.getElementById('publish-audio-status');
   if(!url){statusEl.textContent='❌ Lien pCloud requis';statusEl.style.color='var(--red-text)';return;}
