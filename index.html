@@ -169,6 +169,7 @@ input:focus{border-color:var(--blue)}
   </div>
   <div style="flex:1"></div>
   <div style="display:flex;gap:6px;align-items:center">
+    <button class="info-card-top" id="pdf-top-icon" style="background:#E3D9FF;color:#5B3DB8" onclick="openPdfEntry()">📚</button>
     <button class="info-card-top" id="audio-top-icon" style="background:#FFE9CC;color:#B36A00" onclick="openAudioEntry()">🎧</button>
     <button class="info-card-top" onclick="togglePlusPresentation()">ℹ️</button>
     <button class="setup-card-top" onclick="showOv('ov-setup')">⚙</button>
@@ -378,6 +379,32 @@ input:focus{border-color:var(--blue)}
   <audio id="audio-main-player" controls style="width:100%;margin-top:14px"></audio>
 </div>
 
+<!-- ÉCRAN BIBLIOTHÈQUE PDF (accessible depuis n'importe quel mode) -->
+<div id="pdf-main-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#CFE1FF;padding:12px;box-sizing:border-box">
+  <div id="pdf-main-list-view">
+    <div style="margin-bottom:8px">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:3px">Langues</div>
+      <select id="pdf-main-filter-lang" onchange="renderPdfMainList()" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;background:#fff">
+        <option value="">Toutes langues</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="mk">🇲🇰 Македонски</option>
+      </select>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:3px">Catégories</div>
+      <select id="pdf-main-filter-cat" onchange="renderPdfMainList()" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;background:#fff">
+        <option value="">Toutes catégories</option>
+      </select>
+    </div>
+    <div id="pdf-main-list" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto"></div>
+  </div>
+  <div id="pdf-reader-view" style="display:none;flex:1;flex-direction:column;min-height:0">
+    <button class="cs-btn" onclick="closePdfReader()" style="align-self:flex-start;margin-bottom:8px">← Liste des livres</button>
+    <iframe id="pdf-reader-frame" style="flex:1;width:100%;border:none;border-radius:10px;background:#fff" src=""></iframe>
+  </div>
+</div>
+
 <!-- MODE BAR -->
 <div class="mode-bar" id="mode-bar" style="position:relative;z-index:65">
   <button class="mode-btn active-exchange" id="btn-exchange" onclick="showPlusScreen()">DUO</button>
@@ -487,6 +514,11 @@ input:focus{border-color:var(--blue)}
         <div class="setting-label" style="text-align:center">🎧 Audiothèque Makedoo</div>
         <button class="setting-btn" style="background:linear-gradient(135deg,#FFA94D,#FF8C1A);margin-bottom:8px" onclick="openAudioLibrary()">🎧 Écouter les audios</button>
         <button class="setting-btn" style="background:linear-gradient(135deg,#5B8DEF,#3B6FE0)" onclick="openPublishAudio()">📤 Publier un audio</button>
+      </div>
+      <div class="setting-row" style="background:#E3D9FF;border-radius:12px;padding:12px;margin-top:14px;text-align:center">
+        <div class="setting-label" style="text-align:center">📚 Bibliothèque de livres (PDF)</div>
+        <button class="setting-btn" style="background:linear-gradient(135deg,#8A5FE0,#5B3DB8);margin-bottom:8px" onclick="openManagePdf()">🗂️ Gérer les livres</button>
+        <button class="setting-btn" style="background:linear-gradient(135deg,#5B8DEF,#3B6FE0)" onclick="openPublishPdf()">📤 Publier un livre</button>
       </div>
       <div class="setting-row" style="background:#EDE6FF;border-radius:12px;padding:12px;margin-top:14px">
         <div class="setting-label" id="label-infotext">✏️ Message d'accueil (écran de présentation)</div>
@@ -697,6 +729,56 @@ input:focus{border-color:var(--blue)}
   </div>
 </div>
 
+<div class="overlay" id="ov-publish-pdf" style="display:none">
+  <div class="overlay-card">
+    <button class="overlay-close" onclick="hideOv('ov-publish-pdf')">×</button>
+    <div class="overlay-title">📤 Publier un livre (PDF)</div>
+    <div class="setting-row">
+      <div class="setting-label">Lien direct pCloud du fichier PDF</div>
+      <input type="url" id="publish-pdf-url" placeholder="https://...">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Le lien doit pointer directement vers le fichier (lecture/téléchargement direct), pas vers une page de visualisation</div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Titre</div>
+      <input type="text" id="publish-pdf-title" placeholder="Titre du livre">
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Langue</div>
+      <select id="publish-pdf-lang" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+        <option value="mk">Македонски</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Catégorie</div>
+      <select id="publish-pdf-category-select" onchange="onPublishPdfCategoryChange()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+        <option value="">Chargement…</option>
+      </select>
+      <input type="text" id="publish-pdf-category" placeholder="Nouvelle catégorie (ex: environnement)" style="margin-top:6px;display:none">
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Code PIN</div>
+      <input type="password" id="publish-pdf-pin" placeholder="Code PIN">
+    </div>
+    <button class="setting-btn" onclick="confirmPublishPdf()">📤 Publier</button>
+    <div id="publish-pdf-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-manage-pdf" style="display:none">
+  <div class="overlay-card" style="max-height:80vh;overflow-y:auto">
+    <button class="overlay-close" onclick="hideOv('ov-manage-pdf')">×</button>
+    <div class="overlay-title">🗂️ Gérer les livres</div>
+    <div id="manage-pdf-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="setting-row" style="margin-top:14px">
+      <div class="setting-label">Code PIN (requis pour renommer/supprimer)</div>
+      <input type="password" id="manage-pdf-pin" placeholder="Code PIN">
+    </div>
+    <div id="manage-pdf-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
+  </div>
+</div>
+
 <div class="overlay" id="ov-save-lesson" style="display:none">
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-save-lesson')">×</button>
@@ -849,6 +931,11 @@ function setMode(mode){
     const player=document.getElementById('audio-main-player');
     if(player){player.pause();player.src='';}
     audioScreen.style.display='none';
+  }
+  const pdfScreen=document.getElementById('pdf-main-screen');
+  if(pdfScreen&&pdfScreen.style.display==='flex'){
+    document.getElementById('pdf-reader-frame').src='';
+    pdfScreen.style.display='none';
   }
   if(S.plusScreenActive){hidePlusScreen();S.screen=0;}
   const pres=document.getElementById('plus-presentation');
@@ -2405,12 +2492,19 @@ function isConversationOpen(){
 }
 
 function updateAudioIconState(){
-  const btn=document.getElementById('audio-top-icon');
-  if(!btn)return;
   const busy=isConversationOpen();
-  btn.disabled=busy;
-  btn.style.opacity=busy?'0.4':'1';
-  btn.style.cursor=busy?'default':'pointer';
+  const btn=document.getElementById('audio-top-icon');
+  if(btn){
+    btn.disabled=busy;
+    btn.style.opacity=busy?'0.4':'1';
+    btn.style.cursor=busy?'default':'pointer';
+  }
+  const pdfBtn=document.getElementById('pdf-top-icon');
+  if(pdfBtn){
+    pdfBtn.disabled=busy;
+    pdfBtn.style.opacity=busy?'0.4':'1';
+    pdfBtn.style.cursor=busy?'default':'pointer';
+  }
 }
 
 async function openAudioEntry(){
@@ -2421,6 +2515,8 @@ async function openAudioEntry(){
   document.getElementById('plus-screen').style.display='none';
   const mainLayoutEl=document.getElementById('main-layout-el');
   if(mainLayoutEl)mainLayoutEl.style.display='none';
+  const pdfScreen=document.getElementById('pdf-main-screen');
+  if(pdfScreen){pdfScreen.style.display='none';document.getElementById('pdf-reader-frame').src='';}
   const audioScreen=document.getElementById('audio-main-screen');
   audioScreen.style.display='flex';
   document.getElementById('audio-main-filter-type').value='';
@@ -2480,6 +2576,202 @@ function playAudioMainTrack(url,title){
   player.src=url;
   player.play();
   showToast('🎧 '+title);
+}
+
+// ── Bibliothèque de livres PDF (lecture en ligne + publication, hébergés sur pCloud) ──
+let pdfLibBooksCache=[];
+let pdfMainScreenPrevious=null;
+
+async function openPdfEntry(){
+  if(isConversationOpen())return;
+  const pres=document.getElementById('plus-presentation');
+  if(pres&&pres.style.display==='flex')pres.style.display='none';
+  pdfMainScreenPrevious=S.plusScreenActive?'plus':(document.getElementById('main-layout-el')&&document.getElementById('main-layout-el').style.display!=='none'?'main':'plus');
+  document.getElementById('plus-screen').style.display='none';
+  const mainLayoutEl=document.getElementById('main-layout-el');
+  if(mainLayoutEl)mainLayoutEl.style.display='none';
+  document.getElementById('audio-main-screen').style.display='none';
+  const pdfScreen=document.getElementById('pdf-main-screen');
+  pdfScreen.style.display='flex';
+  document.getElementById('pdf-reader-view').style.display='none';
+  document.getElementById('pdf-main-list-view').style.display='block';
+  document.getElementById('pdf-main-filter-lang').value='';
+  const listEl=document.getElementById('pdf-main-list');
+  listEl.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px">Chargement…</div>';
+  try{
+    const res=await fetch(API_BASE+'/pdf-manifest');
+    const data=await res.json();
+    pdfLibBooksCache=data.books||[];
+    const cats=[...new Set(pdfLibBooksCache.map(b=>b.category))].sort();
+    const catSel=document.getElementById('pdf-main-filter-cat');
+    catSel.innerHTML='<option value="">Toutes catégories</option>'+cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+    renderPdfMainList();
+  }catch(e){
+    listEl.innerHTML='<div style="text-align:center;color:var(--red-text);font-size:13px">Erreur de chargement</div>';
+  }
+}
+
+function closePdfMainScreen(){
+  document.getElementById('pdf-reader-frame').src='';
+  document.getElementById('pdf-main-screen').style.display='none';
+  if(pdfMainScreenPrevious==='plus'){
+    document.getElementById('plus-screen').style.display='flex';
+  } else {
+    const mainLayoutEl=document.getElementById('main-layout-el');
+    if(mainLayoutEl)mainLayoutEl.style.display='flex';
+  }
+}
+
+function renderPdfMainList(){
+  const listEl=document.getElementById('pdf-main-list');
+  const langFilter=document.getElementById('pdf-main-filter-lang').value;
+  const catFilter=document.getElementById('pdf-main-filter-cat').value;
+  const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+  let books=pdfLibBooksCache;
+  if(langFilter)books=books.filter(b=>b.lang===langFilter);
+  if(catFilter)books=books.filter(b=>b.category===catFilter);
+  const byCategory={};
+  books.forEach(b=>{(byCategory[b.category]=byCategory[b.category]||[]).push(b);});
+  listEl.innerHTML=Object.keys(byCategory).map(cat=>
+    '<div style="font-weight:800;font-size:13px;margin-top:8px;text-transform:capitalize">'+cat+'</div>'
+    +byCategory[cat].map(b=>
+      '<button class="cs-btn" style="width:100%;text-align:left;display:flex;align-items:center;gap:8px" onclick="openPdfReader(\''+b.url.replace(/'/g,"\\'")+'\')">'
+      +'<span>📖</span><span>'+(langFlags[b.lang]||'🏳️')+'</span><span>'+b.title+'</span>'
+      +'</button>'
+    ).join('')
+  ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun livre disponible</div>';
+}
+
+function openPdfReader(url){
+  document.getElementById('pdf-reader-frame').src=url;
+  document.getElementById('pdf-main-list-view').style.display='none';
+  document.getElementById('pdf-reader-view').style.display='flex';
+}
+
+function closePdfReader(){
+  document.getElementById('pdf-reader-frame').src='';
+  document.getElementById('pdf-reader-view').style.display='none';
+  document.getElementById('pdf-main-list-view').style.display='block';
+}
+
+let pdfMainPacksCache=null;
+async function openPublishPdf(){
+  document.getElementById('publish-pdf-url').value='';
+  document.getElementById('publish-pdf-title').value='';
+  document.getElementById('publish-pdf-category').value='';
+  document.getElementById('publish-pdf-category').style.display='none';
+  document.getElementById('publish-pdf-pin').value='';
+  document.getElementById('publish-pdf-status').textContent='';
+  showOv('ov-publish-pdf');
+  const sel=document.getElementById('publish-pdf-category-select');
+  sel.innerHTML='<option value="">Chargement…</option>';
+  try{
+    const res=await fetch(API_BASE+'/pdf-manifest');
+    const data=await res.json();
+    const cats=[...new Set((data.books||[]).map(b=>b.category))].sort();
+    sel.innerHTML=cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'<option value="__new__">➕ Nouvelle catégorie…</option>';
+    if(!cats.length)sel.value='__new__';
+    onPublishPdfCategoryChange();
+  }catch(e){
+    sel.innerHTML='<option value="__new__">➕ Nouvelle catégorie…</option>';
+    onPublishPdfCategoryChange();
+  }
+}
+
+function onPublishPdfCategoryChange(){
+  const sel=document.getElementById('publish-pdf-category-select');
+  const newInput=document.getElementById('publish-pdf-category');
+  newInput.style.display=sel.value==='__new__'?'block':'none';
+}
+
+async function confirmPublishPdf(){
+  const url=document.getElementById('publish-pdf-url').value.trim();
+  const title=document.getElementById('publish-pdf-title').value.trim();
+  const lang=document.getElementById('publish-pdf-lang').value;
+  const sel=document.getElementById('publish-pdf-category-select');
+  const category=sel.value==='__new__'?document.getElementById('publish-pdf-category').value.trim():sel.value;
+  const pin=document.getElementById('publish-pdf-pin').value.trim();
+  const statusEl=document.getElementById('publish-pdf-status');
+  if(!url){statusEl.textContent='❌ Lien pCloud requis';statusEl.style.color='var(--red-text)';return;}
+  if(!title||!category){statusEl.textContent='❌ Titre et catégorie requis';statusEl.style.color='var(--red-text)';return;}
+  if(!pin){statusEl.textContent='❌ Code PIN requis';statusEl.style.color='var(--red-text)';return;}
+  statusEl.textContent='⏳ …';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/publish-pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,lang,category,url,pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Publié !';statusEl.style.color='var(--green-text)';
+    showToast('📚 Livre publié');
+    setTimeout(()=>hideOv('ov-publish-pdf'),1200);
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
+}
+
+// ── Gestion bibliothèque PDF (renommer/supprimer) ────────────────
+async function openManagePdf(){
+  document.getElementById('manage-pdf-pin').value='';
+  document.getElementById('manage-pdf-status').textContent='';
+  showOv('ov-manage-pdf');
+  await loadManagePdfList();
+}
+
+async function loadManagePdfList(){
+  const listEl=document.getElementById('manage-pdf-list');
+  listEl.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px">Chargement…</div>';
+  try{
+    const res=await fetch(API_BASE+'/pdf-manifest');
+    const data=await res.json();
+    pdfLibBooksCache=data.books||[];
+    const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+    listEl.innerHTML=pdfLibBooksCache.map(b=>
+      '<div style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;padding:8px 10px">'
+      +'<div style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(langFlags[b.lang]||'🏳️')+' '+b.title+'</div>'
+      +'<button class="cs-btn" style="padding:4px 8px;font-size:11px" onclick="promptRenamePdf(\''+b.id+'\')">✏️</button>'
+      +'<button class="cs-btn" style="padding:4px 8px;font-size:11px;background:#FFE0E3;color:#C0002A" onclick="confirmDeletePdf(\''+b.id+'\')">🗑</button>'
+      +'</div>'
+    ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun livre</div>';
+  }catch(e){
+    listEl.innerHTML='<div style="text-align:center;color:var(--red-text);font-size:13px">Erreur de chargement</div>';
+  }
+}
+
+function getManagePdfPin(){
+  const pin=document.getElementById('manage-pdf-pin').value.trim();
+  const statusEl=document.getElementById('manage-pdf-status');
+  if(!pin){statusEl.textContent='❌ Code PIN requis';statusEl.style.color='var(--red-text)';return null;}
+  return pin;
+}
+
+async function promptRenamePdf(bookId){
+  const book=pdfLibBooksCache.find(b=>b.id===bookId);
+  if(!book)return;
+  const newTitle=prompt('Nouveau titre :',book.title);
+  if(newTitle===null||!newTitle.trim())return;
+  const pin=getManagePdfPin();if(!pin)return;
+  const statusEl=document.getElementById('manage-pdf-status');
+  statusEl.textContent='⏳ …';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/pdf-rename',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bookId,title:newTitle.trim(),pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Renommé';statusEl.style.color='var(--green-text)';
+    await loadManagePdfList();
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
+}
+
+async function confirmDeletePdf(bookId){
+  const book=pdfLibBooksCache.find(b=>b.id===bookId);
+  if(!book)return;
+  if(!confirm('Supprimer "'+book.title+'" du catalogue ?\n(le fichier reste sur pCloud, seule l\'entrée Makedoo est retirée)'))return;
+  const pin=getManagePdfPin();if(!pin)return;
+  const statusEl=document.getElementById('manage-pdf-status');
+  statusEl.textContent='⏳ Suppression…';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/pdf-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bookId,pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Supprimé';statusEl.style.color='var(--green-text)';
+    await loadManagePdfList();
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
 }
 
 async function unlockAdminSection(){
@@ -2830,6 +3122,11 @@ function showPlusScreen(markActive){
     const player=document.getElementById('audio-main-player');
     if(player){player.pause();player.src='';}
     audioScreen.style.display='none';
+  }
+  const pdfScreen=document.getElementById('pdf-main-screen');
+  if(pdfScreen&&pdfScreen.style.display==='flex'){
+    document.getElementById('pdf-reader-frame').src='';
+    pdfScreen.style.display='none';
   }
   const ml=document.querySelector('.main-layout');
   const ps=document.getElementById('plus-screen');
