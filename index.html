@@ -1115,6 +1115,8 @@ function renderScreen(){
     if(micC)micC.style.opacity='1';
     status.textContent=t('clickTalk');
     const soloFresh=learn&&S.currentExchanges.length===0;
+    const sessBtnEl=document.getElementById('solo-conv-btn');
+    if(sessBtnEl)sessBtnEl.style.display=soloFresh?'block':'none';
     if(soloFresh){
       pill.style.display='block';
       pill.className='';
@@ -1178,6 +1180,8 @@ function renderScreen(){
       if(textPanelEl)textPanelEl.style.top='98px';
       // ZONE BASSE : boutons (pas de bandeau de statut)
       pill.style.display='none';
+      const sessBtnEl2=document.getElementById('solo-conv-btn');
+      if(sessBtnEl2)sessBtnEl2.style.display='none';
       convActions.innerHTML='<button class="action-btn orange" style="padding:6px 12px;font-size:12px" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn green solid" style="padding:6px 12px;font-size:12px" onclick="doResume()">'+t('resume')+'</button><button class="action-btn red" style="padding:6px 12px;font-size:12px" onclick="confirmEnd()">'+t('exit')+'</button>';
       const convZone=document.getElementById('conversation-zone-el');
       if(convZone)convZone.style.minHeight='76px';
@@ -1207,6 +1211,8 @@ function renderScreen(){
     // Screen 3 only used for learn save dialog now
     if(learn){
       pill.className='status-tag warning';pill.textContent=t('lessonEnded');
+      const sessBtnEl3=document.getElementById('solo-conv-btn');
+      if(sessBtnEl3)sessBtnEl3.style.display='none';
       convActions.innerHTML='<button class="action-btn orange" onclick="doSaveLesson()">'+t('save')+'</button><button class="action-btn green solid" onclick="doResume()">'+t('resume')+'</button><button class="action-btn red" onclick="confirmEnd()">'+t('exit')+'</button>';
     }
   }
