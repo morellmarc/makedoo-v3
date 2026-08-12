@@ -163,20 +163,21 @@ input:focus{border-color:var(--blue)}
 
 <!-- TOP BAR -->
 <div class="top-bar" id="top-bar">
-  <button class="conv-btn" id="btn-top-center" onclick="showTopCenter()">📋 Conversations</button>
-  <div id="solo-top-flags" style="display:none;gap:6px;align-items:center">
+  <div style="width:34px"></div>
+  <div id="solo-top-flags" style="display:none;gap:6px;align-items:center;position:absolute;left:50%;transform:translateX(-50%)">
     <button id="solo-flag-a-small" onclick="openLangPicker('from')" style="background:none;border:none;font-size:26px;cursor:pointer;padding:2px 4px;line-height:1">🏳️</button>
     <button id="solo-flag-b-small" onclick="openLangPicker('to')" style="background:none;border:none;font-size:26px;cursor:pointer;padding:2px 4px;line-height:1">🏳️</button>
   </div>
   <div style="display:flex;gap:6px;align-items:center">
-    <button class="info-card-top" style="background:#FFE9CC;color:#B36A00" onclick="openAudioLibrary()">🎧</button>
+    <button class="info-card-top" id="audio-top-icon" style="background:#FFE9CC;color:#B36A00" onclick="openAudioEntry()">🎧</button>
     <button class="info-card-top" onclick="togglePlusPresentation()">ℹ️</button>
     <button class="setup-card-top" onclick="showOv('ov-setup')">⚙</button>
   </div>
 </div>
 
 <!-- MAIN -->
-<div class="main-layout">
+<div class="main-layout" id="main-layout-el">
+  <button id="solo-conv-btn" class="conv-btn learn-mode" onclick="showLessons()" style="position:absolute;top:8px;left:12px;z-index:5">📋 Sessions</button>
 
   <!-- LEFT COL -->
   <div class="left-col" id="left-col">
@@ -334,6 +335,7 @@ input:focus{border-color:var(--blue)}
 
 <!-- ÉCRAN + (échanges simplifiés) -->
 <div id="plus-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#CFE1FF">
+  <button id="plus-conv-btn" class="conv-btn" onclick="showConversations()" style="position:absolute;top:8px;left:12px;z-index:5">📋 Conversations</button>
   <div style="position:absolute;top:0;left:0;right:0;height:116px;display:flex;align-items:center;justify-content:center;padding:0 20px;text-align:center">
     <div id="plus-hint-flags" style="font-size:12px;color:var(--muted);font-weight:600"></div>
   </div>
@@ -349,6 +351,29 @@ input:focus{border-color:var(--blue)}
       <button class="action-btn red" onclick="plusDoExit()"><span id="plus-exit-label">Sortir</span></button>
     </div>
   </div>
+</div>
+
+<!-- ÉCRAN AUDIOTHÈQUE (accessible depuis n'importe quel mode) -->
+<div id="audio-main-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#FFF6EA;padding:12px;box-sizing:border-box">
+  <button class="cs-btn" onclick="closeAudioMainScreen()" style="align-self:flex-start;margin-bottom:10px">← Retour</button>
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <select id="audio-main-filter-type" onchange="renderAudioMainList()" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit">
+      <option value="">Tous types</option>
+      <option value="livre">📖 Livres</option>
+      <option value="pack">💬 Packs</option>
+    </select>
+    <select id="audio-main-filter-lang" onchange="renderAudioMainList()" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit">
+      <option value="">Toutes langues</option>
+      <option value="fr">🇫🇷 Français</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="mk">🇲🇰 Македонски</option>
+    </select>
+  </div>
+  <select id="audio-main-filter-cat" onchange="renderAudioMainList()" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;margin-bottom:10px">
+    <option value="">Toutes catégories</option>
+  </select>
+  <div id="audio-main-list" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1"></div>
+  <audio id="audio-main-player" controls style="width:100%;margin-top:14px"></audio>
 </div>
 
 <!-- MODE BAR -->
@@ -840,7 +865,6 @@ function setMode(mode){
       else{el.classList.remove('learn-mode');if(id==='lang-top-card')el.classList.add('to-lang');else el.classList.add('from-lang');}
     }
   });
-  document.getElementById('btn-top-center').classList.toggle('learn-mode',learn);
   renderScreen();updateDisplay();updateUILabels();
   if(learn&&S.screen===0){
     setScreen(S.currentExchanges.length>0?2:1);
@@ -915,6 +939,7 @@ function showTopCenter(){isLearn()?showLessons():showConversations()}
 function setScreen(n){S.screen=n;S.isSpeaking=false;if(n===0)S.duoReadMode=false;renderScreen()}
 
 function renderScreen(){
+  updateAudioIconState();
   const status=document.getElementById('center-status');
   const pill=document.getElementById('status-pill');
   const finBtn=document.getElementById('fin-btn');
@@ -1478,6 +1503,7 @@ function plusDoExit(){
   if(repeatBtn)repeatBtn.style.display='none';
   const statusEl=document.getElementById('plus-status');
   if(statusEl)statusEl.textContent=t('plusPressToTalk');
+  updateAudioIconState();
 }
 function plusDoSave(){
   if(S.plusExchanges.length===0){showToast(t('noConv'));return;}
@@ -1504,6 +1530,7 @@ function confirmSaveConv(){
   }
   S.savingFromPlus=false;
   showToast('💾 '+name);
+  updateAudioIconState();
 }
 function doSaveLesson(){
   document.getElementById('lesson-name-input').value='';
@@ -1903,7 +1930,6 @@ function resumeLesson(){
     const el=document.getElementById(id);
     if(el){el.classList.remove('to-lang','from-lang');el.classList.add('learn-mode');}
   });
-  document.getElementById('btn-top-center').classList.add('learn-mode');
   hideConvScreen();
   updateDisplay();
   setScreen(2);
@@ -2358,6 +2384,89 @@ async function confirmDeleteFile(path){
 
 // ── Audiothèque Makedoo (écoute + publication de MP3, hébergés sur pCloud) ──
 let audioLibTracksCache=[];
+let audioMainScreenPrevious=null;
+
+function isConversationOpen(){
+  if(S.plusScreenActive&&S.plusExchanges.length>0)return true;
+  if(!S.plusScreenActive&&isLearn&&typeof isLearn==='function'&&isLearn()&&S.currentExchanges.length>0)return true;
+  return false;
+}
+
+function updateAudioIconState(){
+  const btn=document.getElementById('audio-top-icon');
+  if(!btn)return;
+  const busy=isConversationOpen();
+  btn.disabled=busy;
+  btn.style.opacity=busy?'0.4':'1';
+  btn.style.cursor=busy?'default':'pointer';
+}
+
+async function openAudioEntry(){
+  if(isConversationOpen())return;
+  audioMainScreenPrevious=S.plusScreenActive?'plus':(document.getElementById('main-layout-el')&&document.getElementById('main-layout-el').style.display!=='none'?'main':'plus');
+  document.getElementById('plus-screen').style.display='none';
+  const mainLayoutEl=document.getElementById('main-layout-el');
+  if(mainLayoutEl)mainLayoutEl.style.display='none';
+  const audioScreen=document.getElementById('audio-main-screen');
+  audioScreen.style.display='flex';
+  document.getElementById('audio-main-filter-type').value='';
+  document.getElementById('audio-main-filter-lang').value='';
+  const listEl=document.getElementById('audio-main-list');
+  listEl.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px">Chargement…</div>';
+  try{
+    const res=await fetch(API_BASE+'/audio-manifest');
+    const data=await res.json();
+    audioLibTracksCache=data.tracks||[];
+    const cats=[...new Set(audioLibTracksCache.map(t=>t.category))].sort();
+    const catSel=document.getElementById('audio-main-filter-cat');
+    catSel.innerHTML='<option value="">Toutes catégories</option>'+cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+    renderAudioMainList();
+  }catch(e){
+    listEl.innerHTML='<div style="text-align:center;color:var(--red-text);font-size:13px">Erreur de chargement</div>';
+  }
+}
+
+function closeAudioMainScreen(){
+  const player=document.getElementById('audio-main-player');
+  if(player){player.pause();player.src='';}
+  document.getElementById('audio-main-screen').style.display='none';
+  if(audioMainScreenPrevious==='plus'){
+    document.getElementById('plus-screen').style.display='flex';
+  } else {
+    const mainLayoutEl=document.getElementById('main-layout-el');
+    if(mainLayoutEl)mainLayoutEl.style.display='flex';
+  }
+}
+
+function renderAudioMainList(){
+  const listEl=document.getElementById('audio-main-list');
+  const typeFilter=document.getElementById('audio-main-filter-type').value;
+  const langFilter=document.getElementById('audio-main-filter-lang').value;
+  const catFilter=document.getElementById('audio-main-filter-cat').value;
+  const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+  const typeIcons={livre:'📖',pack:'💬'};
+  let tracks=audioLibTracksCache;
+  if(typeFilter)tracks=tracks.filter(t=>(t.type||'livre')===typeFilter);
+  if(langFilter)tracks=tracks.filter(t=>t.lang===langFilter);
+  if(catFilter)tracks=tracks.filter(t=>t.category===catFilter);
+  const byCategory={};
+  tracks.forEach(tr=>{(byCategory[tr.category]=byCategory[tr.category]||[]).push(tr);});
+  listEl.innerHTML=Object.keys(byCategory).map(cat=>
+    '<div style="font-weight:800;font-size:13px;margin-top:8px;text-transform:capitalize">'+cat+'</div>'
+    +byCategory[cat].map(tr=>
+      '<button class="cs-btn" style="width:100%;text-align:left;display:flex;align-items:center;gap:8px" onclick="playAudioMainTrack(\''+tr.url.replace(/'/g,"\\'")+'\',\''+tr.title.replace(/'/g,"\\'")+'\')">'
+      +'<span>'+(typeIcons[tr.type||'livre'])+'</span><span>'+(langFlags[tr.lang]||'🏳️')+'</span><span>'+tr.title+'</span>'
+      +'</button>'
+    ).join('')
+  ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun audio disponible</div>';
+}
+
+function playAudioMainTrack(url,title){
+  const player=document.getElementById('audio-main-player');
+  player.src=url;
+  player.play();
+  showToast('🎧 '+title);
+}
 
 async function unlockAdminSection(){
   if(S.adminUnlocked){document.getElementById('admin-section').style.display='block';return;}
@@ -2898,6 +3007,7 @@ async function plusTranslateAndSpeak(text,fromLang,toLang){
   S.plusExchanges.push({original:text,translated,langFrom:fromLang,langTo:toLang});
   S.lastPlusOriginal=text;
   S.lastPlusOriginalLang=fromLang;
+  updateAudioIconState();
   const saveRow=document.getElementById('plus-save-row');
   if(saveRow)saveRow.style.display='flex';
   const repeatBtn=document.getElementById('plus-repeat-btn');
@@ -3133,9 +3243,10 @@ function updateSoloFlagsDisplay(){
 
 function updateUILabels(){
   // Mode buttons — toujours DUO/SOLO
-  document.getElementById('btn-top-center').textContent=isLearn()?t('lessons'):t('conv');
-  document.getElementById('btn-top-center').style.opacity='1';
-  document.getElementById('btn-top-center').style.cursor='pointer';
+  const convBtn=document.getElementById('plus-conv-btn');
+  if(convBtn)convBtn.textContent='📋 '+t('conv');
+  const sessBtn=document.getElementById('solo-conv-btn');
+  if(sessBtn)sessBtn.textContent='📋 '+t('lessons');
   document.getElementById('btn-exchange').textContent='DUO';
   document.getElementById('btn-learn').textContent='SOLO';
   // Test microphone
