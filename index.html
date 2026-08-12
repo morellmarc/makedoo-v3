@@ -281,11 +281,11 @@ input:focus{border-color:var(--blue)}
 
     <!-- ZONE BASSE -->
     <div class="conversation-zone" id="conversation-zone-el">
-      <button id="solo-conv-btn" class="conv-btn learn-mode" onclick="showLessons()">📋 Sessions</button>
       <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-shrink:0">
         <div class="status-tag waiting" id="status-pill"></div>
         <button class="fin-btn" id="fin-btn" onclick="confirmEnd()"><span id="fin-btn-label">Exit</span></button>
       </div>
+      <button id="solo-conv-btn" class="conv-btn learn-mode" onclick="showLessons()">📋 Sessions</button>
       <div class="action-row" id="conv-action-row" style="flex-shrink:0"></div>
     </div>
 
@@ -339,8 +339,8 @@ input:focus{border-color:var(--blue)}
     <button id="plus-flag-b-btn" ontouchstart="plusStartRecord('B')" ontouchend="plusStopRecord('B')" ontouchcancel="plusStopRecord('B')" onmousedown="plusStartRecord('B')" onmouseup="plusStopRecord('B')" onmouseleave="plusStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
   </div>
   <div style="position:absolute;bottom:0;left:0;right:0;min-height:130px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;padding:8px 0 4px;background:#CFE1FF">
-    <button id="plus-conv-btn" class="conv-btn" onclick="showConversations()">📋 Conversations</button>
     <div id="plus-status" style="text-align:center;font-size:15px;color:var(--muted);font-weight:600">Maintenez un drapeau enfoncé pour parler</div>
+    <button id="plus-conv-btn" class="conv-btn" onclick="showConversations()">📋 Conversations</button>
     <div id="plus-save-row" style="display:none;justify-content:center;gap:10px">
       <button class="action-btn orange" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
       <button class="action-btn primary" id="plus-repeat-btn" onclick="plusDoRepeat()">🔁 <span id="plus-repeat-label">Répéter</span></button>
