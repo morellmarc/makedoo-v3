@@ -451,6 +451,11 @@ input:focus{border-color:var(--blue)}
       <div class="setting-label" style="text-align:center">📚 Bibliothèque Makedoo</div>
       <button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878)" onclick="openManageLibrary()">🗂️ Gérer la bibliothèque</button>
     </div>
+    <div class="setting-row" style="background:#FFF0DC;border-radius:12px;padding:12px;margin-top:14px;text-align:center">
+      <div class="setting-label" style="text-align:center">🎧 Audiothèque Makedoo</div>
+      <button class="setting-btn" style="background:linear-gradient(135deg,#FFA94D,#FF8C1A);margin-bottom:8px" onclick="openAudioLibrary()">🎧 Écouter les audios</button>
+      <button class="setting-btn" style="background:linear-gradient(135deg,#5B8DEF,#3B6FE0)" onclick="openPublishAudio()">📤 Publier un audio</button>
+    </div>
     <div class="setting-row" style="background:#EDE6FF;border-radius:12px;padding:12px;margin-top:14px">
       <div class="setting-label" id="label-infotext">✏️ Message d'accueil (écran de présentation)</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Écrivez en français — traduit automatiquement dans les 17 langues d'interface</div>
@@ -584,6 +589,49 @@ input:focus{border-color:var(--blue)}
       <input type="password" id="manage-lib-pin" placeholder="Code PIN">
     </div>
     <div id="manage-lib-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-audio-library" style="display:none">
+  <div class="overlay-card" style="max-height:80vh;overflow-y:auto">
+    <button class="overlay-close" onclick="hideOv('ov-audio-library');stopAudioPlayback()">×</button>
+    <div class="overlay-title">🎧 Audiothèque Makedoo</div>
+    <div id="audio-lib-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <audio id="audio-lib-player" controls style="width:100%;margin-top:14px;display:none"></audio>
+  </div>
+</div>
+
+<div class="overlay" id="ov-publish-audio" style="display:none">
+  <div class="overlay-card">
+    <button class="overlay-close" onclick="hideOv('ov-publish-audio')">×</button>
+    <div class="overlay-title">📤 Publier un audio</div>
+    <div class="setting-row">
+      <div class="setting-label">Lien direct pCloud du fichier MP3</div>
+      <input type="url" id="publish-audio-url" placeholder="https://...">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Le lien doit pointer directement vers le fichier (lecture/téléchargement direct), pas vers une page de visualisation</div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Titre</div>
+      <input type="text" id="publish-audio-title" placeholder="Histoire d'Ohrid">
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Langue</div>
+      <select id="publish-audio-lang" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+        <option value="mk">Македонски</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Catégorie (ex: ohrid, environnement, histoire)</div>
+      <input type="text" id="publish-audio-category" placeholder="ohrid">
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Code PIN</div>
+      <input type="password" id="publish-audio-pin" placeholder="Code PIN">
+    </div>
+    <button class="setting-btn" onclick="confirmPublishAudio()">📤 Publier</button>
+    <div id="publish-audio-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
   </div>
 </div>
 
@@ -2266,6 +2314,75 @@ async function confirmDeleteFile(path){
     if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
     statusEl.textContent='✅ Fichier supprimé';statusEl.style.color='var(--green-text)';
     if(manageLibCurrentPack)await openPackFiles(manageLibCurrentPack.id);
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
+}
+
+// ── Audiothèque Makedoo (écoute + publication de MP3, hébergés sur pCloud) ──
+async function openAudioLibrary(){
+  showOv('ov-audio-library');
+  const listEl=document.getElementById('audio-lib-list');
+  listEl.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px">Chargement…</div>';
+  document.getElementById('audio-lib-player').style.display='none';
+  try{
+    const res=await fetch(API_BASE+'/audio-manifest');
+    const data=await res.json();
+    const tracks=data.tracks||[];
+    const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+    const byCategory={};
+    tracks.forEach(tr=>{(byCategory[tr.category]=byCategory[tr.category]||[]).push(tr);});
+    listEl.innerHTML=Object.keys(byCategory).map(cat=>
+      '<div style="font-weight:800;font-size:13px;margin-top:8px;text-transform:capitalize">'+cat+'</div>'
+      +byCategory[cat].map(tr=>
+        '<button class="cs-btn" style="width:100%;text-align:left;display:flex;align-items:center;gap:8px" onclick="playAudioTrack(\''+tr.url.replace(/'/g,"\\'")+'\',\''+tr.title.replace(/'/g,"\\'")+'\')">'
+        +'<span>'+(langFlags[tr.lang]||'🏳️')+'</span><span>'+tr.title+'</span>'
+        +'</button>'
+      ).join('')
+    ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun audio disponible</div>';
+  }catch(e){
+    listEl.innerHTML='<div style="text-align:center;color:var(--red-text);font-size:13px">Erreur de chargement</div>';
+  }
+}
+
+function playAudioTrack(url,title){
+  const player=document.getElementById('audio-lib-player');
+  player.src=url;
+  player.style.display='block';
+  player.play();
+  showToast('🎧 '+title);
+}
+
+function stopAudioPlayback(){
+  const player=document.getElementById('audio-lib-player');
+  if(player){player.pause();player.src='';}
+}
+
+function openPublishAudio(){
+  document.getElementById('publish-audio-url').value='';
+  document.getElementById('publish-audio-title').value='';
+  document.getElementById('publish-audio-category').value='';
+  document.getElementById('publish-audio-pin').value='';
+  document.getElementById('publish-audio-status').textContent='';
+  showOv('ov-publish-audio');
+}
+
+async function confirmPublishAudio(){
+  const url=document.getElementById('publish-audio-url').value.trim();
+  const title=document.getElementById('publish-audio-title').value.trim();
+  const lang=document.getElementById('publish-audio-lang').value;
+  const category=document.getElementById('publish-audio-category').value.trim();
+  const pin=document.getElementById('publish-audio-pin').value.trim();
+  const statusEl=document.getElementById('publish-audio-status');
+  if(!url){statusEl.textContent='❌ Lien pCloud requis';statusEl.style.color='var(--red-text)';return;}
+  if(!title||!category){statusEl.textContent='❌ Titre et catégorie requis';statusEl.style.color='var(--red-text)';return;}
+  if(!pin){statusEl.textContent='❌ Code PIN requis';statusEl.style.color='var(--red-text)';return;}
+  statusEl.textContent='⏳ …';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/publish-audio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,lang,category,url,pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Publié !';statusEl.style.color='var(--green-text)';
+    showToast('🎧 Audio publié');
+    setTimeout(()=>hideOv('ov-publish-audio'),1200);
   }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
 }
 
