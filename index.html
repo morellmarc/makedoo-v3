@@ -169,6 +169,7 @@ input:focus{border-color:var(--blue)}
     <button id="solo-flag-b-small" onclick="openLangPicker('to')" style="background:none;border:none;font-size:26px;cursor:pointer;padding:2px 4px;line-height:1">🏳️</button>
   </div>
   <div style="display:flex;gap:6px;align-items:center">
+    <button class="info-card-top" style="background:#FFE9CC;color:#B36A00" onclick="openAudioLibrary()">🎧</button>
     <button class="info-card-top" onclick="togglePlusPresentation()">ℹ️</button>
     <button class="setup-card-top" onclick="showOv('ov-setup')">⚙</button>
   </div>
@@ -447,28 +448,33 @@ input:focus{border-color:var(--blue)}
       <div class="setting-label">GPS</div>
       <div id="gps-status" style="font-size:13px;color:var(--muted)">📍 …</div>
     </div>
-    <div class="setting-row" style="background:#E0F7EC;border-radius:12px;padding:12px;margin-top:14px;text-align:center">
-      <div class="setting-label" style="text-align:center">📚 Bibliothèque Makedoo</div>
-      <button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878)" onclick="openManageLibrary()">🗂️ Gérer la bibliothèque</button>
+    <div class="setting-row" style="background:#F0F0F5;border-radius:12px;padding:12px;margin-top:14px;text-align:center" id="admin-gate-row">
+      <button class="setting-btn" style="background:linear-gradient(135deg,#8A96B4,#6B7794)" onclick="unlockAdminSection()">🔐 Options avancées</button>
     </div>
-    <div class="setting-row" style="background:#FFF0DC;border-radius:12px;padding:12px;margin-top:14px;text-align:center">
-      <div class="setting-label" style="text-align:center">🎧 Audiothèque Makedoo</div>
-      <button class="setting-btn" style="background:linear-gradient(135deg,#FFA94D,#FF8C1A);margin-bottom:8px" onclick="openAudioLibrary()">🎧 Écouter les audios</button>
-      <button class="setting-btn" style="background:linear-gradient(135deg,#5B8DEF,#3B6FE0)" onclick="openPublishAudio()">📤 Publier un audio</button>
-    </div>
-    <div class="setting-row" style="background:#EDE6FF;border-radius:12px;padding:12px;margin-top:14px">
-      <div class="setting-label" id="label-infotext">✏️ Message d'accueil (écran de présentation)</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Écrivez en français — traduit automatiquement dans les 17 langues d'interface</div>
-      <div id="info-text-restore-note" style="display:none;background:#FFE8D4;color:#C05000;font-size:12px;font-weight:700;padding:8px 10px;border-radius:8px;margin-bottom:8px">⚠️ Le serveur a été réinitialisé. Le texte ci-dessous vient de votre sauvegarde locale — cliquez "Enregistrer" pour le republier.</div>
-      <textarea id="info-text-1" placeholder="Phrase 1…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
-      <textarea id="info-text-2" placeholder="Phrase 2…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
-      <textarea id="info-text-3" placeholder="Phrase 3…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
-      <textarea id="info-text-4" placeholder="Phrase 4…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
-      <textarea id="info-text-5" placeholder="Phrase 5…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
-      <input type="password" id="info-text-pin" placeholder="Code PIN" style="margin-bottom:6px">
-      <button class="setting-btn" style="background:linear-gradient(135deg,#7C2DBF,#5A1E8F)" onclick="saveInfoText()">💾 Enregistrer le message</button>
-      <div id="info-text-status" style="font-size:12px;color:var(--muted);margin-top:6px;text-align:center"></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px;text-align:center">Laissez vide pour revenir au texte par défaut</div>
+    <div id="admin-section" style="display:none">
+      <div class="setting-row" style="background:#E0F7EC;border-radius:12px;padding:12px;margin-top:14px;text-align:center">
+        <div class="setting-label" style="text-align:center">📚 Bibliothèque Makedoo</div>
+        <button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878)" onclick="openManageLibrary()">🗂️ Gérer la bibliothèque</button>
+      </div>
+      <div class="setting-row" style="background:#FFF0DC;border-radius:12px;padding:12px;margin-top:14px;text-align:center">
+        <div class="setting-label" style="text-align:center">🎧 Audiothèque Makedoo</div>
+        <button class="setting-btn" style="background:linear-gradient(135deg,#FFA94D,#FF8C1A);margin-bottom:8px" onclick="openAudioLibrary()">🎧 Écouter les audios</button>
+        <button class="setting-btn" style="background:linear-gradient(135deg,#5B8DEF,#3B6FE0)" onclick="openPublishAudio()">📤 Publier un audio</button>
+      </div>
+      <div class="setting-row" style="background:#EDE6FF;border-radius:12px;padding:12px;margin-top:14px">
+        <div class="setting-label" id="label-infotext">✏️ Message d'accueil (écran de présentation)</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Écrivez en français — traduit automatiquement dans les 17 langues d'interface</div>
+        <div id="info-text-restore-note" style="display:none;background:#FFE8D4;color:#C05000;font-size:12px;font-weight:700;padding:8px 10px;border-radius:8px;margin-bottom:8px">⚠️ Le serveur a été réinitialisé. Le texte ci-dessous vient de votre sauvegarde locale — cliquez "Enregistrer" pour le republier.</div>
+        <textarea id="info-text-1" placeholder="Phrase 1…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+        <textarea id="info-text-2" placeholder="Phrase 2…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+        <textarea id="info-text-3" placeholder="Phrase 3…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+        <textarea id="info-text-4" placeholder="Phrase 4…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+        <textarea id="info-text-5" placeholder="Phrase 5…" style="width:100%;min-height:44px;border-radius:10px;border:1.5px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;margin-bottom:6px;resize:vertical"></textarea>
+        <input type="password" id="info-text-pin" placeholder="Code PIN" style="margin-bottom:6px">
+        <button class="setting-btn" style="background:linear-gradient(135deg,#7C2DBF,#5A1E8F)" onclick="saveInfoText()">💾 Enregistrer le message</button>
+        <div id="info-text-status" style="font-size:12px;color:var(--muted);margin-top:6px;text-align:center"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;text-align:center">Laissez vide pour revenir au texte par défaut</div>
+      </div>
     </div>
   </div>
 </div>
@@ -597,19 +603,26 @@ input:focus{border-color:var(--blue)}
     <button class="overlay-close" onclick="hideOv('ov-audio-library');stopAudioPlayback()">×</button>
     <div class="overlay-title">🎧 Audiothèque Makedoo</div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
+      <select id="audio-lib-filter-type" onchange="renderAudioLibraryList()" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit">
+        <option value="">Tous types</option>
+        <option value="livre">📖 Livres</option>
+        <option value="pack">💬 Packs</option>
+      </select>
       <select id="audio-lib-filter-lang" onchange="renderAudioLibraryList()" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit">
         <option value="">Toutes langues</option>
         <option value="fr">🇫🇷 Français</option>
         <option value="en">🇬🇧 English</option>
         <option value="mk">🇲🇰 Македонски</option>
       </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
       <select id="audio-lib-filter-cat" onchange="renderAudioLibraryList()" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit">
         <option value="">Toutes catégories</option>
       </select>
     </div>
     <div id="audio-lib-list" style="display:flex;flex-direction:column;gap:8px"></div>
     <audio id="audio-lib-player" controls style="width:100%;margin-top:14px;display:none"></audio>
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+    <div id="audio-lib-pin-row" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
       <div class="setting-label">Code PIN (pour supprimer/renommer)</div>
       <input type="password" id="audio-lib-pin" placeholder="Code PIN" style="margin-bottom:6px">
       <div id="audio-lib-status" style="font-size:12px;color:var(--muted);text-align:center"></div>
@@ -625,6 +638,13 @@ input:focus{border-color:var(--blue)}
       <div class="setting-label">Lien direct pCloud du fichier MP3</div>
       <input type="url" id="publish-audio-url" placeholder="https://...">
       <div style="font-size:11px;color:var(--muted);margin-top:4px">Le lien doit pointer directement vers le fichier (lecture/téléchargement direct), pas vers une page de visualisation</div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Type</div>
+      <select id="publish-audio-type" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+        <option value="livre">📖 Livre (complément d'apprentissage)</option>
+        <option value="pack">💬 Pack de phrases</option>
+      </select>
     </div>
     <div class="setting-row">
       <div class="setting-label">Titre</div>
@@ -686,7 +706,7 @@ const S={
   journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
   lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
   contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
-  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,showInfoScreen0:false,plusScreenActive:false,plusBusy:false,savingFromPlus:false,lastPlusOriginal:null,lastPlusOriginalLang:null,
+  lpTimer:null,langPickerTarget:null,ignoreTap:false,reviewOpen:false,welcomeShown:false,insertMode:false,insertBeforeIdx:undefined,isSpeaking:false,duoReadMode:false,duoWelcomeShown:false,showInfoScreen0:false,plusScreenActive:false,plusBusy:false,savingFromPlus:false,lastPlusOriginal:null,lastPlusOriginalLang:null,adminUnlocked:localStorage.getItem('mk_admin_unlocked')==='1',
   selectedVoiceURI:localStorage.getItem('makedoo_v3_voice_uri')||null,
   selectedVoiceLang:localStorage.getItem('makedoo_v3_voice_lang')||null,
 };
@@ -2339,11 +2359,31 @@ async function confirmDeleteFile(path){
 // ── Audiothèque Makedoo (écoute + publication de MP3, hébergés sur pCloud) ──
 let audioLibTracksCache=[];
 
+async function unlockAdminSection(){
+  if(S.adminUnlocked){document.getElementById('admin-section').style.display='block';return;}
+  const pin=prompt('Mot de passe administrateur :');
+  if(pin===null)return;
+  try{
+    const res=await fetch(API_BASE+'/verify-admin-pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
+    const data=await res.json();
+    if(data.ok){
+      S.adminUnlocked=true;
+      localStorage.setItem('mk_admin_unlocked','1');
+      document.getElementById('admin-section').style.display='block';
+      document.getElementById('admin-gate-row').style.display='none';
+    } else {
+      showToast('❌ Mot de passe incorrect');
+    }
+  }catch(e){showToast('❌ Erreur de connexion');}
+}
+
 async function openAudioLibrary(){
   showOv('ov-audio-library');
   document.getElementById('audio-lib-player').style.display='none';
   document.getElementById('audio-lib-status').textContent='';
   document.getElementById('audio-lib-filter-lang').value='';
+  document.getElementById('audio-lib-filter-type').value='';
+  document.getElementById('audio-lib-pin-row').style.display=S.adminUnlocked?'block':'none';
   const listEl=document.getElementById('audio-lib-list');
   listEl.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px">Chargement…</div>';
   try{
@@ -2361,10 +2401,13 @@ async function openAudioLibrary(){
 
 function renderAudioLibraryList(){
   const listEl=document.getElementById('audio-lib-list');
+  const typeFilter=document.getElementById('audio-lib-filter-type').value;
   const langFilter=document.getElementById('audio-lib-filter-lang').value;
   const catFilter=document.getElementById('audio-lib-filter-cat').value;
   const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+  const typeIcons={livre:'📖',pack:'💬'};
   let tracks=audioLibTracksCache;
+  if(typeFilter)tracks=tracks.filter(t=>(t.type||'livre')===typeFilter);
   if(langFilter)tracks=tracks.filter(t=>t.lang===langFilter);
   if(catFilter)tracks=tracks.filter(t=>t.category===catFilter);
   const byCategory={};
@@ -2374,10 +2417,10 @@ function renderAudioLibraryList(){
     +byCategory[cat].map(tr=>
       '<div style="display:flex;align-items:center;gap:6px">'
       +'<button class="cs-btn" style="flex:1;text-align:left;display:flex;align-items:center;gap:8px" onclick="playAudioTrack(\''+tr.url.replace(/'/g,"\\'")+'\',\''+tr.title.replace(/'/g,"\\'")+'\')">'
-      +'<span>'+(langFlags[tr.lang]||'🏳️')+'</span><span>'+tr.title+'</span>'
+      +'<span>'+(typeIcons[tr.type||'livre'])+'</span><span>'+(langFlags[tr.lang]||'🏳️')+'</span><span>'+tr.title+'</span>'
       +'</button>'
-      +'<button class="cs-btn" style="padding:4px 8px;font-size:11px" onclick="promptRenameAudio(\''+tr.id+'\')">✏️</button>'
-      +'<button class="cs-btn" style="padding:4px 8px;font-size:11px;background:#FFE0E3;color:#C0002A" onclick="confirmDeleteAudio(\''+tr.id+'\')">🗑</button>'
+      +(S.adminUnlocked?'<button class="cs-btn" style="padding:4px 8px;font-size:11px" onclick="promptRenameAudio(\''+tr.id+'\')">✏️</button>'
+      +'<button class="cs-btn" style="padding:4px 8px;font-size:11px;background:#FFE0E3;color:#C0002A" onclick="confirmDeleteAudio(\''+tr.id+'\')">🗑</button>':'')
       +'</div>'
     ).join('')
   ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun audio disponible</div>';
@@ -2469,6 +2512,7 @@ async function confirmPublishAudio(){
   const url=document.getElementById('publish-audio-url').value.trim();
   const title=document.getElementById('publish-audio-title').value.trim();
   const lang=document.getElementById('publish-audio-lang').value;
+  const type=document.getElementById('publish-audio-type').value;
   const sel=document.getElementById('publish-audio-category-select');
   const category=sel.value==='__new__'?document.getElementById('publish-audio-category').value.trim():sel.value;
   const pin=document.getElementById('publish-audio-pin').value.trim();
@@ -2478,7 +2522,7 @@ async function confirmPublishAudio(){
   if(!pin){statusEl.textContent='❌ Code PIN requis';statusEl.style.color='var(--red-text)';return;}
   statusEl.textContent='⏳ …';statusEl.style.color='var(--muted)';
   try{
-    const res=await fetch(API_BASE+'/publish-audio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,lang,category,url,pin})});
+    const res=await fetch(API_BASE+'/publish-audio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,lang,type,category,url,pin})});
     const data=await res.json();
     if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
     statusEl.textContent='✅ Publié !';statusEl.style.color='var(--green-text)';
@@ -3145,7 +3189,14 @@ function updateUILabels(){
 }
 
 // ── Overlays ───────────────────────────────────────────────────
-function showOv(id){document.getElementById(id).style.display='flex'}
+function showOv(id){
+  document.getElementById(id).style.display='flex';
+  if(id==='ov-setup'&&S.adminUnlocked){
+    const sec=document.getElementById('admin-section');const gate=document.getElementById('admin-gate-row');
+    if(sec)sec.style.display='block';
+    if(gate)gate.style.display='none';
+  }
+}
 function hideOv(id){document.getElementById(id).style.display='none'}
 
 // ── Toast ──────────────────────────────────────────────────────
