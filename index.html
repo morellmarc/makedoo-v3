@@ -355,6 +355,7 @@ input:focus{border-color:var(--blue)}
 
 <!-- ÉCRAN AUDIOTHÈQUE (accessible depuis n'importe quel mode) -->
 <div id="audio-main-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#CFE1FF;padding:12px;box-sizing:border-box">
+  <div style="text-align:center;font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px">Inventaire des audios</div>
   <div style="margin-bottom:8px">
     <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:3px">Langues</div>
     <select id="audio-main-filter-lang" onchange="renderAudioMainList()" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;background:#fff">
@@ -385,6 +386,7 @@ input:focus{border-color:var(--blue)}
 <!-- ÉCRAN BIBLIOTHÈQUE PDF (accessible depuis n'importe quel mode) -->
 <div id="pdf-main-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#CFE1FF;padding:12px;box-sizing:border-box">
   <div id="pdf-main-list-view">
+    <div style="text-align:center;font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px">Inventaire des livres</div>
     <div style="margin-bottom:8px">
       <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:3px">Langues</div>
       <select id="pdf-main-filter-lang" onchange="renderPdfMainList()" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;background:#fff">
