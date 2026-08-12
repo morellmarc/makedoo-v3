@@ -163,11 +163,11 @@ input:focus{border-color:var(--blue)}
 
 <!-- TOP BAR -->
 <div class="top-bar" id="top-bar">
-  <div style="width:34px"></div>
-  <div id="solo-top-flags" style="display:none;gap:6px;align-items:center;position:absolute;left:50%;transform:translateX(-50%)">
+  <div id="solo-top-flags" style="display:none;gap:6px;align-items:center">
     <button id="solo-flag-a-small" onclick="openLangPicker('from')" style="background:none;border:none;font-size:26px;cursor:pointer;padding:2px 4px;line-height:1">🏳️</button>
     <button id="solo-flag-b-small" onclick="openLangPicker('to')" style="background:none;border:none;font-size:26px;cursor:pointer;padding:2px 4px;line-height:1">🏳️</button>
   </div>
+  <div style="flex:1"></div>
   <div style="display:flex;gap:6px;align-items:center">
     <button class="info-card-top" id="audio-top-icon" style="background:#FFE9CC;color:#B36A00" onclick="openAudioEntry()">🎧</button>
     <button class="info-card-top" onclick="togglePlusPresentation()">ℹ️</button>
@@ -354,24 +354,30 @@ input:focus{border-color:var(--blue)}
 </div>
 
 <!-- ÉCRAN AUDIOTHÈQUE (accessible depuis n'importe quel mode) -->
-<div id="audio-main-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#FFF6EA;padding:12px;box-sizing:border-box">
-  <button class="cs-btn" onclick="closeAudioMainScreen()" style="align-self:flex-start;margin-bottom:10px">← Retour</button>
-  <div style="display:flex;gap:8px;margin-bottom:10px">
-    <select id="audio-main-filter-type" onchange="renderAudioMainList()" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit">
-      <option value="">Tous types</option>
-      <option value="livre">📖 Livres</option>
-      <option value="pack">💬 Packs</option>
-    </select>
-    <select id="audio-main-filter-lang" onchange="renderAudioMainList()" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit">
+<div id="audio-main-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#CFE1FF;padding:12px;box-sizing:border-box">
+  <div style="margin-bottom:8px">
+    <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:3px">Langues</div>
+    <select id="audio-main-filter-lang" onchange="renderAudioMainList()" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;background:#fff">
       <option value="">Toutes langues</option>
       <option value="fr">🇫🇷 Français</option>
       <option value="en">🇬🇧 English</option>
       <option value="mk">🇲🇰 Македонски</option>
     </select>
   </div>
-  <select id="audio-main-filter-cat" onchange="renderAudioMainList()" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;margin-bottom:10px">
-    <option value="">Toutes catégories</option>
-  </select>
+  <div style="margin-bottom:8px">
+    <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:3px">Types</div>
+    <select id="audio-main-filter-type" onchange="renderAudioMainList()" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;background:#fff">
+      <option value="">Tous types</option>
+      <option value="livre">📖 Livres</option>
+      <option value="pack">💬 Packs</option>
+    </select>
+  </div>
+  <div style="margin-bottom:10px">
+    <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:3px">Catégories</div>
+    <select id="audio-main-filter-cat" onchange="renderAudioMainList()" style="width:100%;padding:8px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;background:#fff">
+      <option value="">Toutes catégories</option>
+    </select>
+  </div>
   <div id="audio-main-list" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1"></div>
   <audio id="audio-main-player" controls style="width:100%;margin-top:14px"></audio>
 </div>
@@ -846,6 +852,12 @@ function execLP(a){
 
 // ── Mode ───────────────────────────────────────────────────────
 function setMode(mode){
+  const audioScreen=document.getElementById('audio-main-screen');
+  if(audioScreen&&audioScreen.style.display==='flex'){
+    const player=document.getElementById('audio-main-player');
+    if(player){player.pause();player.src='';}
+    audioScreen.style.display='none';
+  }
   if(S.plusScreenActive){hidePlusScreen();S.screen=0;}
   const pres=document.getElementById('plus-presentation');
   if(pres&&pres.style.display==='flex')pres.style.display='none';
@@ -2403,6 +2415,8 @@ function updateAudioIconState(){
 
 async function openAudioEntry(){
   if(isConversationOpen())return;
+  const pres=document.getElementById('plus-presentation');
+  if(pres&&pres.style.display==='flex')pres.style.display='none';
   audioMainScreenPrevious=S.plusScreenActive?'plus':(document.getElementById('main-layout-el')&&document.getElementById('main-layout-el').style.display!=='none'?'main':'plus');
   document.getElementById('plus-screen').style.display='none';
   const mainLayoutEl=document.getElementById('main-layout-el');
@@ -2813,6 +2827,12 @@ function ensureMicStream(){
 
 function showPlusScreen(markActive){
   if(markActive===undefined)markActive=true;
+  const audioScreen=document.getElementById('audio-main-screen');
+  if(audioScreen&&audioScreen.style.display==='flex'){
+    const player=document.getElementById('audio-main-player');
+    if(player){player.pause();player.src='';}
+    audioScreen.style.display='none';
+  }
   const ml=document.querySelector('.main-layout');
   const ps=document.getElementById('plus-screen');
   if(ml)ml.style.display='none';
