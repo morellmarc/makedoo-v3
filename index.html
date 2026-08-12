@@ -75,7 +75,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .intervention-zone{position:absolute;top:0;left:0;right:0;height:58px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;overflow:hidden;z-index:20;padding:1px 8px;background:#CFE1FF}
 .help-zone-css{position:absolute;top:0;left:0;right:0;height:58px;display:flex;flex-direction:column;align-items:center;gap:2px;justify-content:center;padding:1px 8px;z-index:20;background:#CFE1FF}
 .circle-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
-.conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 4px;justify-content:space-between;background:#CFE1FF;z-index:25}
+.conversation-zone{position:absolute;bottom:0;left:0;right:0;min-height:130px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 4px;justify-content:flex-start;background:#CFE1FF;z-index:25}
 .status-tag{border-radius:10px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-align:center;min-height:28px;display:inline-block}
 .status-tag.active{color:var(--green-text);background:var(--green-light)}
 .status-tag.learn{color:var(--blue-text);background:var(--blue-light)}
@@ -107,7 +107,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .fin-btn{display:none;background:var(--red-light);border:none;border-radius:12px;color:var(--red-text);font-size:12px;font-weight:700;padding:7px 16px;cursor:pointer;font-family:inherit}
 
 /* ── TEXT PANEL ── */
-.text-panel{position:absolute;top:116px;left:0;right:0;bottom:101px;z-index:5;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
+.text-panel{position:absolute;top:116px;left:0;right:0;bottom:130px;z-index:5;border:1.5px solid #C7D5FF;overflow:hidden;background:var(--surface);display:none;flex-direction:column;box-shadow:0 2px 12px rgba(74,108,247,0.08)}
 .text-panel.visible{display:flex}
 .text-panel-top{flex:1;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);line-height:1.5;overflow-y:auto;min-height:0;user-select:text;-webkit-user-select:text}
 .text-panel-bot{flex:1;padding:8px 12px;font-size:13px;color:var(--blue-text);font-weight:600;line-height:1.5;overflow-y:auto;min-height:0;background:#F8F9FF;user-select:text;-webkit-user-select:text}
@@ -176,11 +176,7 @@ input:focus{border-color:var(--blue)}
 </div>
 
 <!-- MAIN -->
-<div class="main-layout" id="main-layout-el" style="flex-direction:column">
-  <div style="flex-shrink:0;padding:8px 12px 0">
-    <button id="solo-conv-btn" class="conv-btn learn-mode" onclick="showLessons()">📋 Sessions</button>
-  </div>
-  <div style="flex:1;display:flex;overflow:hidden;min-height:0">
+<div class="main-layout" id="main-layout-el">
 
   <!-- LEFT COL -->
   <div class="left-col" id="left-col">
@@ -257,7 +253,7 @@ input:focus{border-color:var(--blue)}
     </div>
 
     <!-- DRAPEAUX SOLO (remplace le cercle) -->
-    <div id="solo-flags-area" style="display:none;position:absolute;top:116px;left:0;right:0;bottom:101px;z-index:5;background:#CFE1FF;flex-direction:row">
+    <div id="solo-flags-area" style="display:none;position:absolute;top:116px;left:0;right:0;bottom:130px;z-index:5;background:#CFE1FF;flex-direction:row">
       <button id="solo-flag-a-btn" ontouchstart="soloStartRecord('A')" ontouchend="soloStopRecord('A')" ontouchcancel="soloStopRecord('A')" onmousedown="soloStartRecord('A')" onmouseup="soloStopRecord('A')" onmouseleave="soloStopRecord('A')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
       <button id="solo-flag-b-btn" ontouchstart="soloStartRecord('B')" ontouchend="soloStopRecord('B')" ontouchcancel="soloStopRecord('B')" onmousedown="soloStartRecord('B')" onmouseup="soloStopRecord('B')" onmouseleave="soloStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
     </div>
@@ -285,6 +281,7 @@ input:focus{border-color:var(--blue)}
 
     <!-- ZONE BASSE -->
     <div class="conversation-zone" id="conversation-zone-el">
+      <button id="solo-conv-btn" class="conv-btn learn-mode" onclick="showLessons()">📋 Sessions</button>
       <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-shrink:0">
         <div class="status-tag waiting" id="status-pill"></div>
         <button class="fin-btn" id="fin-btn" onclick="confirmEnd()"><span id="fin-btn-label">Exit</span></button>
@@ -299,7 +296,6 @@ input:focus{border-color:var(--blue)}
     <button class="setup-card" style="display:none" onclick="showOv('ov-setup')">⚙</button>
   </div>
 
-  </div>
 </div>
 
 <!-- CONV SCREEN -->
@@ -335,15 +331,15 @@ input:focus{border-color:var(--blue)}
 
 <!-- ÉCRAN + (échanges simplifiés) -->
 <div id="plus-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;position:relative;background:#CFE1FF">
-  <button id="plus-conv-btn" class="conv-btn" onclick="showConversations()" style="position:absolute;top:8px;left:12px;z-index:5">📋 Conversations</button>
   <div style="position:absolute;top:0;left:0;right:0;height:116px;display:flex;align-items:center;justify-content:center;padding:0 20px;text-align:center">
     <div id="plus-hint-flags" style="font-size:12px;color:var(--muted);font-weight:600"></div>
   </div>
-  <div id="plus-press-zone" style="position:absolute;top:116px;left:0;right:0;bottom:101px;display:flex;background:#CFE1FF">
+  <div id="plus-press-zone" style="position:absolute;top:116px;left:0;right:0;bottom:130px;display:flex;background:#CFE1FF">
     <button id="plus-flag-a-btn" ontouchstart="plusStartRecord('A')" ontouchend="plusStopRecord('A')" ontouchcancel="plusStopRecord('A')" onmousedown="plusStartRecord('A')" onmouseup="plusStopRecord('A')" onmouseleave="plusStopRecord('A')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0">🏳️</button>
     <button id="plus-flag-b-btn" ontouchstart="plusStartRecord('B')" ontouchend="plusStopRecord('B')" ontouchcancel="plusStopRecord('B')" onmousedown="plusStartRecord('B')" onmouseup="plusStopRecord('B')" onmouseleave="plusStopRecord('B')" style="flex:1;border:none;background:transparent;font-size:88px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;border-left:1px solid rgba(0,0,0,0.08)">🏳️</button>
   </div>
-  <div style="position:absolute;bottom:0;left:0;right:0;min-height:101px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;padding:8px 0 4px;background:#CFE1FF">
+  <div style="position:absolute;bottom:0;left:0;right:0;min-height:130px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;padding:8px 0 4px;background:#CFE1FF">
+    <button id="plus-conv-btn" class="conv-btn" onclick="showConversations()">📋 Conversations</button>
     <div id="plus-status" style="text-align:center;font-size:15px;color:var(--muted);font-weight:600">Maintenez un drapeau enfoncé pour parler</div>
     <div id="plus-save-row" style="display:none;justify-content:center;gap:10px">
       <button class="action-btn orange" onclick="plusDoSave()">💾 <span id="plus-save-label">Sauvegarder</span></button>
@@ -978,9 +974,9 @@ function renderScreen(){
   if(textPanelReset)textPanelReset.style.top='116px';
   if(soloFlagsReset)soloFlagsReset.style.top='116px';
   const convZoneReset=document.getElementById('conversation-zone-el');
-  if(convZoneReset)convZoneReset.style.minHeight='101px';
-  if(textPanelReset)textPanelReset.style.bottom='101px';
-  if(soloFlagsReset)soloFlagsReset.style.bottom='101px';
+  if(convZoneReset)convZoneReset.style.minHeight='130px';
+  if(textPanelReset)textPanelReset.style.bottom='130px';
+  if(soloFlagsReset)soloFlagsReset.style.bottom='130px';
   if(micC)micC.style.opacity='0';
   if(hgC)hgC.style.opacity='0';
   const wt=document.getElementById('welcome-text');
