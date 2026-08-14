@@ -595,7 +595,8 @@ input:focus{border-color:var(--blue)}
     <div class="overlay-title">🔄 Traduire vers une nouvelle langue</div>
     <div id="retranslate-step1">
       <div class="setting-row">
-        <div class="setting-label" id="retranslate-source-label">Langue source (inchangée)</div>
+        <div class="setting-label">Nouvelle langue source</div>
+        <select id="retranslate-source-lang" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit"></select>
       </div>
       <div class="setting-row">
         <div class="setting-label">Nouvelle langue cible</div>
@@ -2325,7 +2326,7 @@ function exportSessionJson(){
 
 let publishPacksCache=null;
 
-// ── Traduire une session/conversation vers une nouvelle langue cible (source inchangée) ──
+// ── Traduire une session vers une nouvelle paire de langues (source et/ou cible) ──
 let retranslatedExchanges=null;
 
 function openRetranslate(){
@@ -2333,38 +2334,52 @@ function openRetranslate(){
   document.getElementById('retranslate-status').textContent='';
   document.getElementById('retranslate-step1').style.display='block';
   document.getElementById('retranslate-step2').style.display='none';
-  const srcLang=LANGS.find(l=>l.code===selectedEntry.langFrom);
-  document.getElementById('retranslate-source-label').textContent='Langue source (inchangée) : '+(srcLang?srcLang.flag+' '+srcLang.label:selectedEntry.langFrom);
-  const sel=document.getElementById('retranslate-target-lang');
-  sel.innerHTML=LANGS.filter(l=>l.code!==selectedEntry.langFrom).map(l=>'<option value="'+l.code+'"'+(l.code===selectedEntry.langTo?' disabled':'')+'>'+l.flag+' '+l.label+(l.code===selectedEntry.langTo?' (langue actuelle)':'')+'</option>').join('');
+  const srcSel=document.getElementById('retranslate-source-lang');
+  srcSel.innerHTML=LANGS.map(l=>'<option value="'+l.code+'"'+(l.code===selectedEntry.langFrom?' selected':'')+'>'+l.flag+' '+l.label+'</option>').join('');
+  const tgtSel=document.getElementById('retranslate-target-lang');
+  tgtSel.innerHTML=LANGS.map(l=>'<option value="'+l.code+'"'+(l.code===selectedEntry.langTo?' selected':'')+'>'+l.flag+' '+l.label+'</option>').join('');
   showOv('ov-retranslate');
 }
 
 async function confirmRetranslate(){
   if(!selectedEntry)return;
+  const newSource=document.getElementById('retranslate-source-lang').value;
   const newTarget=document.getElementById('retranslate-target-lang').value;
   const statusEl=document.getElementById('retranslate-status');
-  if(!newTarget||newTarget===selectedEntry.langTo){statusEl.textContent='❌ Choisissez une langue différente';statusEl.style.color='var(--red-text)';return;}
+  if(newSource===newTarget){statusEl.textContent='❌ Les deux langues doivent être différentes';statusEl.style.color='var(--red-text)';return;}
+  if(newSource===selectedEntry.langFrom&&newTarget===selectedEntry.langTo){statusEl.textContent='❌ Choisissez au moins une langue différente';statusEl.style.color='var(--red-text)';return;}
   statusEl.textContent='⏳ Traduction en cours… (0/'+selectedEntry.exchanges.length+')';statusEl.style.color='var(--muted)';
-  const srcLang=selectedEntry.langFrom;
+  const oldSource=selectedEntry.langFrom;
   const results=[];
   for(let i=0;i<selectedEntry.exchanges.length;i++){
     const ex=selectedEntry.exchanges[i];
-    let translated=ex.original;
-    try{
-      const res=await fetch(API_BASE+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:ex.original,source:srcLang,target:newTarget})});
-      const data=await res.json();
-      if(data.translated)translated=data.translated;
-    }catch(e){}
-    results.push({original:ex.original,translated,langFrom:srcLang,langTo:newTarget});
+    // On repart toujours du texte original d'origine (jamais d'une traduction déjà traduite) pour éviter toute dégradation
+    let newOriginal=ex.original;
+    if(newSource!==oldSource){
+      try{
+        const res=await fetch(API_BASE+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:ex.original,source:oldSource,target:newSource})});
+        const data=await res.json();
+        if(data.translated)newOriginal=data.translated;
+      }catch(e){}
+    }
+    let newTranslated=ex.translated;
+    if(newTarget!==selectedEntry.langTo||newSource!==oldSource){
+      try{
+        const res=await fetch(API_BASE+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:ex.original,source:oldSource,target:newTarget})});
+        const data=await res.json();
+        if(data.translated)newTranslated=data.translated;
+      }catch(e){}
+    }
+    results.push({original:newOriginal,translated:newTranslated,langFrom:newSource,langTo:newTarget});
     statusEl.textContent='⏳ Traduction en cours… ('+(i+1)+'/'+selectedEntry.exchanges.length+')';
   }
-  retranslatedExchanges={exchanges:results,langFrom:srcLang,langTo:newTarget};
+  retranslatedExchanges={exchanges:results,langFrom:newSource,langTo:newTarget};
   statusEl.textContent='✅ Traduction terminée';statusEl.style.color='var(--green-text)';
   document.getElementById('retranslate-step1').style.display='none';
   document.getElementById('retranslate-step2').style.display='block';
+  const srcLangObj=LANGS.find(l=>l.code===newSource);
   const targetLang=LANGS.find(l=>l.code===newTarget);
-  document.getElementById('retranslate-new-name').value=(selectedEntry.name||'Session')+' ('+(targetLang?targetLang.display:newTarget)+')';
+  document.getElementById('retranslate-new-name').value=(selectedEntry.name||'Session')+' ('+(srcLangObj?srcLangObj.display:newSource)+'-'+(targetLang?targetLang.display:newTarget)+')';
 }
 
 function saveRetranslatedEntry(){
