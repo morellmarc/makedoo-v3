@@ -589,6 +589,31 @@ input:focus{border-color:var(--blue)}
   </div>
 </div>
 
+<div class="overlay" id="ov-retranslate" style="display:none">
+  <div class="overlay-card">
+    <button class="overlay-close" onclick="hideOv('ov-retranslate')">×</button>
+    <div class="overlay-title">🔄 Traduire vers une nouvelle langue</div>
+    <div id="retranslate-step1">
+      <div class="setting-row">
+        <div class="setting-label" id="retranslate-source-label">Langue source (inchangée)</div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Nouvelle langue cible</div>
+        <select id="retranslate-target-lang" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit"></select>
+      </div>
+      <button class="setting-btn" onclick="confirmRetranslate()">🔄 Traduire</button>
+    </div>
+    <div id="retranslate-step2" style="display:none">
+      <div class="setting-row">
+        <div class="setting-label">Nom de la nouvelle session</div>
+        <input type="text" id="retranslate-new-name" placeholder="Nom">
+      </div>
+      <button class="setting-btn" onclick="saveRetranslatedEntry()">💾 Sauvegarder comme nouvelle session</button>
+    </div>
+    <div id="retranslate-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
+  </div>
+</div>
+
 <div class="overlay" id="ov-publish-library" style="display:none">
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-publish-library')">×</button>
@@ -1955,6 +1980,7 @@ function renderConvScreen(){
         '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">'
         +'<button class="cs-btn" onclick="resumeLesson()" style="border-color:'+color+';color:'+color+'">📖 '+t('review')+'</button>'
         +'<button class="cs-btn" onclick="renameLesson()" style="border-color:'+color+';color:'+color+'">✏️ '+t('rename')+'</button>'
+        +'<button class="cs-btn" onclick="openRetranslate()" style="background:var(--blue-light);color:var(--blue)">🔄 Nouvelle langue</button>'
         +'<button class="cs-btn" onclick="exportSessionJson()" style="border-color:'+color+';color:'+color+'">📤 JSON</button>'
         +'<button class="cs-btn" onclick="openPublishLibrary()" style="background:var(--green-light);color:var(--green-text)">📚 Publier</button>'
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>'
@@ -2298,6 +2324,66 @@ function exportSessionJson(){
 }
 
 let publishPacksCache=null;
+
+// ── Traduire une session/conversation vers une nouvelle langue cible (source inchangée) ──
+let retranslatedExchanges=null;
+
+function openRetranslate(){
+  if(!selectedEntry)return;
+  document.getElementById('retranslate-status').textContent='';
+  document.getElementById('retranslate-step1').style.display='block';
+  document.getElementById('retranslate-step2').style.display='none';
+  const srcLang=LANGS.find(l=>l.code===selectedEntry.langFrom);
+  document.getElementById('retranslate-source-label').textContent='Langue source (inchangée) : '+(srcLang?srcLang.flag+' '+srcLang.label:selectedEntry.langFrom);
+  const sel=document.getElementById('retranslate-target-lang');
+  sel.innerHTML=LANGS.filter(l=>l.code!==selectedEntry.langFrom).map(l=>'<option value="'+l.code+'"'+(l.code===selectedEntry.langTo?' disabled':'')+'>'+l.flag+' '+l.label+(l.code===selectedEntry.langTo?' (langue actuelle)':'')+'</option>').join('');
+  showOv('ov-retranslate');
+}
+
+async function confirmRetranslate(){
+  if(!selectedEntry)return;
+  const newTarget=document.getElementById('retranslate-target-lang').value;
+  const statusEl=document.getElementById('retranslate-status');
+  if(!newTarget||newTarget===selectedEntry.langTo){statusEl.textContent='❌ Choisissez une langue différente';statusEl.style.color='var(--red-text)';return;}
+  statusEl.textContent='⏳ Traduction en cours… (0/'+selectedEntry.exchanges.length+')';statusEl.style.color='var(--muted)';
+  const srcLang=selectedEntry.langFrom;
+  const results=[];
+  for(let i=0;i<selectedEntry.exchanges.length;i++){
+    const ex=selectedEntry.exchanges[i];
+    let translated=ex.original;
+    try{
+      const res=await fetch(API_BASE+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:ex.original,source:srcLang,target:newTarget})});
+      const data=await res.json();
+      if(data.translated)translated=data.translated;
+    }catch(e){}
+    results.push({original:ex.original,translated,langFrom:srcLang,langTo:newTarget});
+    statusEl.textContent='⏳ Traduction en cours… ('+(i+1)+'/'+selectedEntry.exchanges.length+')';
+  }
+  retranslatedExchanges={exchanges:results,langFrom:srcLang,langTo:newTarget};
+  statusEl.textContent='✅ Traduction terminée';statusEl.style.color='var(--green-text)';
+  document.getElementById('retranslate-step1').style.display='none';
+  document.getElementById('retranslate-step2').style.display='block';
+  const targetLang=LANGS.find(l=>l.code===newTarget);
+  document.getElementById('retranslate-new-name').value=(selectedEntry.name||'Session')+' ('+(targetLang?targetLang.display:newTarget)+')';
+}
+
+function saveRetranslatedEntry(){
+  if(!retranslatedExchanges)return;
+  const name=document.getElementById('retranslate-new-name').value.trim()||('Session '+new Date().toLocaleDateString());
+  const newEntry={id:Date.now(),name,date:new Date().toISOString().split('T')[0],langFrom:retranslatedExchanges.langFrom,langTo:retranslatedExchanges.langTo,count:retranslatedExchanges.exchanges.length,exchanges:retranslatedExchanges.exchanges};
+  if(convViewMode){
+    newEntry.location=selectedEntry.location||'';
+    S.lessons.unshift(newEntry);
+    localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons));
+  }else{
+    S.journal.unshift(newEntry);
+    localStorage.setItem('mk_v3_journal',JSON.stringify(S.journal));
+  }
+  retranslatedExchanges=null;
+  hideOv('ov-retranslate');
+  showToast('💾 '+name);
+  renderConvScreen();
+}
 
 async function openPublishLibrary(){
   if(!selectedEntry)return;
