@@ -1947,7 +1947,7 @@ function showConversations(){convViewMode=false;selectedEntry=null;showConvScree
 function showLessons(){convViewMode=true;selectedEntry=null;showConvScreen()}
 
 function showConvScreen(){
-  const ml=document.getElementById('main-layout');
+  const ml=document.getElementById('main-layout-el');
   const mb=document.getElementById('mode-bar');
   const ns=document.getElementById('nav-spacer');
   const cs=document.getElementById('conv-screen');
@@ -1960,7 +1960,7 @@ function showConvScreen(){
   renderConvScreen();
 }
 function hideConvScreen(){
-  const ml=document.getElementById('main-layout');
+  const ml=document.getElementById('main-layout-el');
   const mb=document.getElementById('mode-bar');
   const ns=document.getElementById('nav-spacer');
   const cs=document.getElementById('conv-screen');
