@@ -510,7 +510,9 @@ input:focus{border-color:var(--blue)}
     <div id="admin-section" style="display:none">
       <div class="setting-row" style="background:#E0F7EC;border-radius:12px;padding:12px;margin-top:14px;text-align:center">
         <div class="setting-label" style="text-align:center">📚 Bibliothèque Makedoo</div>
-        <button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878)" onclick="openManageLibrary()">🗂️ Gérer la bibliothèque</button>
+        <button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878);margin-bottom:8px" onclick="openManageLibrarySessions()">🗂️ Gérer les sessions</button>
+        <button class="setting-btn" style="background:linear-gradient(135deg,#5B8DEF,#3B6FE0);margin-bottom:8px" onclick="openPublishLibraryFromSettings()">📤 Publier une session</button>
+        <button class="setting-btn" style="background:linear-gradient(135deg,#E0A030,#B87D1A)" onclick="openManageLibraryPacks()">🏷️ Gérer les packs</button>
       </div>
       <div class="setting-row" style="background:#FFF0DC;border-radius:12px;padding:12px;margin-top:14px;text-align:center">
         <div class="setting-label" style="text-align:center">🎧 Audiothèque Makedoo</div>
@@ -625,6 +627,12 @@ input:focus{border-color:var(--blue)}
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-publish-library')">×</button>
     <div class="overlay-title">📚 Publier dans la bibliothèque</div>
+    <div class="setting-row" id="publish-session-picker-row" style="display:none">
+      <div class="setting-label">Session à publier</div>
+      <select id="publish-session-select" onchange="onPublishSessionPick()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+        <option value="">— Choisir une session —</option>
+      </select>
+    </div>
     <div class="setting-row">
       <div class="setting-label">Pack de destination</div>
       <select id="publish-pack-select" onchange="onPublishPackChange()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
@@ -669,8 +677,9 @@ input:focus{border-color:var(--blue)}
 <div class="overlay" id="ov-manage-library" style="display:none">
   <div class="overlay-card" style="max-height:80vh;overflow-y:auto">
     <button class="overlay-close" onclick="hideOv('ov-manage-library')">×</button>
-    <div class="overlay-title">🗂️ Gérer la bibliothèque</div>
+    <div class="overlay-title">🗂️ Gérer les sessions</div>
     <div id="manage-lib-packs-view">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;text-align:center">Choisissez un pack pour gérer ses sessions</div>
       <div id="manage-lib-packs-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
     <div id="manage-lib-files-view" style="display:none">
@@ -683,6 +692,31 @@ input:focus{border-color:var(--blue)}
       <input type="password" id="manage-lib-pin" placeholder="Code PIN">
     </div>
     <div id="manage-lib-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-manage-library-packs" style="display:none">
+  <div class="overlay-card" style="max-height:80vh;overflow-y:auto">
+    <button class="overlay-close" onclick="hideOv('ov-manage-library-packs')">×</button>
+    <div class="overlay-title">🏷️ Gérer les packs</div>
+    <div class="setting-row">
+      <div class="setting-label">Nouveau pack</div>
+      <input type="text" id="new-pack-id" placeholder="Identifiant (ex: ohrid-2026)" style="margin-bottom:6px">
+      <input type="text" id="new-pack-name" placeholder="Nom affiché" style="margin-bottom:6px">
+      <input type="text" id="new-pack-desc" placeholder="Description (optionnel)" style="margin-bottom:6px">
+      <select id="new-pack-tier" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit;margin-bottom:6px">
+        <option value="gratuit">🆓 Gratuit</option>
+        <option value="abonnes">⭐ Abonnés</option>
+        <option value="professionnel">💼 Professionnel</option>
+      </select>
+      <button class="setting-btn" onclick="createLibraryPack()">➕ Créer le pack</button>
+    </div>
+    <div id="manage-lib-packs-crud-list" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+    <div class="setting-row" style="margin-top:14px">
+      <div class="setting-label">Code PIN (requis pour créer/renommer/supprimer)</div>
+      <input type="password" id="manage-lib-packs-pin" placeholder="Code PIN">
+    </div>
+    <div id="manage-lib-packs-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
   </div>
 </div>
 
@@ -2423,13 +2457,34 @@ function saveRetranslatedEntry(){
   renderConvScreen();
 }
 
-async function openPublishLibrary(){
-  if(!selectedEntry)return;
+async function openPublishLibraryFromSettings(){
+  selectedEntry=null;
+  const sel=document.getElementById('publish-session-select');
+  sel.innerHTML='<option value="">— Choisir une session —</option>'+S.lessons.map((l,i)=>'<option value="'+i+'">'+l.name+' ('+l.langFrom.toUpperCase()+'-'+l.langTo.toUpperCase()+')</option>').join('');
+  await openPublishLibrary(true);
+}
+
+function onPublishSessionPick(){
+  const idx=document.getElementById('publish-session-select').value;
+  selectedEntry=idx!==''?S.lessons[idx]:null;
+  if(selectedEntry){
+    const suggestedName=(selectedEntry.name||'session').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    document.getElementById('publish-filename').value=suggestedName;
+  }
+}
+
+async function openPublishLibrary(fromSettings){
+  document.getElementById('publish-session-picker-row').style.display=fromSettings?'block':'none';
+  if(!fromSettings&&!selectedEntry)return;
   document.getElementById('publish-folder').value='';
   document.getElementById('publish-pack-name').value='';
   document.getElementById('publish-pack-desc').value='';
-  const suggestedName=(selectedEntry.name||'session').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-  document.getElementById('publish-filename').value=suggestedName;
+  if(selectedEntry){
+    const suggestedName=(selectedEntry.name||'session').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    document.getElementById('publish-filename').value=suggestedName;
+  } else {
+    document.getElementById('publish-filename').value='';
+  }
   document.getElementById('publish-pin').value='';
   document.getElementById('publish-status').textContent='';
   showOv('ov-publish-library');
@@ -2465,11 +2520,11 @@ function onPublishPackChange(){
 }
 
 async function confirmPublishLibrary(){
-  if(!selectedEntry)return;
+  const statusEl=document.getElementById('publish-status');
+  if(!selectedEntry){statusEl.textContent='❌ Choisissez une session';statusEl.style.color='var(--red-text)';return;}
   const sel=document.getElementById('publish-pack-select');
   const filename=document.getElementById('publish-filename').value.trim();
   const pin=document.getElementById('publish-pin').value.trim();
-  const statusEl=document.getElementById('publish-status');
   let tier,folder,newPack=null;
   if(sel.value==='__new__'){
     tier=document.getElementById('publish-tier').value;
@@ -2506,7 +2561,7 @@ async function confirmPublishLibrary(){
 // ── Gestion bibliothèque (renommer/supprimer packs et fichiers) ─
 let manageLibPacksCache=null,manageLibCurrentPack=null;
 
-async function openManageLibrary(){
+async function openManageLibrarySessions(){
   document.getElementById('manage-lib-pin').value='';
   document.getElementById('manage-lib-status').textContent='';
   showManageLibraryPacks();
@@ -2526,12 +2581,9 @@ async function loadManageLibraryPacks(){
       '<div style="border:1.5px solid var(--border);border-radius:12px;padding:10px 12px">'
       +'<div style="font-weight:700;font-size:13px">'+p.name+'</div>'
       +'<div style="font-size:11px;color:var(--muted);margin:2px 0 8px">'+(tierLabels[p.tier]||p.tier)+' · '+(p.langPair||'')+'</div>'
-      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-      +'<button class="cs-btn" onclick="openPackFiles(\''+p.id+'\')">📂 Fichiers</button>'
-      +'<button class="cs-btn" onclick="promptRenamePack(\''+p.id+'\')">✏️ Renommer</button>'
-      +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="confirmDeletePack(\''+p.id+'\')">🗑 Supprimer</button>'
-      +'</div></div>'
-    ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun pack</div>';
+      +'<button class="cs-btn" onclick="openPackFiles(\''+p.id+'\')">📂 Voir les sessions</button>'
+      +'</div>'
+    ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun pack — créez-en un dans "Gérer les packs"</div>';
   }catch(e){
     listEl.innerHTML='<div style="text-align:center;color:var(--red-text);font-size:13px">Erreur de chargement</div>';
   }
@@ -2605,6 +2657,102 @@ async function confirmDeletePack(packId){
     if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
     statusEl.textContent='✅ Pack supprimé';statusEl.style.color='var(--green-text)';
     await loadManageLibraryPacks();
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
+}
+
+// ── Gestion des packs (créer/renommer/supprimer) — écran dédié ──
+let manageLibPacksCrudCache=null;
+
+async function openManageLibraryPacks(){
+  document.getElementById('new-pack-id').value='';
+  document.getElementById('new-pack-name').value='';
+  document.getElementById('new-pack-desc').value='';
+  document.getElementById('manage-lib-packs-pin').value='';
+  document.getElementById('manage-lib-packs-status').textContent='';
+  showOv('ov-manage-library-packs');
+  await loadManageLibraryPacksCrud();
+}
+
+async function loadManageLibraryPacksCrud(){
+  const listEl=document.getElementById('manage-lib-packs-crud-list');
+  listEl.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px">Chargement…</div>';
+  try{
+    const res=await fetch(API_BASE+'/library-manifest');
+    const data=await res.json();
+    manageLibPacksCrudCache=data.packs||[];
+    const tierLabels={gratuit:'🆓 Gratuit',abonnes:'⭐ Abonnés',professionnel:'💼 Professionnel'};
+    listEl.innerHTML=manageLibPacksCrudCache.map(p=>
+      '<div style="border:1.5px solid var(--border);border-radius:12px;padding:10px 12px">'
+      +'<div style="font-weight:700;font-size:13px">'+p.name+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin:2px 0 8px">'+(tierLabels[p.tier]||p.tier)+' · '+(p.langPair||'')+'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      +'<button class="cs-btn" onclick="renameLibraryPackPrompt(\''+p.id+'\')">✏️ Renommer</button>'
+      +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteLibraryPackConfirm(\''+p.id+'\')">🗑 Supprimer</button>'
+      +'</div></div>'
+    ).join('')||'<div style="text-align:center;color:var(--muted);font-size:13px">Aucun pack</div>';
+  }catch(e){
+    listEl.innerHTML='<div style="text-align:center;color:var(--red-text);font-size:13px">Erreur de chargement</div>';
+  }
+}
+
+function getManageLibPacksPin(){
+  const pin=document.getElementById('manage-lib-packs-pin').value.trim();
+  const statusEl=document.getElementById('manage-lib-packs-status');
+  if(!pin){statusEl.textContent='❌ Code PIN requis';statusEl.style.color='var(--red-text)';return null;}
+  return pin;
+}
+
+async function createLibraryPack(){
+  const id=document.getElementById('new-pack-id').value.trim();
+  const name=document.getElementById('new-pack-name').value.trim();
+  const description=document.getElementById('new-pack-desc').value.trim();
+  const tier=document.getElementById('new-pack-tier').value;
+  const statusEl=document.getElementById('manage-lib-packs-status');
+  if(!id||!name){statusEl.textContent='❌ Identifiant et nom requis';statusEl.style.color='var(--red-text)';return;}
+  const pin=getManageLibPacksPin();if(!pin)return;
+  statusEl.textContent='⏳ …';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/library-create-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,name,description,tier,langPair:S.langFrom+'-'+S.langTo,pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Pack créé';statusEl.style.color='var(--green-text)';
+    document.getElementById('new-pack-id').value='';
+    document.getElementById('new-pack-name').value='';
+    document.getElementById('new-pack-desc').value='';
+    await loadManageLibraryPacksCrud();
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
+}
+
+async function renameLibraryPackPrompt(packId){
+  const pack=manageLibPacksCrudCache.find(p=>p.id===packId);
+  if(!pack)return;
+  const newName=prompt('Nouveau nom du pack :',pack.name);
+  if(newName===null||!newName.trim())return;
+  const pin=getManageLibPacksPin();if(!pin)return;
+  const statusEl=document.getElementById('manage-lib-packs-status');
+  statusEl.textContent='⏳ …';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/library-rename-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({packId,name:newName.trim(),pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Renommé';statusEl.style.color='var(--green-text)';
+    await loadManageLibraryPacksCrud();
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
+}
+
+async function deleteLibraryPackConfirm(packId){
+  const pack=manageLibPacksCrudCache.find(p=>p.id===packId);
+  if(!pack)return;
+  if(!confirm('Supprimer définitivement le pack "'+pack.name+'" et toutes ses sessions ?'))return;
+  const pin=getManageLibPacksPin();if(!pin)return;
+  const statusEl=document.getElementById('manage-lib-packs-status');
+  statusEl.textContent='⏳ Suppression…';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/library-delete-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({packId,pin})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Pack supprimé';statusEl.style.color='var(--green-text)';
+    await loadManageLibraryPacksCrud();
   }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
 }
 
