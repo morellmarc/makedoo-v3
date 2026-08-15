@@ -561,7 +561,10 @@ input:focus{border-color:var(--blue)}
 <div class="overlay" id="ov-library" style="display:none">
   <div class="overlay-card" style="max-width:400px">
     <button class="overlay-close" onclick="hideOv('ov-library')">×</button>
-    <div class="overlay-title">📚 Bibliothèque Makedoo</div>
+    <div id="library-back-row" style="display:none;margin-bottom:8px">
+      <button class="cs-btn" onclick="showLibrary()">← Retour aux packs</button>
+    </div>
+    <div class="overlay-title" id="library-title">📚 Bibliothèque Makedoo</div>
     <div id="library-content" style="max-height:60vh;overflow-y:auto">
       <div style="text-align:center;padding:24px;color:var(--muted)">⏳ Chargement...</div>
     </div>
@@ -3226,6 +3229,8 @@ async function listPackFiles(path){
 
 async function showLibrary(){
   showOv('ov-library');
+  document.getElementById('library-back-row').style.display='none';
+  document.getElementById('library-title').textContent='📚 Bibliothèque Makedoo';
   const content=document.getElementById('library-content');
   content.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">⏳ Chargement...</div>';
   try{
@@ -3234,7 +3239,6 @@ async function showLibrary(){
     if(!data.packs||!data.packs.length){content.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">Aucun pack disponible</div>';return;}
     const tierLabels={gratuit:'🆓 Gratuit',abonnes:'⭐ Abonnés',professionnel:'💼 Professionnel'};
     const tierColors={gratuit:'var(--green-text)',abonnes:'var(--blue)',professionnel:'#C05000'};
-    // Compter les fichiers réels de chaque pack via l'API GitHub (auto-détection)
     const counts=await Promise.all(data.packs.map(p=>listPackFiles(p.path)));
     content.innerHTML=data.packs.map((pack,i)=>{
       const tierColor=tierColors[pack.tier]||'var(--muted)';
@@ -3247,7 +3251,7 @@ async function showLibrary(){
         +'</div>'
         +'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">'+pack.description+'</div>'
         +'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">'+pack.langPair.toUpperCase()+' · '+n+' session(s)</div>'
-        +'<button class="setting-btn" style="margin-top:0" onclick="importPack(\''+pack.id+'\')">📥 Télécharger le pack</button>'
+        +'<button class="setting-btn" style="margin-top:0" onclick="showPackSessions(\''+pack.path.replace(/'/g,"\\'")+'\',\''+pack.name.replace(/'/g,"\\'")+'\')">👁 Voir les sessions</button>'
         +'</div>';
     }).join('');
   }catch(e){
@@ -3255,35 +3259,55 @@ async function showLibrary(){
   }
 }
 
-async function importPack(packId){
+async function showPackSessions(packPath,packName){
+  document.getElementById('library-back-row').style.display='block';
+  document.getElementById('library-title').textContent='📦 '+packName;
+  const content=document.getElementById('library-content');
+  content.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">⏳ Chargement...</div>';
   try{
-    const res=await fetch(LIBRARY_BASE+'/manifest.json?t='+Date.now());
-    const data=await res.json();
-    const pack=data.packs.find(p=>p.id===packId);
-    if(!pack)return;
-    const btn=document.querySelector('[onclick="importPack(\''+packId+'\')"]');
-    if(btn)btn.textContent='⏳ Téléchargement...';
-    // Liste automatique des fichiers du dossier (pas besoin de manifest à jour)
-    const filenames=await listPackFiles(pack.path);
-    let imported=0,skipped=0,errors=0;
-    for(const filename of filenames){
+    const filenames=await listPackFiles(packPath);
+    if(!filenames.length){content.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">Aucune session dans ce pack</div>';return;}
+    const sessions=await Promise.all(filenames.map(async fn=>{
       try{
-        const fileRes=await fetch(LIBRARY_BASE+'/'+pack.path+'/'+filename+'?t='+Date.now());
-        const sessionData=await fileRes.json();
-        if(!sessionData.exchanges||!Array.isArray(sessionData.exchanges)){errors++;continue;}
-        const exists=S.lessons.some(l=>l.id===sessionData.id);
-        if(exists){skipped++;continue;}
-        sessionData.id=sessionData.id||Date.now()+Math.floor(Math.random()*1000);
-        S.lessons.unshift(sessionData);
-        imported++;
-      }catch(e){errors++;}
-    }
-    localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons));
-    hideOv('ov-library');
-    renderConvScreen();
-    showToast('📥 '+imported+' importée(s)'+(skipped?' · '+skipped+' déjà présente(s)':'')+(errors?' · '+errors+' erreur(s)':''));
+        const res=await fetch(LIBRARY_BASE+'/'+packPath+'/'+fn+'?t='+Date.now());
+        const data=await res.json();
+        return {filename:fn,name:data.name||fn,langFrom:data.langFrom||'',langTo:data.langTo||'',count:(data.exchanges||[]).length};
+      }catch(e){return {filename:fn,name:fn,langFrom:'',langTo:'',count:0};}
+    }));
+    content.innerHTML=sessions.map(s=>{
+      const already=S.lessons.some(l=>l.name===s.name&&l.langFrom===s.langFrom&&l.langTo===s.langTo);
+      return '<div style="border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px">'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+s.name+'</div>'
+        +'<div style="font-size:11px;color:var(--muted)">'+s.langFrom.toUpperCase()+'→'+s.langTo.toUpperCase()+' · '+s.count+' échange(s)</div>'
+        +'</div>'
+        +(already
+          ?'<span style="font-size:11px;color:var(--green-text);font-weight:700;flex-shrink:0">✓ Importée</span>'
+          :'<button class="cs-btn" style="flex-shrink:0" onclick="importSingleSession(\''+packPath.replace(/'/g,"\\'")+'\',\''+s.filename.replace(/'/g,"\\'")+'\',this)">📥 Importer</button>')
+        +'</div>';
+    }).join('');
   }catch(e){
-    showToast('Erreur de téléchargement du pack');
+    content.innerHTML='<div style="text-align:center;padding:24px;color:var(--red-text)">Erreur de connexion à la bibliothèque</div>';
+  }
+}
+
+async function importSingleSession(packPath,filename,btnEl){
+  if(btnEl){btnEl.disabled=true;btnEl.textContent='⏳ …';}
+  try{
+    const res=await fetch(LIBRARY_BASE+'/'+packPath+'/'+filename+'?t='+Date.now());
+    const sessionData=await res.json();
+    if(!sessionData.exchanges||!Array.isArray(sessionData.exchanges)){showToast('❌ Session invalide');if(btnEl){btnEl.disabled=false;btnEl.textContent='📥 Importer';}return;}
+    const exists=S.lessons.some(l=>l.id===sessionData.id);
+    if(exists){showToast('Déjà présente sur l\'appareil');if(btnEl){btnEl.outerHTML='<span style="font-size:11px;color:var(--green-text);font-weight:700;flex-shrink:0">✓ Importée</span>';}return;}
+    sessionData.id=sessionData.id||Date.now()+Math.floor(Math.random()*1000);
+    S.lessons.unshift(sessionData);
+    localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons));
+    renderConvScreen();
+    showToast('📥 '+(sessionData.name||'Session')+' importée');
+    if(btnEl){btnEl.outerHTML='<span style="font-size:11px;color:var(--green-text);font-weight:700;flex-shrink:0">✓ Importée</span>';}
+  }catch(e){
+    showToast('Erreur de téléchargement');
+    if(btnEl){btnEl.disabled=false;btnEl.textContent='📥 Importer';}
   }
 }
 
