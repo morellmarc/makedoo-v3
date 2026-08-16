@@ -2930,7 +2930,7 @@ function renderAudioMainList(){
   const typeFilter=document.getElementById('audio-main-filter-type').value;
   const langFilter=document.getElementById('audio-main-filter-lang').value;
   const catFilter=document.getElementById('audio-main-filter-cat').value;
-  const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+  const langFlags={fr:'🇫🇷',mk:'🇲🇰',en:'🇬🇧',es:'🇪🇸',de:'🇩🇪',it:'🇮🇹',tr:'🇹🇷',sq:'🇦🇱',sr:'🇷🇸',bg:'🇧🇬',el:'🇬🇷',pt:'🇵🇹',ro:'🇷🇴',hu:'🇭🇺',pl:'🇵🇱',nl:'🇳🇱',ru:'🇷🇺'};
   const typeIcons={livre:'📖',pack:'💬'};
   let tracks=audioLibTracksCache;
   if(typeFilter)tracks=tracks.filter(t=>(t.type||'livre')===typeFilter);
@@ -3007,7 +3007,7 @@ function renderPdfMainList(){
   const typeFilter=document.getElementById('pdf-main-filter-type').value;
   const langFilter=document.getElementById('pdf-main-filter-lang').value;
   const catFilter=document.getElementById('pdf-main-filter-cat').value;
-  const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+  const langFlags={fr:'🇫🇷',mk:'🇲🇰',en:'🇬🇧',es:'🇪🇸',de:'🇩🇪',it:'🇮🇹',tr:'🇹🇷',sq:'🇦🇱',sr:'🇷🇸',bg:'🇧🇬',el:'🇬🇷',pt:'🇵🇹',ro:'🇷🇴',hu:'🇭🇺',pl:'🇵🇱',nl:'🇳🇱',ru:'🇷🇺'};
   const typeIcons={livre:'📖',pack:'💬'};
   let books=pdfLibBooksCache;
   if(typeFilter)books=books.filter(b=>(b.type||'livre')===typeFilter);
@@ -3106,7 +3106,7 @@ async function loadManagePdfList(){
     const res=await fetch(API_BASE+'/pdf-manifest');
     const data=await res.json();
     pdfLibBooksCache=data.books||[];
-    const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+    const langFlags={fr:'🇫🇷',mk:'🇲🇰',en:'🇬🇧',es:'🇪🇸',de:'🇩🇪',it:'🇮🇹',tr:'🇹🇷',sq:'🇦🇱',sr:'🇷🇸',bg:'🇧🇬',el:'🇬🇷',pt:'🇵🇹',ro:'🇷🇴',hu:'🇭🇺',pl:'🇵🇱',nl:'🇳🇱',ru:'🇷🇺'};
     listEl.innerHTML=pdfLibBooksCache.map(b=>
       '<div style="display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:10px;padding:8px 10px">'
       +'<div style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(langFlags[b.lang]||'🏳️')+' '+b.title+'</div>'
@@ -3305,7 +3305,7 @@ function renderAudioLibraryList(){
   const typeFilter=document.getElementById('audio-lib-filter-type').value;
   const langFilter=document.getElementById('audio-lib-filter-lang').value;
   const catFilter=document.getElementById('audio-lib-filter-cat').value;
-  const langFlags={fr:'🇫🇷',en:'🇬🇧',mk:'🇲🇰'};
+  const langFlags={fr:'🇫🇷',mk:'🇲🇰',en:'🇬🇧',es:'🇪🇸',de:'🇩🇪',it:'🇮🇹',tr:'🇹🇷',sq:'🇦🇱',sr:'🇷🇸',bg:'🇧🇬',el:'🇬🇷',pt:'🇵🇹',ro:'🇷🇴',hu:'🇭🇺',pl:'🇵🇱',nl:'🇳🇱',ru:'🇷🇺'};
   const typeIcons={livre:'📖',pack:'💬'};
   let tracks=audioLibTracksCache;
   if(typeFilter)tracks=tracks.filter(t=>(t.type||'livre')===typeFilter);
