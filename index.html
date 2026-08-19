@@ -343,6 +343,7 @@ input:focus{border-color:var(--blue)}
   <div style="flex:1;min-height:0;width:100%;overflow-y:auto;display:flex;flex-direction:column">
     <div id="plus-pres-content" style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;width:100%;box-sizing:border-box;padding:0 24px 24px;margin-top:auto;margin-bottom:auto;text-align:center;font-size:14px;line-height:1.35;color:var(--text)"></div>
   </div>
+  <div id="plus-pres-yt-row" style="flex-shrink:0;display:none;width:100%;box-sizing:border-box;padding:8px 24px 20px;text-align:center"></div>
 </div>
 
 <!-- ÉCRAN + (échanges simplifiés) -->
@@ -3663,13 +3664,20 @@ function togglePlusPresentation(){
   } else {
     const lines=getInfoLines();
     const el=document.getElementById('plus-pres-content');
-    let html=lines.filter(l=>l.trim()).map(l=>'<div style="margin-bottom:16px">'+l.replace(/</g,'&lt;')+'</div>').join('');
+    const html=lines.filter(l=>l.trim()).map(l=>'<div style="margin-bottom:16px">'+l.replace(/</g,'&lt;')+'</div>').join('');
+    if(el)el.innerHTML=html;
+    const ytRow=document.getElementById('plus-pres-yt-row');
     const yt=customInfoText&&customInfoText.youtubeLinks;
     const ytUrl=yt&&(yt[S.uiLang]||yt['en']);
-    if(ytUrl){
-      html+='<button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878);width:auto;padding:7px 16px;font-size:12px;margin-top:8px" onclick="window.open(\''+ytUrl.replace(/'/g,"\\'")+'\',\'_blank\')">▶️ Youtube Tuto</button>';
+    if(ytRow){
+      if(ytUrl){
+        ytRow.innerHTML='<button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878);width:auto;padding:7px 16px;font-size:12px" onclick="window.open(\''+ytUrl.replace(/'/g,"\\'")+'\',\'_blank\')">▶️ Youtube Tuto</button>';
+        ytRow.style.display='block';
+      } else {
+        ytRow.innerHTML='';
+        ytRow.style.display='none';
+      }
     }
-    if(el)el.innerHTML=html;
     pres.style.display='flex';
   }
 }
