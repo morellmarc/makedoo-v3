@@ -2062,12 +2062,27 @@ async function speakText(text,langCode){
 }
 let currentAudioEl=null;
 let currentAudioResolve=null;
+let sharedAudioEl=null;
+function unlockAudioForIOS(){
+  if(!sharedAudioEl)sharedAudioEl=new Audio();
+  try{
+    sharedAudioEl.muted=true;
+    const p=sharedAudioEl.play();
+    if(p&&typeof p.catch==='function')p.catch(()=>{});
+    sharedAudioEl.muted=false;
+  }catch(e){}
+}
 function playAudio(src){return new Promise(resolve=>{
-  const a=new Audio(src);
+  if(!sharedAudioEl)sharedAudioEl=new Audio();
+  const a=sharedAudioEl;
   currentAudioEl=a;currentAudioResolve=resolve;
   a.onended=()=>{currentAudioEl=null;currentAudioResolve=null;resolve()};
   a.onerror=()=>{currentAudioEl=null;currentAudioResolve=null;resolve()};
-  a.play();
+  a.src=src;
+  const p=a.play();
+  if(p&&typeof p.catch==='function'){
+    p.catch(()=>{currentAudioEl=null;currentAudioResolve=null;resolve()});
+  }
 })}
 function stopCurrentSpeech(){
   if(currentAudioEl){currentAudioEl.pause();currentAudioEl.currentTime=0;currentAudioEl=null;}
@@ -3729,6 +3744,7 @@ let plusMediaRecorder=null,plusAudioChunks=[],plusRecordingSide=null;
 
 function plusStartRecord(side){
   if(S.plusBusy||plusRecordingSide)return;
+  unlockAudioForIOS();
   plusRecordingSide=side;
   const btn=document.getElementById(side==='A'?'plus-flag-a-btn':'plus-flag-b-btn');
   if(btn)btn.style.opacity='0.5';
@@ -3801,6 +3817,7 @@ let soloMediaRecorder=null,soloAudioChunks=[],soloRecordingSide=null;
 
 function soloStartRecord(side){
   if(soloRecordingSide)return;
+  unlockAudioForIOS();
   soloRecordingSide=side;
   const btn=document.getElementById(side==='A'?'solo-flag-a-btn':'solo-flag-b-btn');
   if(btn)btn.style.opacity='0.5';
