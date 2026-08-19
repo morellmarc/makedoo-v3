@@ -2063,13 +2063,15 @@ async function speakText(text,langCode){
 let currentAudioEl=null;
 let currentAudioResolve=null;
 let sharedAudioEl=null;
+let unlockAudioEl=null;
 function unlockAudioForIOS(){
-  if(!sharedAudioEl)sharedAudioEl=new Audio();
+  if(!unlockAudioEl){
+    unlockAudioEl=new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAABTAAAAWGF2ZgAAAAAAAAAAAAAAACQCPAAAAAAAAAABTAJAJH/');
+    unlockAudioEl.muted=true;
+  }
   try{
-    sharedAudioEl.muted=true;
-    const p=sharedAudioEl.play();
+    const p=unlockAudioEl.play();
     if(p&&typeof p.catch==='function')p.catch(()=>{});
-    sharedAudioEl.muted=false;
   }catch(e){}
 }
 function playAudio(src){return new Promise(resolve=>{
