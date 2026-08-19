@@ -4171,6 +4171,8 @@ function updateUILabels(){
   if(sessBtn)sessBtn.textContent='📋 '+t('lessons');
   document.getElementById('btn-exchange').textContent='DUO';
   document.getElementById('btn-learn').textContent='SOLO';
+  const repeatLabel=document.getElementById('plus-repeat-label');
+  if(repeatLabel)repeatLabel.textContent=t('repeat');
   // Bulles d'aide du bandeau supérieur
   const tipFlagA=document.getElementById('solo-flag-a-small');
   if(tipFlagA)tipFlagA.title=t('tooltipSource');
