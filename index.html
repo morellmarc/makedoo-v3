@@ -3670,6 +3670,8 @@ function togglePlusPresentation(){
       html+='<button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878);width:auto;padding:7px 16px;font-size:12px;margin-top:8px" onclick="window.open(\''+ytUrl.replace(/'/g,"\\'")+'\',\'_blank\')">▶️ Youtube Tuto</button>';
     }
     if(el)el.innerHTML=html;
+    const scrollWrap=el&&el.parentElement;
+    if(scrollWrap)scrollWrap.scrollTop=0;
     pres.style.display='flex';
   }
 }
