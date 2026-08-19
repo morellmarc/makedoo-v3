@@ -3063,6 +3063,11 @@ function renderPdfMainList(){
 }
 
 function openPdfReader(url){
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  if(isIOS){
+    window.open(url,'_blank');
+    return;
+  }
   document.getElementById('pdf-reader-frame').src=url;
   document.getElementById('pdf-main-list-view').style.display='none';
   document.getElementById('pdf-reader-view').style.display='flex';
