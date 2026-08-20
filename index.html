@@ -4063,7 +4063,7 @@ function getInfoLines(){
     return frData.text.split('\n');
   }
   const base=t('welcomeText1');
-  return [base,t('welcomeTextLangs'),t('welcomeText2'),base,base];
+  return [base,t('welcomeTextLangs'),t('welcomeText2')];
 }
 
 async function shareMakedoo(){
@@ -4302,7 +4302,7 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
 
 // ── Boot ───────────────────────────────────────────────────────
-loadInfoText().then(()=>{if(S.screen===0)renderScreen();});
+loadInfoText().then(()=>{if(S.screen===0){renderScreen();showPlusScreen(false);}});
 updateVoiceButtons();
 // Synchroniser le scroll des deux fenêtres texte (source/cible)
 (function(){
