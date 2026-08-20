@@ -4279,7 +4279,7 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
 
 // ── Boot ───────────────────────────────────────────────────────
-loadInfoText().then(()=>{if(S.screen===0)renderScreen();togglePlusPresentation();});
+loadInfoText().then(()=>{if(S.screen===0)renderScreen();});
 updateVoiceButtons();
 // Synchroniser le scroll des deux fenêtres texte (source/cible)
 (function(){
