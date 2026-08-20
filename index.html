@@ -441,7 +441,7 @@ input:focus{border-color:var(--blue)}
 
 <!-- MODE BAR -->
 <div class="mode-bar" id="mode-bar" style="position:relative;z-index:65">
-  <button class="mode-btn active-exchange" id="btn-exchange" onclick="showPlusScreen()">DUO</button>
+  <button class="mode-btn" id="btn-exchange" onclick="showPlusScreen()">DUO</button>
   <button class="mode-btn" id="btn-learn" onclick="setMode('learn')">SOLO</button>
 </div>
 <div class="nav-spacer" id="nav-spacer"></div>
@@ -1352,7 +1352,7 @@ function renderScreen(){
         if(welcomeIntro){
           welcomeIntro.style.display='flex';
           if(mainLayoutEl)mainLayoutEl.style.display='none';
-          populateWelcomeIntro(true,t('startConv'));
+          populateWelcomeIntro();
         }
         intLabel.textContent=t('welcomeTitle');
         intLabel.classList.add('visible');
