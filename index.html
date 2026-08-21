@@ -3686,12 +3686,18 @@ function togglePlusPresentation(){
   const mainLayoutEl=document.getElementById('main-layout-el');
   const plusScreen=document.getElementById('plus-screen');
   const welcomeIntro=document.getElementById('welcome-intro');
+  const pdfScreen=document.getElementById('pdf-main-screen');
+  const audioScreen=document.getElementById('audio-main-screen');
   if(showing){
     pres.style.display='none';
     if(presPreviousScreen==='plus'){
       if(plusScreen)plusScreen.style.display='flex';
     } else if(presPreviousScreen==='welcome'){
       if(welcomeIntro)welcomeIntro.style.display='flex';
+    } else if(presPreviousScreen==='pdf'){
+      if(pdfScreen)pdfScreen.style.display='flex';
+    } else if(presPreviousScreen==='audio'){
+      if(audioScreen)audioScreen.style.display='flex';
     } else {
       if(mainLayoutEl)mainLayoutEl.style.display='flex';
     }
@@ -3700,6 +3706,14 @@ function togglePlusPresentation(){
     if(plusScreen&&plusScreen.style.display==='flex'){
       presPreviousScreen='plus';
       plusScreen.style.display='none';
+    } else if(pdfScreen&&pdfScreen.style.display==='flex'){
+      presPreviousScreen='pdf';
+      pdfScreen.style.display='none';
+    } else if(audioScreen&&audioScreen.style.display==='flex'){
+      presPreviousScreen='audio';
+      const player=document.getElementById('audio-main-player');
+      if(player){player.pause();player.src='';}
+      audioScreen.style.display='none';
     } else if(welcomeIntro&&welcomeIntro.style.display==='flex'){
       presPreviousScreen='welcome';
       welcomeIntro.style.display='none';
