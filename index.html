@@ -2933,7 +2933,10 @@ async function openAudioEntry(){
   if(isConversationOpen())return;
   const pres=document.getElementById('plus-presentation');
   if(pres&&pres.style.display==='flex')pres.style.display='none';
-  audioMainScreenPrevious=S.plusScreenActive?'plus':(document.getElementById('main-layout-el')&&document.getElementById('main-layout-el').style.display!=='none'?'main':'plus');
+  const welcomeIntroAudio=document.getElementById('welcome-intro');
+  const wasWelcomeAudio=welcomeIntroAudio&&welcomeIntroAudio.style.display==='flex';
+  if(wasWelcomeAudio)welcomeIntroAudio.style.display='none';
+  audioMainScreenPrevious=wasWelcomeAudio?'welcome':(S.plusScreenActive?'plus':(document.getElementById('main-layout-el')&&document.getElementById('main-layout-el').style.display!=='none'?'main':'plus'));
   document.getElementById('plus-screen').style.display='none';
   const mainLayoutEl=document.getElementById('main-layout-el');
   if(mainLayoutEl)mainLayoutEl.style.display='none';
@@ -2966,6 +2969,9 @@ function closeAudioMainScreen(){
   document.getElementById('audio-main-screen').style.display='none';
   if(audioMainScreenPrevious==='plus'){
     document.getElementById('plus-screen').style.display='flex';
+  } else if(audioMainScreenPrevious==='welcome'){
+    const wi=document.getElementById('welcome-intro');
+    if(wi)wi.style.display='flex';
   } else {
     const mainLayoutEl=document.getElementById('main-layout-el');
     if(mainLayoutEl)mainLayoutEl.style.display='flex';
@@ -3010,7 +3016,10 @@ async function openPdfEntry(){
   if(isConversationOpen())return;
   const pres=document.getElementById('plus-presentation');
   if(pres&&pres.style.display==='flex')pres.style.display='none';
-  pdfMainScreenPrevious=S.plusScreenActive?'plus':(document.getElementById('main-layout-el')&&document.getElementById('main-layout-el').style.display!=='none'?'main':'plus');
+  const welcomeIntroPdf=document.getElementById('welcome-intro');
+  const wasWelcomePdf=welcomeIntroPdf&&welcomeIntroPdf.style.display==='flex';
+  if(wasWelcomePdf)welcomeIntroPdf.style.display='none';
+  pdfMainScreenPrevious=wasWelcomePdf?'welcome':(S.plusScreenActive?'plus':(document.getElementById('main-layout-el')&&document.getElementById('main-layout-el').style.display!=='none'?'main':'plus'));
   document.getElementById('plus-screen').style.display='none';
   const mainLayoutEl=document.getElementById('main-layout-el');
   if(mainLayoutEl)mainLayoutEl.style.display='none';
@@ -3043,6 +3052,9 @@ function closePdfMainScreen(){
   document.getElementById('pdf-main-screen').style.display='none';
   if(pdfMainScreenPrevious==='plus'){
     document.getElementById('plus-screen').style.display='flex';
+  } else if(pdfMainScreenPrevious==='welcome'){
+    const wi=document.getElementById('welcome-intro');
+    if(wi)wi.style.display='flex';
   } else {
     const mainLayoutEl=document.getElementById('main-layout-el');
     if(mainLayoutEl)mainLayoutEl.style.display='flex';
