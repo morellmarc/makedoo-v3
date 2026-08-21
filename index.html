@@ -1338,6 +1338,9 @@ function renderScreen(){
   }
 
   if(S.screen===0){
+    if(!S.duoWelcomeShown&&!customInfoText){
+      return; // Attendre les vraies données avant d'afficher quoi que ce soit — évite le flash du texte de repli
+    }
     status.textContent='';
     pill.style.display='none';
     const welcomeIntro=document.getElementById('welcome-intro');
