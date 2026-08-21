@@ -1886,16 +1886,82 @@ async function submitTextLesson(){
 // ── Recognition ────────────────────────────────────────────────
 let recognition=null,mediaRecorder=null,audioChunksSTT=[];
 
-// ── Format d'enregistrement STT : WebM/Opus partout, sauf iOS (non fiable) où MP4/AAC est utilisé ──
+// ── Format d'enregistrement STT : WebM/Opus partout, sauf iOS (non fiable pour Google STT) ──
 function getSTTRecordingFormat(){
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-  if(isIOS){
-    if(MediaRecorder.isTypeSupported('audio/mp4')){
-      return {mimeType:'audio/mp4',encoding:'ENCODING_UNSPECIFIED'};
-    }
+  if(isIOS&&MediaRecorder.isTypeSupported('audio/mp4')){
+    return {mimeType:'audio/mp4',encoding:'ENCODING_UNSPECIFIED'};
   }
   const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
   return {mimeType,encoding:'WEBM_OPUS'};
+}
+
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onloadend=()=>resolve(reader.result.split(',')[1]);
+    reader.onerror=reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function mixDownToMono(audioBuffer){
+  const len=audioBuffer.length;
+  const out=new Float32Array(len);
+  const numCh=audioBuffer.numberOfChannels;
+  for(let ch=0;ch<numCh;ch++){
+    const chData=audioBuffer.getChannelData(ch);
+    for(let i=0;i<len;i++)out[i]+=chData[i]/numCh;
+  }
+  return out;
+}
+
+function audioBufferToWavBase64(audioBuffer){
+  const sampleRate=audioBuffer.sampleRate;
+  const chData=audioBuffer.numberOfChannels>1?mixDownToMono(audioBuffer):audioBuffer.getChannelData(0);
+  const numSamples=chData.length;
+  const blockAlign=2;
+  const byteRate=sampleRate*blockAlign;
+  const dataSize=numSamples*blockAlign;
+  const buffer=new ArrayBuffer(44+dataSize);
+  const view=new DataView(buffer);
+  function writeString(offset,str){for(let i=0;i<str.length;i++)view.setUint8(offset+i,str.charCodeAt(i));}
+  writeString(0,'RIFF');view.setUint32(4,36+dataSize,true);writeString(8,'WAVE');
+  writeString(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);
+  view.setUint16(22,1,true);view.setUint32(24,sampleRate,true);
+  view.setUint32(28,byteRate,true);view.setUint16(32,blockAlign,true);view.setUint16(34,16,true);
+  writeString(36,'data');view.setUint32(40,dataSize,true);
+  let offset=44;
+  for(let i=0;i<numSamples;i++){
+    const s=Math.max(-1,Math.min(1,chData[i]));
+    view.setInt16(offset,s<0?s*0x8000:s*0x7FFF,true);
+    offset+=2;
+  }
+  let binary='';
+  const bytes=new Uint8Array(buffer);
+  for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);
+  return {base64:btoa(binary),sampleRate};
+}
+
+// ── Prépare l'audio pour l'envoi au serveur : décode+réencode en WAV sur iOS (seul format garanti compatible avec Google STT), inchangé ailleurs ──
+async function prepareSTTPayload(blob,mimeType){
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  if(!isIOS){
+    const base64=await blobToBase64(blob);
+    return {base64,mimeType,encoding:'WEBM_OPUS',sampleRateHertz:48000};
+  }
+  try{
+    const arrayBuffer=await blob.arrayBuffer();
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    const ctx=new AudioCtx();
+    const audioBuffer=await ctx.decodeAudioData(arrayBuffer);
+    const {base64,sampleRate}=audioBufferToWavBase64(audioBuffer);
+    ctx.close();
+    return {base64,mimeType:'audio/wav',encoding:'LINEAR16',sampleRateHertz:sampleRate};
+  }catch(e){
+    const base64=await blobToBase64(blob);
+    return {base64,mimeType,encoding:'ENCODING_UNSPECIFIED',sampleRateHertz:48000};
+  }
 }
 
 function startListening(){
@@ -1934,18 +2000,14 @@ async function startCloudSTT(fromLang,toLang,recogLang){
       if(micC)micC.style.opacity='0';if(hgC)hgC.style.opacity='1';
       updateMicIndicators();
       const blob=new Blob(audioChunksSTT,{type:mimeType});
-      const reader=new FileReader();
-      reader.onloadend=async()=>{
-        const base64=reader.result.split(',')[1];
-        try{
-          const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,languageCode:recogLang,mimeType,encoding})});
-          const data=await res.json();
-          const text=data.transcript||'';
-          if(text)finishListening(text,fromLang,toLang);
-          else{if(hgC)hgC.style.opacity='0';if(micC)micC.style.opacity='1';setScreen(1);}
-        }catch(e){showToast(t('sttFail'));setScreen(S.currentExchanges.length>0?2:0)}
-      };
-      reader.readAsDataURL(blob);
+      try{
+        const payload=await prepareSTTPayload(blob,mimeType);
+        const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:payload.base64,languageCode:recogLang,mimeType:payload.mimeType,encoding:payload.encoding,sampleRateHertz:payload.sampleRateHertz})});
+        const data=await res.json();
+        const text=data.transcript||'';
+        if(text)finishListening(text,fromLang,toLang);
+        else{if(hgC)hgC.style.opacity='0';if(micC)micC.style.opacity='1';setScreen(1);}
+      }catch(e){showToast(t('sttFail'));setScreen(S.currentExchanges.length>0?2:0)}
     };
     mediaRecorder.start();
   }catch(e){showToast(t('micError'));S.listening=false;setScreen(0)}
@@ -3813,21 +3875,17 @@ function plusStartRecord(side){
       const statusEl2=document.getElementById('plus-status');
       if(statusEl2)statusEl2.textContent='⏳ …';
       const blob=new Blob(plusAudioChunks,{type:mimeType});
-      const reader=new FileReader();
-      reader.onloadend=async()=>{
-        const base64=reader.result.split(',')[1];
-        try{
-          const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,languageCode:recogLang,mimeType,encoding})});
-          const data=await res.json();
-          const text=data.transcript||'';
-          if(text){await plusTranslateAndSpeak(text,fromLang,toLang);}
-          else{if(statusEl2)statusEl2.textContent='😕 …';}
-        }catch(e){
-          if(statusEl2)statusEl2.textContent='❌ '+t('sttFail');
-        }
-        plusResetFlags();
-      };
-      reader.readAsDataURL(blob);
+      try{
+        const payload=await prepareSTTPayload(blob,mimeType);
+        const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:payload.base64,languageCode:recogLang,mimeType:payload.mimeType,encoding:payload.encoding,sampleRateHertz:payload.sampleRateHertz})});
+        const data=await res.json();
+        const text=data.transcript||'';
+        if(text){await plusTranslateAndSpeak(text,fromLang,toLang);}
+        else{if(statusEl2)statusEl2.textContent='😕 …';}
+      }catch(e){
+        if(statusEl2)statusEl2.textContent='❌ '+t('sttFail');
+      }
+      plusResetFlags();
     };
     plusMediaRecorder.start();
   }).catch(e=>{
@@ -3886,22 +3944,18 @@ function soloStartRecord(side){
       const statusEl2=document.getElementById('solo-flags-status');
       if(statusEl2)statusEl2.textContent='⏳ …';
       const blob=new Blob(soloAudioChunks,{type:mimeType});
-      const reader=new FileReader();
-      reader.onloadend=async()=>{
-        const base64=reader.result.split(',')[1];
-        try{
-          const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,languageCode:recogLang,mimeType,encoding})});
-          const data=await res.json();
-          const text=data.transcript||'';
-          soloResetFlags();
-          if(text){await translateAndSpeak(text,fromLang,toLang);}
-          else{showToast(t('sttError'));}
-        }catch(e){
-          soloResetFlags();
-          showToast(t('sttFail'));
-        }
-      };
-      reader.readAsDataURL(blob);
+      try{
+        const payload=await prepareSTTPayload(blob,mimeType);
+        const res=await fetch(API_BASE+'/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:payload.base64,languageCode:recogLang,mimeType:payload.mimeType,encoding:payload.encoding,sampleRateHertz:payload.sampleRateHertz})});
+        const data=await res.json();
+        const text=data.transcript||'';
+        soloResetFlags();
+        if(text){await translateAndSpeak(text,fromLang,toLang);}
+        else{showToast(t('sttError'));}
+      }catch(e){
+        soloResetFlags();
+        showToast(t('sttFail'));
+      }
     };
     soloMediaRecorder.start();
   }).catch(e=>{
