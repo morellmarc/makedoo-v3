@@ -1338,9 +1338,6 @@ function renderScreen(){
   }
 
   if(S.screen===0){
-    if(!S.duoWelcomeShown&&!customInfoText){
-      return; // Attendre les vraies données avant d'afficher quoi que ce soit — évite le flash du texte de repli
-    }
     status.textContent='';
     pill.style.display='none';
     const welcomeIntro=document.getElementById('welcome-intro');
@@ -1352,10 +1349,14 @@ function renderScreen(){
       // DUO — accueil : "Bienvenue" au tout premier démarrage, puis bannière permanente
       if(!S.duoWelcomeShown){
         if(circleContainer)circleContainer.style.visibility='hidden';
+        if(mainLayoutEl)mainLayoutEl.style.display='none';
         if(welcomeIntro){
-          welcomeIntro.style.display='flex';
-          if(mainLayoutEl)mainLayoutEl.style.display='none';
-          populateWelcomeIntro();
+          if(customInfoText){
+            welcomeIntro.style.display='flex';
+            populateWelcomeIntro();
+          } else {
+            welcomeIntro.style.display='none'; // Rien à afficher tant que les vraies données ne sont pas là — évite le flash du texte de repli
+          }
         }
         intLabel.textContent=t('welcomeTitle');
         intLabel.classList.add('visible');
@@ -4338,7 +4339,8 @@ updateVoiceButtons();
 updateDisplay();updateUILabels();renderScreen();
 (function(){
   const welcomeIntro=document.getElementById('welcome-intro');
-  if(!welcomeIntro||welcomeIntro.style.display!=='flex'){
+  const waitingForData=!S.duoWelcomeShown&&!customInfoText;
+  if(!waitingForData&&(!welcomeIntro||welcomeIntro.style.display!=='flex')){
     showPlusScreen(false);
   }
 })();
