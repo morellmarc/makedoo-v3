@@ -182,7 +182,7 @@ input:focus{border-color:var(--blue)}
     <button class="info-card-top" id="pdf-top-icon" style="background:#E3D9FF;color:#5B3DB8" onclick="openPdfEntry()">📚</button>
     <button class="info-card-top" id="audio-top-icon" style="background:#FFE9CC;color:#B36A00" onclick="openAudioEntry()">🎧</button>
     <button class="info-card-top" id="info-top-icon" onclick="togglePlusPresentation()">ℹ️</button>
-    <button class="setup-card-top" id="settings-top-icon" onclick="showOv('ov-setup')">⚙</button>
+    <button class="setup-card-top" id="settings-top-icon" onclick="showOv('ov-setup');refreshAccountUI()">⚙</button>
   </div>
 </div>
 
@@ -452,6 +452,24 @@ input:focus{border-color:var(--blue)}
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-setup')">×</button>
     <div class="overlay-title" id="settings-title">⚙ Settings</div>
+
+    <div class="setting-row" style="background:#E8F0FF;border-radius:12px;padding:12px;margin-bottom:16px;text-align:center">
+      <div id="account-logged-out" style="display:none">
+        <div class="setting-label" style="text-align:center">👤 Mon compte</div>
+        <input type="email" id="account-email-input" placeholder="votre@email.com" style="margin-bottom:8px">
+        <button class="setting-btn" style="background:linear-gradient(135deg,#4A6CF7,#3450C4)" onclick="requestMagicLink()">✉️ Recevoir un lien de connexion</button>
+        <div id="account-login-status" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
+      </div>
+      <div id="account-logged-in" style="display:none">
+        <div class="setting-label" style="text-align:center">👤 Mon compte</div>
+        <div id="account-email-display" style="font-size:14px;font-weight:700;margin-bottom:4px"></div>
+        <div id="account-sub-status" style="font-size:13px;color:var(--muted);margin-bottom:10px"></div>
+        <button class="setting-btn" id="account-subscribe-btn" style="background:linear-gradient(135deg,#00C48C,#00A878)" onclick="startSubscription()">⭐ S'abonner</button>
+        <button class="setting-btn" id="account-manage-btn" style="background:linear-gradient(135deg,#8A96B4,#6B7794);display:none" onclick="openBillingPortal()">🧾 Gérer mon abonnement</button>
+        <button class="setting-btn" style="background:none;color:var(--muted);box-shadow:none;font-weight:600" onclick="logoutAccount()">Se déconnecter</button>
+      </div>
+    </div>
+
     <div class="setting-row" style="background:#FFF3E0;border-radius:12px;padding:12px;margin-bottom:16px;text-align:center">
       <div class="setting-label" id="label-share" style="text-align:center">📣 Partager Makedoo</div>
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://makedoo.net" alt="QR code makedoo.net" style="width:120px;height:120px;border-radius:8px;margin:8px 0;background:white;padding:6px">
@@ -1045,6 +1063,104 @@ const I18N={
 };
 function t(k){return(I18N[S.uiLang]||I18N.en)[k]||I18N.en[k]||k}
 const isLearn=()=>S.mode==='learn';
+
+// ── Compte utilisateur : connexion par lien magique, abonnement Stripe ──
+function getAuthJwt(){return localStorage.getItem('mk_auth_jwt');}
+
+async function refreshAccountUI(){
+  const jwtToken=getAuthJwt();
+  const loggedOut=document.getElementById('account-logged-out');
+  const loggedIn=document.getElementById('account-logged-in');
+  if(!jwtToken){
+    if(loggedOut)loggedOut.style.display='block';
+    if(loggedIn)loggedIn.style.display='none';
+    return;
+  }
+  try{
+    const res=await fetch(API_BASE+'/auth/me',{headers:{'Authorization':'Bearer '+jwtToken}});
+    if(!res.ok){
+      localStorage.removeItem('mk_auth_jwt');
+      if(loggedOut)loggedOut.style.display='block';
+      if(loggedIn)loggedIn.style.display='none';
+      return;
+    }
+    const data=await res.json();
+    if(loggedOut)loggedOut.style.display='none';
+    if(loggedIn)loggedIn.style.display='block';
+    const emailEl=document.getElementById('account-email-display');
+    if(emailEl)emailEl.textContent=data.email;
+    const statusEl=document.getElementById('account-sub-status');
+    const subBtn=document.getElementById('account-subscribe-btn');
+    const manageBtn=document.getElementById('account-manage-btn');
+    const isActive=data.subscriptionStatus==='active';
+    if(statusEl)statusEl.textContent=isActive?'⭐ Abonnement actif':'Aucun abonnement actif';
+    if(subBtn)subBtn.style.display=isActive?'none':'block';
+    if(manageBtn)manageBtn.style.display=isActive?'block':'none';
+  }catch(e){}
+}
+
+async function requestMagicLink(){
+  const emailInput=document.getElementById('account-email-input');
+  const statusEl=document.getElementById('account-login-status');
+  const email=emailInput.value.trim();
+  if(!email){statusEl.textContent='❌ Entrez votre email';statusEl.style.color='var(--red-text)';return;}
+  statusEl.textContent='⏳ …';statusEl.style.color='var(--muted)';
+  try{
+    const res=await fetch(API_BASE+'/auth/request-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const data=await res.json();
+    if(!res.ok){statusEl.textContent='❌ '+(data.error||'Erreur');statusEl.style.color='var(--red-text)';return;}
+    statusEl.textContent='✅ Vérifiez votre boîte mail — le lien est valable 15 minutes';statusEl.style.color='var(--green-text)';
+  }catch(e){statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';}
+}
+
+async function verifyMagicLinkFromUrl(){
+  const params=new URLSearchParams(window.location.search);
+  const token=params.get('authtoken');
+  if(!token)return;
+  try{
+    const res=await fetch(API_BASE+'/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
+    const data=await res.json();
+    if(res.ok&&data.jwt){
+      localStorage.setItem('mk_auth_jwt',data.jwt);
+      showToast('✅ Connecté : '+data.email);
+    }else{
+      showToast('❌ '+(data.error||'Lien invalide'));
+    }
+  }catch(e){}
+  // Nettoie l'URL pour retirer le jeton, sans recharger la page
+  params.delete('authtoken');
+  const newUrl=window.location.pathname+(params.toString()?'?'+params.toString():'');
+  window.history.replaceState({},'',newUrl);
+  refreshAccountUI();
+}
+
+function logoutAccount(){
+  localStorage.removeItem('mk_auth_jwt');
+  refreshAccountUI();
+  showToast('Déconnecté');
+}
+
+async function startSubscription(){
+  const jwtToken=getAuthJwt();
+  if(!jwtToken)return;
+  try{
+    const res=await fetch(API_BASE+'/create-checkout-session',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+jwtToken}});
+    const data=await res.json();
+    if(data.url)window.location.href=data.url;
+    else showToast('❌ '+(data.error||'Erreur'));
+  }catch(e){showToast('❌ Erreur de connexion');}
+}
+
+async function openBillingPortal(){
+  const jwtToken=getAuthJwt();
+  if(!jwtToken)return;
+  try{
+    const res=await fetch(API_BASE+'/create-portal-session',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+jwtToken}});
+    const data=await res.json();
+    if(data.url)window.location.href=data.url;
+    else showToast('❌ '+(data.error||'Erreur'));
+  }catch(e){showToast('❌ Erreur de connexion');}
+}
 
 const LANGS=[
   {code:'fr',label:'Français',flag:'🇫🇷',bcp47:'fr-FR',display:'FR'},
@@ -4335,6 +4451,9 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
 
 // ── Boot ───────────────────────────────────────────────────────
+verifyMagicLinkFromUrl();
+refreshAccountUI();
+
 loadInfoText().then(()=>{
   if(S.screen===0){
     renderScreen();
