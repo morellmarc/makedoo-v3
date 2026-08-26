@@ -1085,6 +1085,9 @@ async function refreshAccountUI(){
       return;
     }
     const data=await res.json();
+    localStorage.setItem('mk_has_access', data.hasAccess ? '1' : '0');
+    localStorage.setItem('mk_in_trial', data.inTrial ? '1' : '0');
+    localStorage.setItem('mk_trial_ends_at', data.trialEndsAt || '');
     if(loggedOut)loggedOut.style.display='none';
     if(loggedIn)loggedIn.style.display='block';
     const emailEl=document.getElementById('account-email-display');
@@ -1093,10 +1096,23 @@ async function refreshAccountUI(){
     const subBtn=document.getElementById('account-subscribe-btn');
     const manageBtn=document.getElementById('account-manage-btn');
     const isActive=data.subscriptionStatus==='active';
-    if(statusEl)statusEl.textContent=isActive?'⭐ Abonnement actif':'Aucun abonnement actif';
+    if(statusEl){
+      if(isActive){
+        statusEl.textContent='⭐ Abonnement actif';
+      }else if(data.inTrial){
+        const daysLeft=Math.max(0,Math.ceil((new Date(data.trialEndsAt)-new Date())/86400000));
+        statusEl.textContent='🎁 Essai gratuit — '+daysLeft+' jour(s) restant(s)';
+      }else{
+        statusEl.textContent='⛔ Essai terminé — abonnement requis';
+      }
+    }
     if(subBtn)subBtn.style.display=isActive?'none':'block';
     if(manageBtn)manageBtn.style.display=isActive?'block':'none';
   }catch(e){}
+}
+
+function hasFullAccess(){
+  return localStorage.getItem('mk_has_access')==='1';
 }
 
 async function requestMagicLink(){
