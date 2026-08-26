@@ -1357,6 +1357,7 @@ function handleArrowClick(){
 // ── Tap ────────────────────────────────────────────────────────
 function handleTap(){
   if(S.ignoreTap)return;
+  if(!requireAccessOrPrompt())return;
   if(S.screen===1&&!S.listening)startListening();
   else if(S.screen===1&&S.listening)stopListening();
   else if(S.screen===2&&!isLearn()){
@@ -3944,6 +3945,7 @@ function hidePlusScreen(){
 let plusMediaRecorder=null,plusAudioChunks=[],plusRecordingSide=null;
 
 function plusStartRecord(side){
+  if(!requireAccessOrPrompt())return;
   if(S.plusBusy||plusRecordingSide)return;
   unlockAudioForIOS();
   plusRecordingSide=side;
@@ -4017,6 +4019,7 @@ function plusResetFlags(){
 let soloMediaRecorder=null,soloAudioChunks=[],soloRecordingSide=null;
 
 function soloStartRecord(side){
+  if(!requireAccessOrPrompt())return;
   if(soloRecordingSide)return;
   unlockAudioForIOS();
   soloRecordingSide=side;
