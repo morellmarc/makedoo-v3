@@ -456,6 +456,7 @@ input:focus{border-color:var(--blue)}
     <div class="setting-row" style="background:#E8F0FF;border-radius:12px;padding:12px;margin-bottom:16px;text-align:center">
       <div id="account-logged-out" style="display:none">
         <div class="setting-label" style="text-align:center">👤 Mon compte</div>
+        <div id="trial-info-text" style="font-size:12px;color:var(--blue-text);font-weight:600;margin-bottom:8px;text-align:center"></div>
         <input type="email" id="account-email-input" placeholder="votre@email.com" style="margin-bottom:8px">
         <button class="setting-btn" style="background:linear-gradient(135deg,#4A6CF7,#3450C4)" onclick="requestMagicLink()">✉️ Recevoir un lien de connexion</button>
         <div id="account-login-status" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
@@ -1074,6 +1075,7 @@ async function refreshAccountUI(){
   if(!jwtToken){
     if(loggedOut)loggedOut.style.display='block';
     if(loggedIn)loggedIn.style.display='none';
+    loadTrialInfo();
     return;
   }
   try{
@@ -1113,6 +1115,20 @@ async function refreshAccountUI(){
 
 function hasFullAccess(){
   return localStorage.getItem('mk_has_access')==='1';
+}
+
+let trialDaysCache=null;
+async function loadTrialInfo(){
+  const el=document.getElementById('trial-info-text');
+  if(!el)return;
+  try{
+    if(trialDaysCache===null){
+      const res=await fetch(API_BASE+'/trial-info');
+      const data=await res.json();
+      trialDaysCache=data.trialDays;
+    }
+    el.textContent='🎁 '+trialDaysCache+' jours d\'essai gratuit, sans engagement';
+  }catch(e){}
 }
 
 function requireAccessOrPrompt(){
