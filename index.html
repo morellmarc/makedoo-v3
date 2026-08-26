@@ -1115,6 +1115,14 @@ function hasFullAccess(){
   return localStorage.getItem('mk_has_access')==='1';
 }
 
+function requireAccessOrPrompt(){
+  if(hasFullAccess())return true;
+  showToast('⛔ Essai terminé — abonnement requis');
+  showOv('ov-setup');
+  refreshAccountUI();
+  return false;
+}
+
 async function requestMagicLink(){
   const emailInput=document.getElementById('account-email-input');
   const statusEl=document.getElementById('account-login-status');
@@ -1268,6 +1276,7 @@ function execLP(a){
 
 // ── Mode ───────────────────────────────────────────────────────
 function setMode(mode){
+  if(mode==='learn'&&!requireAccessOrPrompt())return;
   const audioScreen=document.getElementById('audio-main-screen');
   if(audioScreen&&audioScreen.style.display==='flex'){
     const player=document.getElementById('audio-main-player');
@@ -1992,6 +2001,7 @@ function confirmSaveLesson(){
 function doExit(){S.currentExchanges=[];setScreen(0)}
 
 async function submitTextLesson(){
+  if(!requireAccessOrPrompt())return;
   const input=document.getElementById('text-lesson-input');
   let text=input.value.trim();
   // Si champ vide et phrase précédente en mémoire → retraduit dans la nouvelle langue
@@ -2234,7 +2244,7 @@ function updateMicIndicators(){
 let convViewMode=false,selectedEntry=null,isPlayingConv=false;
 
 function showConversations(){convViewMode=false;selectedEntry=null;showConvScreen()}
-function showLessons(){convViewMode=true;selectedEntry=null;showConvScreen()}
+function showLessons(){if(!requireAccessOrPrompt())return;convViewMode=true;selectedEntry=null;showConvScreen()}
 
 function showConvScreen(){
   const ml=document.getElementById('main-layout-el');
@@ -3886,6 +3896,7 @@ function ensureMicStream(){
 }
 
 function showPlusScreen(markActive){
+  if(!requireAccessOrPrompt())return;
   if(markActive===undefined)markActive=true;
   const audioScreen=document.getElementById('audio-main-screen');
   if(audioScreen&&audioScreen.style.display==='flex'){
