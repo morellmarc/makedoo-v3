@@ -465,6 +465,10 @@ input:focus{border-color:var(--blue)}
         <div class="setting-label" style="text-align:center">👤 Mon compte</div>
         <div id="account-email-display" style="font-size:14px;font-weight:700;margin-bottom:4px"></div>
         <div id="account-sub-status" style="font-size:13px;color:var(--muted);margin-bottom:10px"></div>
+        <label id="account-withdrawal-consent" style="display:none;align-items:flex-start;gap:6px;font-size:11px;color:var(--muted);text-align:left;margin-bottom:8px;cursor:pointer">
+          <input type="checkbox" id="account-withdrawal-checkbox" style="margin-top:2px;flex-shrink:0">
+          <span>Je demande l'exécution immédiate du service dès le paiement et je reconnais que je perds mon droit de rétractation de 14 jours une fois l'abonnement activé.</span>
+        </label>
         <button class="setting-btn" id="account-subscribe-btn" style="background:linear-gradient(135deg,#00C48C,#00A878)" onclick="startSubscription()">⭐ S'abonner</button>
         <button class="setting-btn" id="account-manage-btn" style="background:linear-gradient(135deg,#8A96B4,#6B7794);display:none" onclick="openBillingPortal()">🧾 Gérer mon abonnement</button>
         <button class="setting-btn" style="background:none;color:var(--muted);box-shadow:none;font-weight:600" onclick="logoutAccount()">Se déconnecter</button>
@@ -1110,6 +1114,8 @@ async function refreshAccountUI(){
     }
     if(subBtn)subBtn.style.display=isActive?'none':'block';
     if(manageBtn)manageBtn.style.display=isActive?'block':'none';
+    const withdrawalConsent=document.getElementById('account-withdrawal-consent');
+    if(withdrawalConsent)withdrawalConsent.style.display=isActive?'none':'flex';
   }catch(e){}
 }
 
@@ -1189,6 +1195,11 @@ function logoutAccount(){
 async function startSubscription(){
   const jwtToken=getAuthJwt();
   if(!jwtToken)return;
+  const consentBox=document.getElementById('account-withdrawal-checkbox');
+  if(consentBox&&!consentBox.checked){
+    showToast('☑️ Merci de cocher la case avant de continuer');
+    return;
+  }
   try{
     const res=await fetch(API_BASE+'/create-checkout-session',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+jwtToken}});
     const data=await res.json();
