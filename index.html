@@ -2476,6 +2476,24 @@ function getActiveLangTo(entry){
   return entry.invLangTo||entry.langTo;
 }
 
+// Reconstruit l'affichage des deux fenêtres de texte (original/traduit) à partir d'un tableau
+// d'échanges — utilisé à la fois pour reprendre une leçon sauvegardée et pour la récupération
+// automatique d'une session interrompue, qui ne restaure que les données sans reconstruire le DOM.
+function renderTextPanelsFromExchanges(exchanges,langFrom,langTo){
+  const oe=document.getElementById('tp-text-orig');const te=document.getElementById('tp-text-trans');
+  if(!oe||!te)return;
+  oe.innerHTML='';te.innerHTML='';
+  const sep='<div style="border-top:1px solid var(--border);margin:4px 0"></div>';
+  exchanges.forEach((e,i)=>{
+    oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.original+'</div>';
+    te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.translated+'</div>';
+  });
+  const lf=LANGS.find(l=>l.code===langFrom);const lt=LANGS.find(l=>l.code===langTo);
+  const lfEl=document.getElementById('tp-lang-top');const ltEl=document.getElementById('tp-lang-bot');
+  if(lfEl)lfEl.textContent=lf?lf.display:(langFrom||'').toUpperCase();
+  if(ltEl)ltEl.textContent=lt?lt.display:(langTo||'').toUpperCase();
+}
+
 function resumeLesson(){
   if(!selectedEntry)return;
   const activeEx=getActiveExchanges(selectedEntry);
@@ -2485,16 +2503,7 @@ function resumeLesson(){
   S.currentExchanges=[...activeEx];
   S.lastTranslation=activeEx[activeEx.length-1]&&activeEx[activeEx.length-1].translated||null;
   S.lastTranslationLang=activeTo||'mk';
-  const oe=document.getElementById('tp-text-orig');const te=document.getElementById('tp-text-trans');
-  oe.innerHTML='';te.innerHTML='';
-  const sep='<div style="border-top:1px solid var(--border);margin:4px 0"></div>';
-  activeEx.forEach((e,i)=>{
-    oe.innerHTML+=(oe.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.original+'</div>';
-    te.innerHTML+=(te.innerHTML?sep:'')+'<div class="tp-phrase" data-idx="'+i+'" onclick="selectPhrase('+i+')" style="padding:2px 4px;border-radius:4px;cursor:pointer">'+e.translated+'</div>';
-  });
-  const lf=LANGS.find(l=>l.code===S.langFrom);const lt=LANGS.find(l=>l.code===S.langTo);
-  document.getElementById('tp-lang-top').textContent=lf?lf.display:S.langFrom.toUpperCase();
-  document.getElementById('tp-lang-bot').textContent=lt?lt.display:S.langTo.toUpperCase();
+  renderTextPanelsFromExchanges(activeEx,S.langFrom,S.langTo);
   S.screen=0;S.mode='learn';selectedPhraseIdx=-1;selectedPhraseIdxs.clear();
   document.getElementById('btn-exchange').className='mode-btn';
   document.getElementById('btn-learn').className='mode-btn active-learn';
@@ -4630,6 +4639,7 @@ updateDisplay();updateUILabels();renderScreen();
 // Restauration du travail en cours (SOLO/DUO) : placé en tout dernier, après le reste du
 // démarrage, pour ne jamais être écrasé par l'affichage automatique de l'écran de présentation.
 if(hasRecoverableDraft){
+  renderTextPanelsFromExchanges(S.currentExchanges,S.langFrom,S.langTo);
   showToast('🔄 '+S.currentExchanges.length+' — session récupérée');
   setScreen(2);
 }
