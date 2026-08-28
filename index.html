@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<meta name="google" content="notranslate">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#FAFBFF">
@@ -1036,8 +1037,8 @@ const S={
   direction:'AB',currentSpeaker:'A',
   screen:0,listening:false,
   lastTranslation:null,lastTranslationLang:null,lastOriginal:null,
-  currentExchanges:[],
-  plusExchanges:[],
+  currentExchanges:JSON.parse(localStorage.getItem('mk_v3_draft_exchanges')||'[]'),
+  plusExchanges:JSON.parse(localStorage.getItem('mk_v3_draft_plus')||'[]'),
   journal:JSON.parse(localStorage.getItem('mk_v3_journal')||'[]'),
   lessons:JSON.parse(localStorage.getItem('mk_v3_lessons')||'[]'),
   contacts:JSON.parse(localStorage.getItem('mk_v3_contacts')||JSON.stringify([{id:1,name:'Olivija',lang:'mk'}])),
@@ -1134,6 +1135,18 @@ function applyAccountI18n(){
   set('account-subscribe-btn','subscribeBtn');
   set('account-manage-btn','manageSubBtn');
   set('account-logout-btn','logoutBtn');
+  updatePresentationRegisterButtons();
+}
+
+// Affiche/masque les boutons "S'enregistrer" des écrans de présentation selon l'état de connexion.
+// Séparé du rendu initial de l'écran car la connexion se termine de façon asynchrone (après un clic
+// sur le lien magique) et ne doit pas laisser un bouton obsolète affiché.
+function updatePresentationRegisterButtons(){
+  const show=!getAuthJwt();
+  ['pres-register-btn-1','pres-register-btn-2'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b)b.style.display=show?'inline-block':'none';
+  });
 }
 
 // Traduit les messages d'erreur fixes renvoyés par le serveur (toujours en français côté API)
@@ -1316,6 +1329,27 @@ if(!storedLangFrom){
     S.langFrom=phoneLang;
     if(['fr','en','mk','es','de','it','tr','sq','sr','bg','el','pt','ro','hu','pl','nl','ru'].includes(phoneLang))S.uiLang=phoneLang;
   }
+}
+document.documentElement.lang=S.uiLang;
+
+// ── Sauvegarde automatique du travail en cours (SOLO/DUO) ────────────────
+// Toutes les 4 secondes, tant qu'une session/leçon est en cours de construction, sa copie est
+// écrite en local — récupérée automatiquement si l'app est fermée par erreur avant sauvegarde.
+setInterval(()=>{
+  if(S.currentExchanges.length>0){
+    localStorage.setItem('mk_v3_draft_exchanges',JSON.stringify(S.currentExchanges));
+    localStorage.setItem('mk_v3_draft_mode',S.mode);
+  } else {
+    localStorage.removeItem('mk_v3_draft_exchanges');
+    localStorage.removeItem('mk_v3_draft_mode');
+  }
+  if(S.plusExchanges.length>0)localStorage.setItem('mk_v3_draft_plus',JSON.stringify(S.plusExchanges));
+  else localStorage.removeItem('mk_v3_draft_plus');
+},4000);
+if(S.currentExchanges.length>0){
+  const draftMode=localStorage.getItem('mk_v3_draft_mode');
+  if(draftMode)S.mode=draftMode;
+  setTimeout(()=>{showToast('🔄 '+S.currentExchanges.length+' — session récupérée');setScreen(2);},300);
 }
 
 navigator.geolocation&&navigator.geolocation.getCurrentPosition(async pos=>{
@@ -1730,7 +1764,7 @@ function startSession(){
   S.welcomeShown=true;
   S.duoWelcomeShown=true;
   S.showInfoScreen0=false;
-  S.currentExchanges=[];
+  S.currentExchanges=[];localStorage.removeItem('mk_v3_draft_exchanges');
   selectedPhraseIdx=-1;selectedPhraseIdxs.clear();
   document.getElementById('tp-text-orig').innerHTML='';
   document.getElementById('tp-text-trans').innerHTML='';
@@ -1755,7 +1789,7 @@ function doConfirmedExit(){
   hideOv('ov-confirm-exit');
   if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
   // Réinitialiser et retourner à l'écran 0
-  S.currentExchanges=[];
+  S.currentExchanges=[];localStorage.removeItem('mk_v3_draft_exchanges');
   S.lastOriginal=null;
   selectedPhraseIdx=-1;
   selectedPhraseIdxs.clear();
@@ -1769,7 +1803,7 @@ function doConfirmedExit(){
 }
 function cancelExit(){hideOv('ov-confirm-exit');}
 function doExitLesson(){
-  S.currentExchanges=[];
+  S.currentExchanges=[];localStorage.removeItem('mk_v3_draft_exchanges');
   S.lastOriginal=null;
   selectedPhraseIdx=-1;
   selectedPhraseIdxs.clear();
@@ -1788,7 +1822,7 @@ function doExitLesson(){
 function doExitConv(){
   if(S.currentExchanges.length===0){
     if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
-    S.currentExchanges=[];setScreen(0);
+    S.currentExchanges=[];localStorage.removeItem('mk_v3_draft_exchanges');setScreen(0);
   } else {
     document.getElementById('confirm-exit-msg').textContent=t('exitNoSave');
     document.getElementById('btn-confirm-exit').textContent=t('exit');
@@ -1799,7 +1833,7 @@ function doExitConv(){
 function doConfirmedExitConv(){
   hideOv('ov-confirm-exit');
   if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
-  S.currentExchanges=[];setScreen(0);
+  S.currentExchanges=[];localStorage.removeItem('mk_v3_draft_exchanges');setScreen(0);
 }
 function doResume(){
   if(isLearn()){
@@ -2004,7 +2038,7 @@ function doSave(){
   showOv('ov-save-conv');
 }
 function plusDoExit(){
-  S.plusExchanges=[];
+  S.plusExchanges=[];localStorage.removeItem('mk_v3_draft_plus');
   S.lastPlusOriginal=null;
   S.lastPlusOriginalLang=null;
   const saveRow=document.getElementById('plus-save-row');
@@ -2030,13 +2064,13 @@ function confirmSaveConv(){
   localStorage.setItem('mk_v3_journal',JSON.stringify(S.journal));
   hideOv('ov-save-conv');
   if(S.savingFromPlus){
-    S.plusExchanges=[];
+    S.plusExchanges=[];localStorage.removeItem('mk_v3_draft_plus');
     const statusEl=document.getElementById('plus-status');
     if(statusEl)statusEl.textContent=t('plusPressToTalk');
     const saveRow=document.getElementById('plus-save-row');
     if(saveRow)saveRow.style.display='none';
   } else {
-    S.currentExchanges=[];
+    S.currentExchanges=[];localStorage.removeItem('mk_v3_draft_exchanges');
     setScreen(0);
   }
   S.savingFromPlus=false;
@@ -2054,9 +2088,9 @@ function confirmSaveLesson(){
   S.lessons.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
   localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons));
   hideOv('ov-save-lesson');
-  S.currentExchanges=[];setScreen(isLearn()?1:0);showToast('💾 '+name);
+  S.currentExchanges=[];localStorage.removeItem('mk_v3_draft_exchanges');setScreen(isLearn()?1:0);showToast('💾 '+name);
 }
-function doExit(){S.currentExchanges=[];setScreen(0)}
+function doExit(){S.currentExchanges=[];localStorage.removeItem('mk_v3_draft_exchanges');setScreen(0)}
 
 async function submitTextLesson(){
   if(!requireAccessOrPrompt())return;
@@ -2068,7 +2102,7 @@ async function submitTextLesson(){
   }
   if(!text)return;
   input.value='';
-  if(S.screen===0){S.currentExchanges=[];document.getElementById('tp-text-orig').innerHTML='';document.getElementById('tp-text-trans').innerHTML='';}
+  if(S.screen===0){S.currentExchanges=[];localStorage.removeItem('mk_v3_draft_exchanges');document.getElementById('tp-text-orig').innerHTML='';document.getElementById('tp-text-trans').innerHTML='';}
   const micC=document.getElementById('mic-center');
   const hgC=document.getElementById('hg-center');
   if(micC)micC.style.opacity='0';
@@ -3873,6 +3907,9 @@ function populateWelcomeIntro(showStartBtn,startLabel){
   if(ytUrl){
     html+='<button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878);width:auto;padding:7px 16px;font-size:12px;margin-top:8px" onclick="window.open(\''+ytUrl.replace(/'/g,"\\'")+'\',\'_blank\')">▶️ Youtube Tuto</button>';
   }
+  if(!getAuthJwt()){
+    html+='<button class="setting-btn" id="pres-register-btn-1" style="background:linear-gradient(135deg,#4A6CF7,#3450C4);width:auto;padding:7px 16px;font-size:12px;margin-top:8px;margin-left:8px" onclick="showOv(\'ov-setup\')">'+t('requestLinkBtn')+'</button>';
+  }
   if(showStartBtn){
     html+='<div style="padding:20px 0"><button class="action-btn green solid" onclick="event.stopPropagation();startSession()">▶ '+startLabel+'</button></div>';
   }
@@ -3932,6 +3969,9 @@ function togglePlusPresentation(){
     const ytUrl=yt&&(yt[S.uiLang]||yt['en']);
     if(ytUrl){
       html+='<button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878);width:auto;padding:7px 16px;font-size:12px;margin-top:8px" onclick="window.open(\''+ytUrl.replace(/'/g,"\\'")+'\',\'_blank\')">▶️ Youtube Tuto</button>';
+    }
+    if(!getAuthJwt()){
+      html+='<button class="setting-btn" id="pres-register-btn-2" style="background:linear-gradient(135deg,#4A6CF7,#3450C4);width:auto;padding:7px 16px;font-size:12px;margin-top:8px;margin-left:8px" onclick="showOv(\'ov-setup\')">'+t('requestLinkBtn')+'</button>';
     }
     if(el)el.innerHTML=html;
     const scrollWrap=el&&el.parentElement;
@@ -4372,6 +4412,7 @@ function saveApiKey(){const key=document.getElementById('api-key-input').value.t
 function setUILang(lang){
   S.uiLang=lang;localStorage.setItem('makedoo_v3_uilang',lang);
   localStorage.setItem('makedoo_v3_uilang_manual','true');
+  document.documentElement.lang=lang;
   ['fr','en','mk','es','de','it','tr','sq','sr','bg','el','pt','ro','hu','pl','nl','ru'].forEach(l=>{const b=document.getElementById('ulang-'+l);if(b)b.classList.toggle('sel',l===lang)});
   updateUILabels();
   renderScreen();
