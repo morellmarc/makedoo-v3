@@ -1346,10 +1346,13 @@ setInterval(()=>{
   if(S.plusExchanges.length>0)localStorage.setItem('mk_v3_draft_plus',JSON.stringify(S.plusExchanges));
   else localStorage.removeItem('mk_v3_draft_plus');
 },4000);
-if(S.currentExchanges.length>0){
+// Calculé une seule fois, avant tout le reste du démarrage : empêche l'écran de présentation
+// automatique (showPlusScreen) d'écraser le mode SOLO/DUO restauré, quelle que soit la vitesse
+// du réseau (l'affichage de cet écran dépend d'un appel serveur asynchrone concurrent).
+const hasRecoverableDraft=S.currentExchanges.length>0;
+if(hasRecoverableDraft){
   const draftMode=localStorage.getItem('mk_v3_draft_mode');
   if(draftMode)S.mode=draftMode;
-  setTimeout(()=>{showToast('🔄 '+S.currentExchanges.length+' — session récupérée');setScreen(2);},300);
 }
 
 navigator.geolocation&&navigator.geolocation.getCurrentPosition(async pos=>{
@@ -4589,7 +4592,7 @@ verifyMagicLinkFromUrl();
 refreshAccountUI();
 
 loadInfoText().then(()=>{
-  if(S.screen===0){
+  if(S.screen===0&&!hasRecoverableDraft){
     renderScreen();
     const welcomeIntro=document.getElementById('welcome-intro');
     if(!welcomeIntro||welcomeIntro.style.display!=='flex'){
@@ -4619,10 +4622,18 @@ updateDisplay();updateUILabels();renderScreen();
 (function(){
   const welcomeIntro=document.getElementById('welcome-intro');
   const waitingForData=!S.duoWelcomeShown&&!customInfoText;
-  if(!waitingForData&&(!welcomeIntro||welcomeIntro.style.display!=='flex')){
+  if(!hasRecoverableDraft&&!waitingForData&&(!welcomeIntro||welcomeIntro.style.display!=='flex')){
     showPlusScreen(false);
   }
 })();
+
+// Restauration du travail en cours (SOLO/DUO) : placé en tout dernier, après le reste du
+// démarrage, pour ne jamais être écrasé par l'affichage automatique de l'écran de présentation.
+if(hasRecoverableDraft){
+  showToast('🔄 '+S.currentExchanges.length+' — session récupérée');
+  setScreen(2);
+}
+
 
 // Compteur de visites (discret, silencieux en cas d'échec)
 fetch(API_BASE+'/visit').catch(()=>{});
