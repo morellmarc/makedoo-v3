@@ -1350,9 +1350,17 @@ setInterval(()=>{
 // automatique (showPlusScreen) d'écraser le mode SOLO/DUO restauré, quelle que soit la vitesse
 // du réseau (l'affichage de cet écran dépend d'un appel serveur asynchrone concurrent).
 const hasRecoverableDraft=S.currentExchanges.length>0;
+const hasRecoverablePlusDraft=S.plusExchanges.length>0;
 if(hasRecoverableDraft){
   const draftMode=localStorage.getItem('mk_v3_draft_mode');
   if(draftMode)S.mode=draftMode;
+}
+if(hasRecoverablePlusDraft){
+  // Nécessaire pour que le bouton « Répéter » fonctionne dès la récupération — sinon la dernière
+  // phrase à rejouer n'est jamais reconstituée, bien que l'échange soit bien présent dans le tableau.
+  const lastPlus=S.plusExchanges[S.plusExchanges.length-1];
+  S.lastPlusOriginal=lastPlus.original;
+  S.lastPlusOriginalLang=lastPlus.langFrom;
 }
 
 navigator.geolocation&&navigator.geolocation.getCurrentPosition(async pos=>{
@@ -2413,6 +2421,7 @@ function renderConvScreen(){
     }else{
       actionDiv.innerHTML=
         '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">'
+        +'<button class="cs-btn" onclick="resumeConversation()" style="border-color:'+color+';color:'+color+'">▶️ '+t('resume')+'</button>'
         +'<button class="cs-btn" id="cs-listen" onclick="listenEntry()" style="border-color:'+color+';color:'+color+'">🔊 '+t('listen')+'</button>'
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>'
         +'</div>'
@@ -2516,6 +2525,22 @@ function resumeLesson(){
   hideConvScreen();
   updateDisplay();
   setScreen(2);
+}
+
+function resumeConversation(){
+  if(!selectedEntry)return;
+  const activeEx=getActiveExchanges(selectedEntry);
+  const activeFrom=getActiveLangFrom(selectedEntry);
+  const activeTo=getActiveLangTo(selectedEntry);
+  S.langFrom=activeFrom||'fr';S.langTo=activeTo||'mk';
+  S.plusExchanges=[...activeEx];
+  const last=activeEx[activeEx.length-1];
+  S.lastPlusOriginal=last?last.original:null;
+  S.lastPlusOriginalLang=last?last.langFrom:null;
+  hideConvScreen();
+  showPlusScreen(true);
+  const statusEl=document.getElementById('plus-status');
+  if(statusEl&&last)statusEl.textContent=last.translated;
 }
 
 function renameLesson(){
@@ -4601,7 +4626,7 @@ verifyMagicLinkFromUrl();
 refreshAccountUI();
 
 loadInfoText().then(()=>{
-  if(S.screen===0&&!hasRecoverableDraft){
+  if(S.screen===0&&!hasRecoverableDraft&&!hasRecoverablePlusDraft){
     renderScreen();
     const welcomeIntro=document.getElementById('welcome-intro');
     if(!welcomeIntro||welcomeIntro.style.display!=='flex'){
@@ -4631,7 +4656,7 @@ updateDisplay();updateUILabels();renderScreen();
 (function(){
   const welcomeIntro=document.getElementById('welcome-intro');
   const waitingForData=!S.duoWelcomeShown&&!customInfoText;
-  if(!hasRecoverableDraft&&!waitingForData&&(!welcomeIntro||welcomeIntro.style.display!=='flex')){
+  if(!hasRecoverableDraft&&!hasRecoverablePlusDraft&&!waitingForData&&(!welcomeIntro||welcomeIntro.style.display!=='flex')){
     showPlusScreen(false);
   }
 })();
@@ -4642,6 +4667,9 @@ if(hasRecoverableDraft){
   renderTextPanelsFromExchanges(S.currentExchanges,S.langFrom,S.langTo);
   showToast('🔄 '+S.currentExchanges.length+' — session récupérée');
   setScreen(2);
+} else if(hasRecoverablePlusDraft){
+  showPlusScreen(true);
+  showToast('🔄 '+S.plusExchanges.length+' — conversation récupérée');
 }
 
 
