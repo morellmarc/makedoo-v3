@@ -2508,7 +2508,8 @@ async function exportOfflinePack(){
     }catch(e){}
     if(btn)btn.textContent='⏳ '+(i+1)+'/'+activeExOff.length;
   }
-  zip.file('session.json',JSON.stringify({
+  const safeSessionName=(selectedEntry.name||'session').replace(/[^a-z0-9\-_ ]+/gi,'').trim()||'session';
+  zip.file(safeSessionName+'.json',JSON.stringify({
     name:selectedEntry.name,
     langFrom:selectedEntry.langFrom,
     langTo:selectedEntry.langTo,
@@ -3147,8 +3148,9 @@ async function loadOfflinePack(event){
   offlinePackAudioUrls=[];
   try{
     const zip=await JSZip.loadAsync(file);
-    const jsonFile=zip.file('session.json');
-    if(!jsonFile){listEl.innerHTML='<div style="text-align:center;color:var(--red-text);font-size:13px">Fichier session.json introuvable dans l\'archive</div>';return;}
+    const jsonFilename=Object.keys(zip.files).find(n=>n.toLowerCase().endsWith('.json'));
+    const jsonFile=jsonFilename?zip.file(jsonFilename):null;
+    if(!jsonFile){listEl.innerHTML='<div style="text-align:center;color:var(--red-text);font-size:13px">Aucun fichier JSON trouvé dans l\'archive</div>';return;}
     const sessionData=JSON.parse(await jsonFile.async('string'));
     const exchanges=sessionData.exchanges||[];
     const titleEl=document.getElementById('offline-reader-title');
@@ -4568,6 +4570,11 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500)}
 
 // ── Boot ───────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
 verifyMagicLinkFromUrl();
 refreshAccountUI();
 
