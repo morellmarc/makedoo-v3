@@ -308,7 +308,7 @@ input:focus{border-color:var(--blue)}
     <div id="cs-title" style="font-size:16px;font-weight:800"></div>
     <div style="display:flex;gap:6px">
       <button class="cs-btn" id="btn-import-session" onclick="importSession()" style="background:var(--blue-light);color:var(--blue);display:none">📥</button>
-      <button class="cs-btn" id="btn-library" onclick="showLibrary()" style="background:var(--green-light);color:var(--green-text);display:none">📚</button>
+      <button class="cs-btn" id="btn-library" onclick="showLibrary()" style="background:var(--green-light);color:var(--green-text);display:none">🗃️</button>
       <button class="cs-btn" id="btn-offline-reader" onclick="document.getElementById('offline-pack-input').click()" style="background:#E3D9FF;color:#5B3DB8;display:none">📦</button>
       <input type="file" id="offline-pack-input" accept=".zip" style="display:none" onchange="loadOfflinePack(event)">
       <button class="cs-btn" onclick="hideConvScreen()" style="background:var(--red-light);color:var(--red-text)" id="btn-exit-convscreen">Exit</button>
@@ -568,7 +568,7 @@ input:focus{border-color:var(--blue)}
     </div>
     <div id="admin-section" style="display:none">
       <div class="setting-row" style="background:#E0F7EC;border-radius:12px;padding:12px;margin-top:14px;text-align:center">
-        <div class="setting-label" style="text-align:center">📚 Packs Makedoo</div>
+        <div class="setting-label" style="text-align:center">🗃️ Packs Makedoo</div>
         <button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878);margin-bottom:8px" onclick="openManageLibrarySessions()">🗂️ Gérer les sessions</button>
         <button class="setting-btn" style="background:linear-gradient(135deg,#5B8DEF,#3B6FE0);margin-bottom:8px" onclick="openPublishLibraryFromSettings()">📤 Publier une session</button>
         <button class="setting-btn" style="background:linear-gradient(135deg,#E0A030,#B87D1A)" onclick="openManageLibraryPacks()">🏷️ Gérer les packs</button>
@@ -651,7 +651,7 @@ input:focus{border-color:var(--blue)}
     <div id="library-back-row" style="display:none;margin-bottom:8px">
       <button class="cs-btn" onclick="showLibrary()">← Retour aux packs</button>
     </div>
-    <div class="overlay-title" id="library-title">📚 Bibliothèque Makedoo</div>
+    <div class="overlay-title" id="library-title">🗃️ Bibliothèque Makedoo</div>
     <div id="library-content" style="max-height:60vh;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch">
       <div style="text-align:center;padding:24px;color:var(--muted)">⏳ Chargement...</div>
     </div>
@@ -711,7 +711,7 @@ input:focus{border-color:var(--blue)}
 <div class="overlay" id="ov-publish-library" style="display:none">
   <div class="overlay-card">
     <button class="overlay-close" onclick="hideOv('ov-publish-library')">×</button>
-    <div class="overlay-title">📚 Publier dans la bibliothèque</div>
+    <div class="overlay-title">🗃️ Publier dans la bibliothèque</div>
     <div class="setting-row" id="publish-session-picker-row" style="display:none">
       <div class="setting-label">Session à publier</div>
       <select id="publish-session-select" onchange="onPublishSessionPick()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
@@ -754,7 +754,7 @@ input:focus{border-color:var(--blue)}
       <div class="setting-label">Code PIN</div>
       <input type="password" id="publish-pin" placeholder="Code PIN">
     </div>
-    <button class="setting-btn" onclick="confirmPublishLibrary()">📚 Publier</button>
+    <button class="setting-btn" onclick="confirmPublishLibrary()">🗃️ Publier</button>
     <div id="publish-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
   </div>
 </div>
@@ -2284,7 +2284,7 @@ function renderConvScreen(){
         +'<button class="cs-btn" onclick="renameLesson()" style="border-color:'+color+';color:'+color+'">✏️ '+t('rename')+'</button>'
         +'<button class="cs-btn" onclick="openRetranslate()" style="background:var(--blue-light);color:var(--blue)">🔄 Nouvelle langue</button>'
         +'<button class="cs-btn" onclick="exportSessionJson()" style="border-color:'+color+';color:'+color+'">📤 JSON</button>'
-        +'<button class="cs-btn" onclick="openPublishLibrary()" style="background:var(--green-light);color:var(--green-text)">📚 Publier</button>'
+        +'<button class="cs-btn" onclick="openPublishLibrary()" style="background:var(--green-light);color:var(--green-text)">🗃️ Publier</button>'
         +'<button class="cs-btn" style="background:#FFE0E3;color:#C0002A" onclick="deleteEntry()">🗑 '+t('delete')+'</button>'
         +'</div>'
         +'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">'
@@ -2487,13 +2487,13 @@ async function exportEntry(mode=2){
 }
 
 // ── Export d'un pack hors-ligne : JSON + un MP3 par échange (traduction), dans un ZIP ──
-async function exportOfflinePack(){
-  if(!selectedEntry)return;
+// ── Génère et télécharge un pack hors-ligne (JSON + MP3) à partir de n'importe quelle session ──
+async function downloadOfflinePack(sessionData,btnEl){
   if(typeof JSZip==='undefined'){showToast('❌ Bibliothèque ZIP non chargée');return;}
-  const btn=document.querySelector('[onclick="exportOfflinePack()"]');
-  if(btn)btn.textContent='⏳ …';
+  if(btnEl)btnEl.dataset.origLabel=btnEl.textContent;
+  if(btnEl)btnEl.textContent='⏳ …';
   const langMap={fr:'fr-FR',mk:'mk-MK',en:'en-US',es:'es-ES',de:'de-DE',it:'it-IT',ar:'ar-XA',sq:'sq-AL',sr:'sr-RS',tr:'tr-TR',el:'el-GR',bg:'bg-BG',nl:'nl-NL',pt:'pt-PT',ru:'ru-RU',pl:'pl-PL',uk:'uk-UA',ro:'ro-RO',hu:'hu-HU',cs:'cs-CZ',sk:'sk-SK',sl:'sl-SI',hr:'hr-HR',bs:'bs-BA',sv:'sv-SE',da:'da-DK',no:'nb-NO',fi:'fi-FI',is:'is-IS',et:'et-EE',lv:'lv-LV',lt:'lt-LT',ka:'ka-GE',hy:'hy-AM',be:'be-BY',ca:'ca-ES',eu:'eu-ES',cy:'cy-GB',ga:'ga-IE',mt:'mt-MT',zh:'zh-CN',ja:'ja-JP',th:'th-TH',km:'km-KH',id:'id-ID',vi:'vi-VN',lo:'lo-LA'};
-  const activeExOff=getActiveExchanges(selectedEntry);
+  const activeExOff=sessionData.exchanges||[];
   const zip=new JSZip();
   let okCount=0;
   for(let i=0;i<activeExOff.length;i++){
@@ -2506,26 +2506,32 @@ async function exportOfflinePack(){
         okCount++;
       }
     }catch(e){}
-    if(btn)btn.textContent='⏳ '+(i+1)+'/'+activeExOff.length;
+    if(btnEl)btnEl.textContent='⏳ '+(i+1)+'/'+activeExOff.length;
   }
-  const safeSessionName=(selectedEntry.name||'session').replace(/[^a-z0-9\-_ ]+/gi,'').trim()||'session';
+  const safeSessionName=(sessionData.name||'session').replace(/[^a-z0-9\-_ ]+/gi,'').trim()||'session';
   zip.file(safeSessionName+'.json',JSON.stringify({
-    name:selectedEntry.name,
-    langFrom:selectedEntry.langFrom,
-    langTo:selectedEntry.langTo,
+    name:sessionData.name,
+    langFrom:sessionData.langFrom,
+    langTo:sessionData.langTo,
     exchanges:activeExOff
   },null,2));
   try{
     const blob=await zip.generateAsync({type:'blob'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;a.download='makedoo_horsligne_'+(selectedEntry.name||'session').replace(/[^a-z0-9]+/gi,'-')+'.zip';
+    a.href=url;a.download='makedoo_horsligne_'+(sessionData.name||'session').replace(/[^a-z0-9]+/gi,'-')+'.zip';
     document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
     showToast('✓ Pack hors-ligne exporté ('+okCount+'/'+activeExOff.length+')');
   }catch(e){
     showToast('❌ Échec de la création du ZIP');
   }
-  if(btn)btn.textContent='📦 Pack hors-ligne';
+  if(btnEl)btnEl.textContent=btnEl.dataset.origLabel||'📦 Pack hors-ligne';
+}
+
+async function exportOfflinePack(){
+  if(!selectedEntry)return;
+  const btn=document.querySelector('[onclick="exportOfflinePack()"]');
+  await downloadOfflinePack({name:selectedEntry.name,langFrom:selectedEntry.langFrom,langTo:selectedEntry.langTo,exchanges:getActiveExchanges(selectedEntry)},btn);
 }
 
 async function exportDocx(){
@@ -2838,7 +2844,7 @@ async function confirmPublishLibrary(){
       return;
     }
     statusEl.textContent='✅ Publié !';statusEl.style.color='var(--green-text)';
-    showToast('📚 Publié dans la bibliothèque');
+    showToast('🗃️ Publié dans la bibliothèque');
     setTimeout(()=>hideOv('ov-publish-library'),1200);
   }catch(e){
     statusEl.textContent='❌ Erreur de connexion';statusEl.style.color='var(--red-text)';
@@ -3164,11 +3170,13 @@ async function loadOfflinePack(event){
         audioUrl=URL.createObjectURL(new Blob([blob],{type:'audio/mpeg'}));
         offlinePackAudioUrls.push(audioUrl);
       }
-      rows.push({original:exchanges[i].original,translated:exchanges[i].translated,audioUrl});
+      rows.push({original:exchanges[i].original,translated:exchanges[i].translated,langFrom:exchanges[i].langFrom,langTo:exchanges[i].langTo,audioUrl});
     }
     listEl.innerHTML=rows.map((r,i)=>
       '<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">'
-      +'<div style="font-size:13px;color:var(--muted);margin-bottom:4px">'+r.original.replace(/</g,'&lt;')+'</div>'
+      +'<div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:0.5px;margin-bottom:2px">'+(r.langFrom||'').toUpperCase()+'</div>'
+      +'<div style="font-size:13px;color:var(--muted);margin-bottom:6px">'+r.original.replace(/</g,'&lt;')+'</div>'
+      +'<div style="font-size:10px;font-weight:700;color:var(--green-text);letter-spacing:0.5px;margin-bottom:2px">'+(r.langTo||'').toUpperCase()+'</div>'
       +'<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px">'+r.translated.replace(/</g,'&lt;')+'</div>'
       +(r.audioUrl
         ?'<audio controls style="width:100%;height:36px" src="'+r.audioUrl+'"></audio>'
@@ -3747,7 +3755,7 @@ async function listPackFiles(path){
 async function showLibrary(){
   showOv('ov-library');
   document.getElementById('library-back-row').style.display='none';
-  document.getElementById('library-title').textContent='📚 Bibliothèque Makedoo';
+  document.getElementById('library-title').textContent='🗃️ Bibliothèque Makedoo';
   const content=document.getElementById('library-content');
   content.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">⏳ Chargement...</div>';
   try{
@@ -3801,6 +3809,7 @@ async function showPackSessions(packPath,packName){
         +(already
           ?'<span style="font-size:11px;color:var(--green-text);font-weight:700;flex-shrink:0">✓ Importée</span>'
           :'<button class="cs-btn" style="flex-shrink:0" onclick="importSingleSession(\''+packPath.replace(/'/g,"\\'")+'\',\''+s.filename.replace(/'/g,"\\'")+'\',this)">📥 Importer</button>')
+        +'<button class="cs-btn" style="flex-shrink:0;background:#E3D9FF;color:#5B3DB8" onclick="downloadLibraryOffline(\''+packPath.replace(/'/g,"\\'")+'\',\''+s.filename.replace(/'/g,"\\'")+'\',this)">📦 Hors-ligne</button>'
         +'</div>';
     }).join('');
   }catch(e){
@@ -3826,6 +3835,19 @@ async function importSingleSession(packPath,filename,btnEl){
     showToast('Erreur de téléchargement');
     if(btnEl){btnEl.disabled=false;btnEl.textContent='📥 Importer';}
   }
+}
+
+async function downloadLibraryOffline(packPath,filename,btnEl){
+  if(btnEl)btnEl.disabled=true;
+  try{
+    const res=await fetch(LIBRARY_BASE+'/'+packPath+'/'+filename+'?t='+Date.now());
+    const sessionData=await res.json();
+    if(!sessionData.exchanges||!Array.isArray(sessionData.exchanges)){showToast('❌ Session invalide');if(btnEl)btnEl.disabled=false;return;}
+    await downloadOfflinePack(sessionData,btnEl);
+  }catch(e){
+    showToast('Erreur de téléchargement');
+  }
+  if(btnEl)btnEl.disabled=false;
 }
 
 function importSession(){
