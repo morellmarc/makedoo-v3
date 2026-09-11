@@ -1171,6 +1171,59 @@ async function openBillingPortal(){
   }catch(e){showToast('❌ Erreur de connexion');}
 }
 
+// ── Sauvegarde automatique du travail en cours (non explicitement sauvegardé) ──
+// Protège contre une fermeture accidentelle de l'app (verrouillage du téléphone, mémoire libérée, etc.)
+function saveInProgressWork(){
+  try{
+    if(isLearn()){
+      if(S.currentExchanges&&S.currentExchanges.length>0){
+        localStorage.setItem('mk_v3_inprogress_solo',JSON.stringify({langFrom:S.langFrom,langTo:S.langTo,exchanges:S.currentExchanges,ts:Date.now()}));
+      }
+    } else {
+      if(S.plusExchanges&&S.plusExchanges.length>0){
+        localStorage.setItem('mk_v3_inprogress_duo',JSON.stringify({langFrom:S.langFrom,langTo:S.langTo,exchanges:S.plusExchanges,ts:Date.now()}));
+      }
+    }
+  }catch(e){}
+}
+function clearInProgressWork(which){
+  try{
+    if(!which||which==='solo')localStorage.removeItem('mk_v3_inprogress_solo');
+    if(!which||which==='duo')localStorage.removeItem('mk_v3_inprogress_duo');
+  }catch(e){}
+}
+function restoreInProgressWorkIfAny(){
+  const MAX_AGE_MS=48*60*60*1000; // 48h — au-delà, on considère le travail périmé et on ne le propose plus
+  try{
+    const rawSolo=localStorage.getItem('mk_v3_inprogress_solo');
+    if(rawSolo){
+      const saved=JSON.parse(rawSolo);
+      if(saved.exchanges&&saved.exchanges.length>0&&(Date.now()-(saved.ts||0))<MAX_AGE_MS){
+        S.mode='learn';S.langFrom=saved.langFrom;S.langTo=saved.langTo;
+        S.currentExchanges=saved.exchanges;S.duoWelcomeShown=true;
+        setScreen(2);
+        rebuildTextPanel();
+        showToast('↩️ Session en cours restaurée');
+        return true;
+      }
+      clearInProgressWork('solo');
+    }
+    const rawDuo=localStorage.getItem('mk_v3_inprogress_duo');
+    if(rawDuo){
+      const saved=JSON.parse(rawDuo);
+      if(saved.exchanges&&saved.exchanges.length>0&&(Date.now()-(saved.ts||0))<MAX_AGE_MS){
+        S.mode='exchange';S.langFrom=saved.langFrom;S.langTo=saved.langTo;
+        S.plusExchanges=saved.exchanges;
+        showPlusScreen();
+        showToast('↩️ Conversation en cours restaurée');
+        return true;
+      }
+      clearInProgressWork('duo');
+    }
+  }catch(e){}
+  return false;
+}
+
 const LANGS=[
   {code:'fr',label:'Français',flag:'🇫🇷',bcp47:'fr-FR',display:'FR'},
   {code:'mk',label:'Македонски',flag:'🇲🇰',bcp47:'mk-MK',display:'MK'},
@@ -1677,7 +1730,7 @@ function doConfirmedExit(){
   hideOv('ov-confirm-exit');
   if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
   // Réinitialiser et retourner à l'écran 0
-  S.currentExchanges=[];
+  S.currentExchanges=[];clearInProgressWork('solo');
   S.lastOriginal=null;
   selectedPhraseIdx=-1;
   selectedPhraseIdxs.clear();
@@ -1691,7 +1744,7 @@ function doConfirmedExit(){
 }
 function cancelExit(){hideOv('ov-confirm-exit');}
 function doExitLesson(){
-  S.currentExchanges=[];
+  S.currentExchanges=[];clearInProgressWork('solo');
   S.lastOriginal=null;
   selectedPhraseIdx=-1;
   selectedPhraseIdxs.clear();
@@ -1721,7 +1774,7 @@ function doExitConv(){
 function doConfirmedExitConv(){
   hideOv('ov-confirm-exit');
   if(S.listening){if(recognition)recognition.abort();if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();S.listening=false;}
-  S.currentExchanges=[];setScreen(0);
+  S.currentExchanges=[];clearInProgressWork('solo');setScreen(0);
 }
 function doResume(){
   if(isLearn()){
@@ -1927,6 +1980,7 @@ function doSave(){
 }
 function plusDoExit(){
   S.plusExchanges=[];
+  clearInProgressWork('duo');
   S.lastPlusOriginal=null;
   S.lastPlusOriginalLang=null;
   const saveRow=document.getElementById('plus-save-row');
@@ -1953,12 +2007,14 @@ function confirmSaveConv(){
   hideOv('ov-save-conv');
   if(S.savingFromPlus){
     S.plusExchanges=[];
+    clearInProgressWork('duo');
     const statusEl=document.getElementById('plus-status');
     if(statusEl)statusEl.textContent=t('plusPressToTalk');
     const saveRow=document.getElementById('plus-save-row');
     if(saveRow)saveRow.style.display='none';
   } else {
     S.currentExchanges=[];
+    clearInProgressWork('solo');
     setScreen(0);
   }
   S.savingFromPlus=false;
@@ -1976,9 +2032,9 @@ function confirmSaveLesson(){
   S.lessons.unshift({id:Date.now(),name,date:new Date().toISOString().split('T')[0],langFrom:S.langFrom,langTo:S.langTo,count:S.currentExchanges.length,exchanges:[...S.currentExchanges]});
   localStorage.setItem('mk_v3_lessons',JSON.stringify(S.lessons));
   hideOv('ov-save-lesson');
-  S.currentExchanges=[];setScreen(isLearn()?1:0);showToast('💾 '+name);
+  S.currentExchanges=[];clearInProgressWork('solo');setScreen(isLearn()?1:0);showToast('💾 '+name);
 }
-function doExit(){S.currentExchanges=[];setScreen(0)}
+function doExit(){S.currentExchanges=[];clearInProgressWork('solo');setScreen(0)}
 
 async function submitTextLesson(){
   const input=document.getElementById('text-lesson-input');
@@ -2104,6 +2160,7 @@ async function translateAndSpeak(text,fromLang,toLang){
   } else {
     S.currentExchanges.push(exchange);
   }
+  saveInProgressWork();
   S.lastTranslation=translated;S.lastTranslationLang=toLang;S.lastOriginal=text;
   if(isLearn()){
     const lf=LANGS.find(l=>l.code===fromLang);const lt=LANGS.find(l=>l.code===toLang);
@@ -4227,6 +4284,7 @@ async function plusTranslateAndSpeak(text,fromLang,toLang){
     if(data.translated)translated=data.translated;
   }catch(e){}
   S.plusExchanges.push({original:text,translated,langFrom:fromLang,langTo:toLang});
+  saveInProgressWork();
   S.lastPlusOriginal=text;
   S.lastPlusOriginalLang=fromLang;
   updateAudioIconState();
@@ -4602,6 +4660,7 @@ refreshAccountUI();
 
 loadInfoText().then(()=>{
   if(S.screen===0){
+    if(restoreInProgressWorkIfAny())return;
     renderScreen();
     const welcomeIntro=document.getElementById('welcome-intro');
     if(!welcomeIntro||welcomeIntro.style.display!=='flex'){
