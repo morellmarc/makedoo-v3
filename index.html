@@ -1034,6 +1034,7 @@ const API_BASE = 'https://makedoo-server-production.up.railway.app';
 
 // ── State ──────────────────────────────────────────────────────
 const S={
+  hasAccess:false,inTrial:false,trialEndsAt:null,accessChecked:false,
   mode:'exchange',
   langFrom:'mk',langTo:'en',uiLang:'en',
   interlocutor:'Unknown',location:'…',
@@ -1081,6 +1082,7 @@ async function refreshAccountUI(){
   const loggedOut=document.getElementById('account-logged-out');
   const loggedIn=document.getElementById('account-logged-in');
   if(!jwtToken){
+    S.hasAccess=false;S.inTrial=false;S.trialEndsAt=null;S.accessChecked=true;
     if(loggedOut)loggedOut.style.display='block';
     if(loggedIn)loggedIn.style.display='none';
     return;
@@ -1089,6 +1091,7 @@ async function refreshAccountUI(){
     const res=await fetch(API_BASE+'/auth/me',{headers:{'Authorization':'Bearer '+jwtToken}});
     if(!res.ok){
       localStorage.removeItem('mk_auth_jwt');
+      S.hasAccess=false;S.inTrial=false;S.trialEndsAt=null;S.accessChecked=true;
       if(loggedOut)loggedOut.style.display='block';
       if(loggedIn)loggedIn.style.display='none';
       return;
@@ -1102,7 +1105,28 @@ async function refreshAccountUI(){
     const subBtn=document.getElementById('account-subscribe-btn');
     const manageBtn=document.getElementById('account-manage-btn');
     const isActive=data.subscriptionStatus==='active';
-    if(statusEl)statusEl.textContent=isActive?'⭐ Abonnement actif':'Aucun abonnement actif';
+    // Accès : abonnement actif, ou période d'essai en cours (calculée côté serveur si fournie,
+    // sinon on se rabat sur le statut d'abonnement seul pour ne pas bloquer un compte existant
+    // si le serveur n'envoie pas encore ces champs).
+    let inTrial=false,trialEndsAt=data.trialEndsAt||null,hasAccess;
+    if(typeof data.hasAccess==='boolean'){
+      hasAccess=data.hasAccess;
+      inTrial=!!data.inTrial;
+    } else if(trialEndsAt){
+      inTrial=!isActive&&(new Date()<new Date(trialEndsAt));
+      hasAccess=isActive||inTrial;
+    } else {
+      hasAccess=isActive||true; // champ non fourni par le serveur : on n'exclut pas un compte déjà enregistré
+    }
+    S.hasAccess=hasAccess;S.inTrial=inTrial;S.trialEndsAt=trialEndsAt;S.accessChecked=true;
+    let statusTxt=isActive?'⭐ Abonnement actif':'Aucun abonnement actif';
+    if(!isActive&&inTrial&&trialEndsAt){
+      const daysLeft=Math.max(0,Math.ceil((new Date(trialEndsAt)-new Date())/86400000));
+      statusTxt='🎁 Essai gratuit — '+daysLeft+' jour(s) restant(s)';
+    } else if(!isActive&&!inTrial){
+      statusTxt='⏳ Essai terminé — abonnement requis';
+    }
+    if(statusEl)statusEl.textContent=statusTxt;
     if(subBtn)subBtn.style.display=isActive?'none':'block';
     if(manageBtn)manageBtn.style.display=isActive?'block':'none';
   }catch(e){}
@@ -1147,6 +1171,22 @@ function logoutAccount(){
   localStorage.removeItem('mk_auth_jwt');
   refreshAccountUI();
   showToast('Déconnecté');
+}
+
+// ── Contrôle d'accès (inscription obligatoire + essai gratuit) ──
+// Bloque l'utilisation réelle de l'app (voix/texte, DUO/SOLO, sessions)
+// tant qu'aucun compte n'est enregistré ou que l'essai/abonnement a expiré.
+function checkAccessOrBlock(){
+  if(S.hasAccess)return true;
+  const jwtToken=getAuthJwt();
+  if(!jwtToken){
+    showToast('🔒 Inscription gratuite requise pour utiliser Makedoo');
+  } else {
+    showToast('⏳ Votre essai gratuit est terminé — abonnez-vous pour continuer');
+  }
+  showOv('ov-setup');
+  refreshAccountUI();
+  return false;
 }
 
 async function startSubscription(){
@@ -1311,6 +1351,7 @@ function execLP(a){
 
 // ── Mode ───────────────────────────────────────────────────────
 function setMode(mode){
+  if(!checkAccessOrBlock())return;
   const audioScreen=document.getElementById('audio-main-screen');
   if(audioScreen&&audioScreen.style.display==='flex'){
     const player=document.getElementById('audio-main-player');
@@ -1702,6 +1743,7 @@ function toggleInfoScreen0(){
 }
 
 function startSession(){
+  if(!checkAccessOrBlock())return;
   S.welcomeShown=true;
   S.duoWelcomeShown=true;
   S.showInfoScreen0=false;
@@ -2037,6 +2079,7 @@ function confirmSaveLesson(){
 function doExit(){S.currentExchanges=[];clearInProgressWork('solo');setScreen(0)}
 
 async function submitTextLesson(){
+  if(!checkAccessOrBlock())return;
   const input=document.getElementById('text-lesson-input');
   let text=input.value.trim();
   // Si champ vide et phrase précédente en mémoire → retraduit dans la nouvelle langue
@@ -2146,6 +2189,7 @@ function finishListening(text,fromLang,toLang){
 // ── Translate & Speak ──────────────────────────────────────────
 let hourglassInterval=null;
 async function translateAndSpeak(text,fromLang,toLang){
+  if(!checkAccessOrBlock())return;
   let translated=text;
   try{
     const res=await fetch(API_BASE+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:fromLang,target:toLang})});
@@ -2283,6 +2327,7 @@ function showConversations(){convViewMode=false;selectedEntry=null;showConvScree
 function showLessons(){convViewMode=true;selectedEntry=null;showConvScreen()}
 
 function showConvScreen(){
+  if(!checkAccessOrBlock())return;
   const ml=document.getElementById('main-layout-el');
   const mb=document.getElementById('mode-bar');
   const ns=document.getElementById('nav-spacer');
@@ -3983,6 +4028,9 @@ function populateWelcomeIntro(showStartBtn,startLabel){
   if(ytUrl){
     html+='<button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878);width:auto;padding:7px 16px;font-size:12px;margin-top:8px" onclick="window.open(\''+ytUrl.replace(/'/g,"\\'")+'\',\'_blank\')">▶️ Youtube Tuto</button>';
   }
+  if(!S.hasAccess){
+    html+='<button class="setting-btn" style="background:linear-gradient(135deg,#4A6CF7,#3450C4);width:auto;padding:7px 16px;font-size:12px;margin-top:8px;margin-left:8px" onclick="event.stopPropagation();showOv(\'ov-setup\')">👤 Créer un compte</button>';
+  }
   if(showStartBtn){
     html+='<div style="padding:20px 0"><button class="action-btn green solid" onclick="event.stopPropagation();startSession()">▶ '+startLabel+'</button></div>';
   }
@@ -4043,6 +4091,9 @@ function togglePlusPresentation(){
     if(ytUrl){
       html+='<button class="setting-btn" style="background:linear-gradient(135deg,#00C48C,#00A878);width:auto;padding:7px 16px;font-size:12px;margin-top:8px" onclick="window.open(\''+ytUrl.replace(/'/g,"\\'")+'\',\'_blank\')">▶️ Youtube Tuto</button>';
     }
+    if(!S.hasAccess){
+      html+='<button class="setting-btn" style="background:linear-gradient(135deg,#4A6CF7,#3450C4);width:auto;padding:7px 16px;font-size:12px;margin-top:8px;margin-left:8px" onclick="event.stopPropagation();showOv(\'ov-setup\')">👤 Créer un compte</button>';
+    }
     if(el)el.innerHTML=html;
     const scrollWrap=el&&el.parentElement;
     if(scrollWrap)scrollWrap.scrollTop=0;
@@ -4065,6 +4116,7 @@ function ensureMicStream(){
 
 function showPlusScreen(markActive){
   if(markActive===undefined)markActive=true;
+  if(markActive&&!checkAccessOrBlock())return;
   const audioScreen=document.getElementById('audio-main-screen');
   if(audioScreen&&audioScreen.style.display==='flex'){
     const player=document.getElementById('audio-main-player');
@@ -4123,6 +4175,7 @@ function hidePlusScreen(){
 let plusMediaRecorder=null,plusAudioChunks=[],plusRecordingSide=null;
 
 function plusStartRecord(side){
+  if(!checkAccessOrBlock())return;
   if(S.plusBusy||plusRecordingSide)return;
   unlockAudioForIOS();
   plusRecordingSide=side;
@@ -4196,6 +4249,7 @@ function plusResetFlags(){
 let soloMediaRecorder=null,soloAudioChunks=[],soloRecordingSide=null;
 
 function soloStartRecord(side){
+  if(!checkAccessOrBlock())return;
   if(soloRecordingSide)return;
   unlockAudioForIOS();
   soloRecordingSide=side;
