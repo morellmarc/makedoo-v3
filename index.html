@@ -1200,6 +1200,14 @@ function logoutAccount(){
 // tant qu'aucun compte n'est enregistré ou que l'essai/abonnement a expiré.
 function checkAccessOrBlock(){
   if(S.hasAccess)return true;
+  // La vérification auprès du serveur (/auth/me) n'a pas encore répondu (ça arrive au tout
+  // début de l'ouverture de l'app, y compris quand une conversation en cours se restaure
+  // automatiquement). Pour un compte déjà enregistré (jeton présent), on ne bloque pas sur
+  // cette fenêtre de quelques centaines de ms : ça évite l'écran "reconnectez-vous" qui
+  // s'affichait à chaque réouverture avant même que le serveur ait eu le temps de répondre.
+  // Pour un vrai anonyme (aucun jeton), ce cas ne se présente pas : S.accessChecked est déjà
+  // à true à ce stade.
+  if(!S.accessChecked)return true;
   const jwtToken=getAuthJwt();
   showToast(jwtToken?t('trialEndedToast'):t('lockedToast'));
   showOv('ov-setup');
