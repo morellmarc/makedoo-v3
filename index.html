@@ -2592,6 +2592,7 @@ function renderConvScreen(){
         +'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">'
         +'<button class="cs-btn" onclick="exportPdf(\'C\')" style="border-color:'+color+';color:'+color+'">📋 PDF-C</button>'
         +'<button class="cs-btn" onclick="exportPdf(\'L\')" style="border-color:'+color+';color:'+color+'">📋 PDF-L</button>'
+        +'<button class="cs-btn" onclick="exportPdf(\'T\')" style="border-color:'+color+';color:'+color+'">📋 PDF-T</button>'
         +'<button class="cs-btn" onclick="exportDocx()" style="border-color:'+color+';color:'+color+'">📄 DOCX</button>'
         +'</div>'
         +'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">'
@@ -2934,6 +2935,11 @@ function exportPdf(format='C'){
         +groups.map(g=>'<tr><td class="orig">'+g.original+'</td><td>'+(g.translations[0]?.text||'')+'</td></tr>').join('');
     }
     body='<table>'+tableRows+'</table>';
+  } else if(format==='T'){
+    // PDF-T : uniquement les phrases dans la langue cible (traduction), sans l'original
+    body=groups.map(g=>g.translations.map(t=>
+      '<div class="phrase-only">'+(isMulti?'<span class="lang-badge">'+t.lang.toUpperCase()+'</span> ':'')+t.text+'</div>'
+    ).join('')).join('');
   } else {
     // PDF-L : phrases empilées avec séparateurs
     body=groups.map(g=>{
@@ -2945,11 +2951,13 @@ function exportPdf(format='C'){
 
   const css=format==='C'
     ?'table{border-collapse:collapse;width:100%}th{background:#4A6CF7;color:white;padding:10px 14px;text-align:left}td{padding:10px 14px;border-bottom:1px solid #eee}td.orig{font-weight:700}tr:nth-child(even) td{background:#F8F9FF}'
+    :format==='T'
+    ?'.phrase-only{font-size:16px;color:#1A2340;padding:10px 0;border-bottom:1px solid #E4E8F5;page-break-inside:avoid}.lang-badge{display:inline-block;background:#4A6CF7;color:white;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;margin-right:8px}'
     :'.phrase-block{margin:16px 0;padding:8px 0}.phrase-orig{font-size:16px;font-weight:700;color:#1A2340;margin-bottom:8px}.phrase-trans{font-size:15px;color:#2D4FBF;margin:4px 0;padding-left:12px}.lang-badge{display:inline-block;background:#4A6CF7;color:white;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;margin-right:8px}.phrase-sep{border:none;border-top:2px solid #E4E8F5;margin:8px 0}';
 
   const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Calibri,Arial,sans-serif;margin:30px;color:#1A2340}h1{font-size:22px;margin-bottom:4px}.meta{color:#8A96B4;font-size:13px;margin-bottom:24px}'+css+'@media print{body{margin:15px}}</style><title>'+name+'</title></head><body>'
     +'<h1>📖 '+name+' <span style="font-size:13px;color:#8A96B4;font-weight:normal">PDF-'+format+'</span></h1>'
-    +'<div class="meta">📅 '+date+' · 📍 '+(selectedEntry.location||'')+' · '+groups.length+' phrase(s)</div>'
+    +'<div class="meta">📅 '+date+' · 📍 '+(selectedEntry.location||'')+' · '+groups.length+' phrase(s)'+(format==='T'?' · '+langs.map(l=>l.toUpperCase()).join(', '):'')+'</div>'
     +body
     +'</body></html>';
 
